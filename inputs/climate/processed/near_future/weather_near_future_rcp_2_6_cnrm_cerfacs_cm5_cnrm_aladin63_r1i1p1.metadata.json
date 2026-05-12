@@ -1,0 +1,71 @@
+{
+  "created_utc": "2026-05-06T03:37:10.205830+00:00",
+  "csv_schema": [
+    "timestamp",
+    "T_out_C",
+    "I_solar_W_m2",
+    "scenario",
+    "window",
+    "gcm_model",
+    "rcm_model",
+    "ensemble_member",
+    "source_files"
+  ],
+  "dataset": "projections-cordex-domains-single-levels",
+  "model_chain": {
+    "ensemble_member": "r1i1p1",
+    "gcm_model": "cnrm_cerfacs_cm5",
+    "rcm_model": "cnrm_aladin63"
+  },
+  "netcdf_files": [
+    "inputs/climate/raw/_extracted/near_future/rcp_2_6/cordex_near_future_rcp_2_6_cnrm_cerfacs_cm5_cnrm_aladin63_r1i1p1_2026_2030/rsds_EUR-11_CNRM-CERFACS-CNRM-CM5_rcp26_r1i1p1_CNRM-ALADIN63_v2_day_20260101-20301231.nc",
+    "inputs/climate/raw/_extracted/near_future/rcp_2_6/cordex_near_future_rcp_2_6_cnrm_cerfacs_cm5_cnrm_aladin63_r1i1p1_2026_2030/tas_EUR-11_CNRM-CERFACS-CNRM-CM5_rcp26_r1i1p1_CNRM-ALADIN63_v2_day_20260101-20301231.nc",
+    "inputs/climate/raw/_extracted/near_future/rcp_2_6/cordex_near_future_rcp_2_6_cnrm_cerfacs_cm5_cnrm_aladin63_r1i1p1_2031_2035/rsds_EUR-11_CNRM-CERFACS-CNRM-CM5_rcp26_r1i1p1_CNRM-ALADIN63_v2_day_20310101-20351231.nc",
+    "inputs/climate/raw/_extracted/near_future/rcp_2_6/cordex_near_future_rcp_2_6_cnrm_cerfacs_cm5_cnrm_aladin63_r1i1p1_2031_2035/tas_EUR-11_CNRM-CERFACS-CNRM-CM5_rcp26_r1i1p1_CNRM-ALADIN63_v2_day_20310101-20351231.nc",
+    "inputs/climate/raw/_extracted/near_future/rcp_2_6/cordex_near_future_rcp_2_6_cnrm_cerfacs_cm5_cnrm_aladin63_r1i1p1_2036_2040/rsds_EUR-11_CNRM-CERFACS-CNRM-CM5_rcp26_r1i1p1_CNRM-ALADIN63_v2_day_20360101-20401231.nc",
+    "inputs/climate/raw/_extracted/near_future/rcp_2_6/cordex_near_future_rcp_2_6_cnrm_cerfacs_cm5_cnrm_aladin63_r1i1p1_2036_2040/tas_EUR-11_CNRM-CERFACS-CNRM-CM5_rcp26_r1i1p1_CNRM-ALADIN63_v2_day_20360101-20401231.nc",
+    "inputs/climate/raw/_extracted/near_future/rcp_2_6/cordex_near_future_rcp_2_6_cnrm_cerfacs_cm5_cnrm_aladin63_r1i1p1_2041_2045/rsds_EUR-11_CNRM-CERFACS-CNRM-CM5_rcp26_r1i1p1_CNRM-ALADIN63_v2_day_20410101-20451231.nc",
+    "inputs/climate/raw/_extracted/near_future/rcp_2_6/cordex_near_future_rcp_2_6_cnrm_cerfacs_cm5_cnrm_aladin63_r1i1p1_2041_2045/tas_EUR-11_CNRM-CERFACS-CNRM-CM5_rcp26_r1i1p1_CNRM-ALADIN63_v2_day_20410101-20451231.nc",
+    "inputs/climate/raw/_extracted/near_future/rcp_2_6/cordex_near_future_rcp_2_6_cnrm_cerfacs_cm5_cnrm_aladin63_r1i1p1_2046_2050/rsds_EUR-11_CNRM-CERFACS-CNRM-CM5_rcp26_r1i1p1_CNRM-ALADIN63_v2_day_20460101-20501231.nc",
+    "inputs/climate/raw/_extracted/near_future/rcp_2_6/cordex_near_future_rcp_2_6_cnrm_cerfacs_cm5_cnrm_aladin63_r1i1p1_2046_2050/tas_EUR-11_CNRM-CERFACS-CNRM-CM5_rcp26_r1i1p1_CNRM-ALADIN63_v2_day_20460101-20501231.nc"
+  ],
+  "radiation": {
+    "conversion": "kept_w_m2",
+    "input_units": "W m-2",
+    "output_units": "W m-2",
+    "variable": "rsds"
+  },
+  "row_count": 7670,
+  "scenario": "rcp_2_6",
+  "source_files": [
+    "inputs/climate/raw/near_future/rcp_2_6/cordex_near_future_rcp_2_6_cnrm_cerfacs_cm5_cnrm_aladin63_r1i1p1_2026_2030.zip",
+    "inputs/climate/raw/near_future/rcp_2_6/cordex_near_future_rcp_2_6_cnrm_cerfacs_cm5_cnrm_aladin63_r1i1p1_2031_2035.zip",
+    "inputs/climate/raw/near_future/rcp_2_6/cordex_near_future_rcp_2_6_cnrm_cerfacs_cm5_cnrm_aladin63_r1i1p1_2036_2040.zip",
+    "inputs/climate/raw/near_future/rcp_2_6/cordex_near_future_rcp_2_6_cnrm_cerfacs_cm5_cnrm_aladin63_r1i1p1_2041_2045.zip",
+    "inputs/climate/raw/near_future/rcp_2_6/cordex_near_future_rcp_2_6_cnrm_cerfacs_cm5_cnrm_aladin63_r1i1p1_2046_2050.zip"
+  ],
+  "spatial_extraction": {
+    "lat_name": "lat",
+    "lon_name": "lon",
+    "method": "nearest_point",
+    "preselected_before_combine": true,
+    "selected_indices": {
+      "x": 191,
+      "y": 239
+    },
+    "selected_lat": 50.79848111186651,
+    "selected_lon": 4.269705300227394,
+    "target_lat": 50.85,
+    "target_lon": 4.35
+  },
+  "temperature": {
+    "conversion": "kelvin_to_celsius",
+    "input_units": "K",
+    "output_units": "degC",
+    "variable": "tas"
+  },
+  "time_calendar": "gregorian",
+  "time_end": "2050-12-31T12:00:00",
+  "time_start": "2030-01-01T12:00:00",
+  "window": "near_future"
+}

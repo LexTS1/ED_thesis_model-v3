@@ -1,0 +1,43 @@
+source: "TABULA / EPISCOPE Belgium"
+note: "Use U-values rather than aggregated UA (per literature recommendation)."
+
+archetypes:
+  old_stock:
+    label: "SFH I pre-1970"
+    source: "TABULA / EPISCOPE Belgium"
+    note: "Belgian old stock single-family-house archetype."
+    u_values:
+      floor: 1.04
+      wall: 1.89
+      window: 3.91
+      roof: 1.86
+
+  average_stock:
+    label: "SFH II 1970-1990"
+    source: "TABULA / EPISCOPE Belgium"
+    note: "Belgian average stock single-family-house archetype."
+    u_values:
+      floor: 0.95
+      wall: 1.56
+      window: 3.53
+      roof: 1.32
+
+  better_stock:
+    label: "SFH III 1991-2006"
+    source: "TABULA / EPISCOPE Belgium"
+    note: "Belgian better stock single-family-house archetype."
+    u_values:
+      floor: 0.76
+      wall: 0.81
+      window: 2.53
+      roof: 0.69
+
+  efficient_renovated:
+    label: "Efficient / Renovated"
+    source: "TABULA / EPISCOPE Belgium"
+    note: "Belgian efficient or renovated archetype."
+    u_values:
+      floor: 0.24
+      wall: 0.24
+      window: 1.50
+      roof: 0.24

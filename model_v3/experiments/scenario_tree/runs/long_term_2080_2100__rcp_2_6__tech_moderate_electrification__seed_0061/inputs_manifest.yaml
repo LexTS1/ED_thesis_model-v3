@@ -1,0 +1,25 @@
+schema_version: model_v3.inputs_manifest.v1
+status: configured_not_run
+scenario_leaf_id: long_term_2080_2100__rcp_2_6__tech_moderate_electrification__seed_0061
+scenario_id: long_term_2080_2100__rcp_2_6__tech_moderate_electrification
+climate_forcing:
+  file: inputs/climate/processed/long_term/weather_long_term_rcp_2_6_cnrm_cerfacs_cm5_cnrm_aladin63_r1i1p1.csv
+  exists: true
+  climate_window_id: long_term_2080_2100
+  climate_pathway_id: rcp_2_6
+  source_file_window: 2080-2100
+  analysis_start: '2080-01-01'
+  analysis_end: '2100-12-31'
+technology:
+  case_id: tech_moderate_electrification
+  metadata_file: config/model_v3/scenario_tree/technology_cases.yaml
+  belgian_technology_inputs: config/model_v3/belgian_technology_inputs.yaml
+  belgian_technology_inputs_exists: true
+stochastic:
+  realization_id: seed_0061
+  seed_index: 61
+  seed_value: 61
+  cohort_size: 100
+validation:
+  config_complete: true
+  missing_required_inputs: []

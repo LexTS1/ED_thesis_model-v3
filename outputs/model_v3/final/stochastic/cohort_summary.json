@@ -1,0 +1,554 @@
+{
+  "summary_schema": "model_v3 stochastic cohort summary v2",
+  "description": "Readable summary of the stochastic cohort run. Full time-series profiles are in aggregate_profile.csv; per-household annual energy and calibration diagnostics are persisted as separate artifacts.",
+  "artifacts": {
+    "aggregate_profile_csv": "outputs/model_v3/final/stochastic/aggregate_profile.csv",
+    "household_annual_energy_csv": "outputs/model_v3/final/stochastic/household_annual_energy.csv",
+    "household_calibration_diagnostics_json": "outputs/model_v3/final/stochastic/household_calibration_diagnostics.json",
+    "aggregate_profile_plot": "outputs/model_v3/final/stochastic/aggregate_profile.png"
+  },
+  "n_households": 30,
+  "household_count": 30,
+  "requested_households": 30,
+  "minimum_households": 30,
+  "random_seed": 42,
+  "reference_year": 2023,
+  "n_steps": 8760,
+  "profile_representation": "per_household",
+  "mean_profile": 445.20547945210325,
+  "std_profile": 236.08013139590744,
+  "P10_profile": 321.28422039231117,
+  "P50_profile": 338.21223962505144,
+  "P90_profile": 592.9403109179786,
+  "diversity_factor": 7.447832085035376,
+  "aggregated_peak_W": 200504.66176927395,
+  "aggregated_dhw_peak_W": 107881.42978835688,
+  "mean_peak_demand_W": 49777.50177081215,
+  "annual_energy_kWh_mean": 3900.00000000067,
+  "annual_energy_kWh_std": 3.790440333637896e-11,
+  "annual_dhw_thermal_kWh_mean": 3003.2228072029147,
+  "annual_dhw_thermal_kWh_std": 2726.631685349394,
+  "run_metadata": {
+    "n_households": 30,
+    "requested_households": 30,
+    "minimum_households": 30,
+    "random_seed": 42,
+    "reference_year": 2023,
+    "n_steps": 8760,
+    "timestep_seconds": 3600.0,
+    "profile_representation": "per_household"
+  },
+  "sampled_population": {
+    "technology_counts": {
+      "heat_pump": 17,
+      "resistive": 13
+    },
+    "household_class_counts": {
+      "daytime_home": 7,
+      "low_flat": 7,
+      "peak_heavy_family": 5,
+      "workday_absent": 11
+    },
+    "sample_parameter_ranges": {
+      "physical.UA_scale_factor": {
+        "min": 0.4,
+        "max": 1.4991827229229466
+      },
+      "physical.thermal_mass_scale": {
+        "min": 0.5854033128017416,
+        "max": 1.582772493201466
+      },
+      "physical.infiltration_rate": {
+        "min": 0.5582980452407832,
+        "max": 2.6331109158412627
+      },
+      "physical.cop_scale": {
+        "min": 0.7996477707933486,
+        "max": 1.251747403753392
+      },
+      "behaviour.occupancy_intensity": {
+        "min": 0.5735907438537381,
+        "max": 1.3753689222563341
+      },
+      "behaviour.schedule_variation_seed": {
+        "min": 300493340.0,
+        "max": 2110414630.0
+      },
+      "behaviour.load_variation_seed": {
+        "min": 53307269.0,
+        "max": 2126699579.0
+      },
+      "behaviour.occupancy_time_shift_hours": {
+        "min": -1.6198032097423951,
+        "max": 1.9421606779797047
+      },
+      "behaviour.transition_variability_scale": {
+        "min": 1.2036908057665807,
+        "max": 1.4996230110200295
+      },
+      "behaviour.state_duration_scale": {
+        "min": 0.5871419779878189,
+        "max": 1.5659339096201292
+      },
+      "behaviour.household_random_effect_u": {
+        "min": -0.8011297705294627,
+        "max": 1.0465841544652974
+      },
+      "behaviour.setpoint_shift_C": {
+        "min": -2.635082673717874,
+        "max": 1.7217189911003452
+      },
+      "behaviour.dhw_intensity_scale": {
+        "min": 0.3837729712412586,
+        "max": 2.1823559931846725
+      },
+      "behaviour.dhw_event_frequency_scale": {
+        "min": 0.584603021729403,
+        "max": 1.680758420404516
+      },
+      "behaviour.dhw_event_volume_sigma": {
+        "min": 0.4,
+        "max": 0.4
+      },
+      "behaviour.dhw_event_lambda": {
+        "min": 3.0,
+        "max": 3.0
+      },
+      "behaviour.dhw_start_jitter_hours": {
+        "min": 0.75,
+        "max": 0.75
+      },
+      "behaviour.appliance_intensity_scale": {
+        "min": 0.40023514499602336,
+        "max": 2.51912723565517
+      },
+      "behaviour.appliance_start_jitter_hours": {
+        "min": 1.0,
+        "max": 1.0
+      },
+      "behaviour.high_frequency_sigma": {
+        "min": 0.08,
+        "max": 0.08
+      },
+      "technology.heating_capacity_scale": {
+        "min": 0.5174439338141019,
+        "max": 1.3994593061495988
+      }
+    }
+  },
+  "annual_energy_summary": {
+    "aggregate_calibrated_electricity_kWh": 117000.0000000201,
+    "per_household_calibrated_electricity_kWh": {
+      "count": 30.0,
+      "sum": 117000.0000000201,
+      "mean": 3900.00000000067,
+      "std": 3.790440333637896e-11,
+      "min": 3900.0000000005803,
+      "p10": 3900.000000000618,
+      "p50": 3900.0000000006726,
+      "p90": 3900.0000000007144,
+      "max": 3900.0000000007467
+    },
+    "per_household_raw_pre_calibration_electricity_kWh": {
+      "count": 30.0,
+      "sum": 118668.39309892688,
+      "mean": 3955.6131032975627,
+      "std": 704.1424354602169,
+      "min": 3106.875163138982,
+      "p10": 3324.6707629793577,
+      "p50": 3663.859286224404,
+      "p90": 4633.803303848212,
+      "max": 6220.456756106927
+    },
+    "per_household_target_electricity_kWh": {
+      "count": 30.0,
+      "sum": 117000.0,
+      "mean": 3900.0,
+      "std": 0.0,
+      "min": 3900.0,
+      "p10": 3900.0,
+      "p50": 3900.0,
+      "p90": 3900.0,
+      "max": 3900.0
+    },
+    "per_household_dhw_thermal_kWh": {
+      "count": 30.0,
+      "sum": 90096.68421608744,
+      "mean": 3003.2228072029147,
+      "std": 2726.631685349394,
+      "min": 313.3171518741516,
+      "p10": 832.0918912326465,
+      "p50": 2255.132674053497,
+      "p90": 5603.264849094876,
+      "max": 11257.332673688868
+    },
+    "per_household_space_heating_thermal_kWh": {
+      "count": 30.0,
+      "sum": 396559.8689854371,
+      "mean": 13218.66229951457,
+      "std": 4295.023473487283,
+      "min": 6000.096111953131,
+      "p10": 7473.387589338538,
+      "p50": 13145.70883348105,
+      "p90": 17859.00607226139,
+      "max": 22586.128382792045
+    },
+    "aggregate_dhw_thermal_kWh": 90096.68421608744,
+    "aggregate_space_heating_thermal_kWh": 396559.8689854371,
+    "note": "Calibrated household electricity is annual-baseline aligned by the annual runner; raw/pre-calibration diagnostics show the uncalibrated annual totals when available."
+  },
+  "annual_calibration_summary": {
+    "available": true,
+    "household_count_with_diagnostics": 30,
+    "target_annual_kWh_by_end_use": {
+      "appliances": {
+        "count": 30.0,
+        "sum": 61927.272727272735,
+        "mean": 2064.2424242424245,
+        "std": 0.0,
+        "min": 2064.2424242424245,
+        "p10": 2064.2424242424245,
+        "p50": 2064.2424242424245,
+        "p90": 2064.2424242424245,
+        "max": 2064.2424242424245
+      },
+      "cooking": {
+        "count": 30.0,
+        "sum": 7918.181818181818,
+        "mean": 263.93939393939394,
+        "std": 0.0,
+        "min": 263.93939393939394,
+        "p10": 263.93939393939394,
+        "p50": 263.93939393939394,
+        "p90": 263.93939393939394,
+        "max": 263.93939393939394
+      },
+      "dhw": {
+        "count": 30.0,
+        "sum": 22454.545454545452,
+        "mean": 748.4848484848484,
+        "std": 1.1368683772161603e-13,
+        "min": 748.4848484848485,
+        "p10": 748.4848484848485,
+        "p50": 748.4848484848485,
+        "p90": 748.4848484848485,
+        "max": 748.4848484848485
+      },
+      "lighting": {
+        "count": 30.0,
+        "sum": 8509.09090909091,
+        "mean": 283.6363636363637,
+        "std": 5.684341886080802e-14,
+        "min": 283.6363636363636,
+        "p10": 283.6363636363636,
+        "p50": 283.6363636363636,
+        "p90": 283.6363636363636,
+        "max": 283.6363636363636
+      },
+      "space_heating": {
+        "count": 30.0,
+        "sum": 16190.909090909094,
+        "mean": 539.6969696969697,
+        "std": 0.0,
+        "min": 539.6969696969697,
+        "p10": 539.6969696969697,
+        "p50": 539.6969696969697,
+        "p90": 539.6969696969697,
+        "max": 539.6969696969697
+      }
+    },
+    "raw_annual_kWh_by_end_use": {
+      "appliances": {
+        "count": 30.0,
+        "sum": 61927.272727261196,
+        "mean": 2064.2424242420398,
+        "std": 4.547473508864641e-13,
+        "min": 2064.24242424204,
+        "p10": 2064.24242424204,
+        "p50": 2064.24242424204,
+        "p90": 2064.24242424204,
+        "max": 2064.24242424204
+      },
+      "cooking": {
+        "count": 30.0,
+        "sum": 7918.181818181819,
+        "mean": 263.93939393939394,
+        "std": 7.038797632127288e-14,
+        "min": 263.9393939393938,
+        "p10": 263.9393939393939,
+        "p50": 263.93939393939394,
+        "p90": 263.939393939394,
+        "max": 263.93939393939417
+      },
+      "dhw": {
+        "count": 30.0,
+        "sum": 22478.66767815515,
+        "mean": 749.2889226051717,
+        "std": 680.2808346275767,
+        "min": 78.17104698274288,
+        "p10": 207.60272437824608,
+        "p50": 562.6442126173879,
+        "p90": 1397.9862805317518,
+        "max": 2808.6476468698515
+      },
+      "lighting": {
+        "count": 30.0,
+        "sum": 8509.090909089713,
+        "mean": 283.6363636363238,
+        "std": 5.684341886080802e-14,
+        "min": 283.6363636363237,
+        "p10": 283.6363636363237,
+        "p50": 283.6363636363237,
+        "p90": 283.6363636363237,
+        "max": 283.6363636363237
+      },
+      "space_heating": {
+        "count": 30.0,
+        "sum": 17835.179966238975,
+        "mean": 594.5059988746325,
+        "std": 193.16759611820325,
+        "min": 269.85280745930663,
+        "p10": 336.11371961141344,
+        "p50": 591.224935162369,
+        "p90": 803.2042882499361,
+        "max": 1015.8054204483014
+      }
+    },
+    "calibrated_annual_kWh_by_end_use": {
+      "appliances": {
+        "count": 30.0,
+        "sum": 61927.27272729387,
+        "mean": 2064.242424243129,
+        "std": 0.0,
+        "min": 2064.242424243129,
+        "p10": 2064.242424243129,
+        "p50": 2064.242424243129,
+        "p90": 2064.242424243129,
+        "max": 2064.242424243129
+      },
+      "cooking": {
+        "count": 30.0,
+        "sum": 7918.181818181818,
+        "mean": 263.93939393939394,
+        "std": 3.8831447629034595e-14,
+        "min": 263.9393939393939,
+        "p10": 263.9393939393939,
+        "p50": 263.93939393939394,
+        "p90": 263.939393939394,
+        "max": 263.93939393939405
+      },
+      "dhw": {
+        "count": 30.0,
+        "sum": 22454.54545454546,
+        "mean": 748.4848484848486,
+        "std": 1.0624297047552458e-12,
+        "min": 748.4848484848463,
+        "p10": 748.4848484848475,
+        "p50": 748.4848484848485,
+        "p90": 748.4848484848501,
+        "max": 748.4848484848505
+      },
+      "lighting": {
+        "count": 30.0,
+        "sum": 8509.090909090679,
+        "mean": 283.63636363635595,
+        "std": 0.0,
+        "min": 283.63636363635595,
+        "p10": 283.63636363635595,
+        "p50": 283.63636363635595,
+        "p90": 283.63636363635595,
+        "max": 283.63636363635595
+      },
+      "space_heating": {
+        "count": 30.0,
+        "sum": 16190.909090909088,
+        "mean": 539.6969696969696,
+        "std": 1.871751733737847e-12,
+        "min": 539.696969696964,
+        "p10": 539.6969696969682,
+        "p50": 539.6969696969693,
+        "p90": 539.6969696969722,
+        "max": 539.6969696969727
+      }
+    },
+    "scale_factor_by_end_use": {
+      "appliances": {
+        "count": 30.0,
+        "sum": 30.000000000005574,
+        "mean": 1.0000000000001859,
+        "std": 2.220446049250313e-16,
+        "min": 1.000000000000186,
+        "p10": 1.000000000000186,
+        "p50": 1.000000000000186,
+        "p90": 1.000000000000186,
+        "max": 1.000000000000186
+      },
+      "cooking": {
+        "count": 30.0,
+        "sum": 30.0,
+        "mean": 1.0,
+        "std": 2.749530325049722e-16,
+        "min": 0.9999999999999991,
+        "p10": 0.9999999999999998,
+        "p50": 1.0,
+        "p90": 1.0000000000000002,
+        "max": 1.0000000000000004
+      },
+      "dhw": {
+        "count": 30.0,
+        "sum": 58.036850804609024,
+        "mean": 1.9345616934869674,
+        "std": 1.770599025881335,
+        "min": 0.2664929683575692,
+        "p10": 0.5495264145775779,
+        "p50": 1.3311877113318913,
+        "p90": 3.6057419677776292,
+        "max": 9.574962564465649
+      },
+      "lighting": {
+        "count": 30.0,
+        "sum": 30.00000000000423,
+        "mean": 1.000000000000141,
+        "std": 2.220446049250313e-16,
+        "min": 1.0000000000001408,
+        "p10": 1.0000000000001408,
+        "p50": 1.0000000000001408,
+        "p90": 1.0000000000001408,
+        "max": 1.0000000000001408
+      },
+      "space_heating": {
+        "count": 30.0,
+        "sum": 30.889112932873463,
+        "mean": 1.0296370977624487,
+        "std": 0.3978802908040675,
+        "min": 0.5312995568174733,
+        "p10": 0.6720236927982257,
+        "p50": 0.9128966023485743,
+        "p90": 1.608100628123695,
+        "max": 1.9999679631954734
+      }
+    },
+    "fallback_counts_by_end_use": {
+      "appliances": 0,
+      "cooking": 0,
+      "dhw": 0,
+      "lighting": 0,
+      "space_heating": 0
+    }
+  },
+  "peak_distribution": {
+    "mean_peak_W": 49777.50177081215,
+    "std_peak_W": 36097.09843308683,
+    "max_peak_W": 186732.07429971755,
+    "min_peak_W": 12784.492595184971,
+    "p10_peak_W": 14449.766721731325,
+    "p50_peak_W": 40576.46289196037,
+    "p90_peak_W": 91721.77782246587
+  },
+  "peak_dhw_distribution": {
+    "mean_peak_W": 12671.000116293662,
+    "std_peak_W": 6557.9912228568855,
+    "max_peak_W": 29394.976684235757,
+    "min_peak_W": 3657.655539287626,
+    "p10_peak_W": 5963.2399067383,
+    "p50_peak_W": 11867.360214928602,
+    "p90_peak_W": 22753.370499136046
+  },
+  "thermal_parameter_distribution": {
+    "UA_h_W_per_C": {
+      "mean": 454.8047317899719,
+      "std": 133.7156155527376,
+      "min": 185.00297535455948,
+      "p10": 281.93831023644606,
+      "p50": 461.6405984249868,
+      "p90": 595.5134734645338,
+      "max": 783.7860406175248
+    },
+    "C_h_J_per_K": {
+      "mean": 20164079.505852997,
+      "std": 5403306.263355737,
+      "min": 9766368.357384497,
+      "p10": 13125215.080565939,
+      "p50": 19976999.76857117,
+      "p90": 25734686.82724827,
+      "max": 34381173.55117243
+    }
+  },
+  "thermal_demand_spread": {
+    "space_heating_thermal_kWh_mean": 13218.66229951457,
+    "space_heating_thermal_kWh_std": 4295.023473487283,
+    "space_heating_thermal_kWh_p10": 7473.387589338538,
+    "space_heating_thermal_kWh_p50": 13145.70883348105,
+    "space_heating_thermal_kWh_p90": 17859.00607226139,
+    "peak_total_thermal_W_mean": 15042.291669469267,
+    "peak_total_thermal_W_std": 6486.422137383166,
+    "peak_total_thermal_W_p10": 8353.57874584099,
+    "peak_total_thermal_W_p50": 13677.748284732494,
+    "peak_total_thermal_W_p90": 24869.06955830022
+  },
+  "variance_by_hour": {
+    "0": 1879.0470231970146,
+    "1": 3958.5178427968717,
+    "2": 2368.441761785429,
+    "3": 3063.4845962091376,
+    "4": 5630.056386083625,
+    "5": 28308.730255695085,
+    "6": 36475.093096999175,
+    "7": 38948.912707984346,
+    "8": 29756.50601335354,
+    "9": 6186.694573844569,
+    "10": 7361.083621143077,
+    "11": 17931.9308232863,
+    "12": 47370.88237283236,
+    "13": 21123.522147149593,
+    "14": 5883.838774039224,
+    "15": 5778.733942085402,
+    "16": 154418.73916963863,
+    "17": 75788.74947304484,
+    "18": 133998.21481822093,
+    "19": 186303.39105523354,
+    "20": 113819.4201052971,
+    "21": 20822.44972104572,
+    "22": 5212.482202430537,
+    "23": 2310.4569024256716
+  },
+  "pipeline_timings_seconds": {
+    "mean_household_runtime": 11.491014455600002,
+    "max_household_runtime": 16.645535167000002
+  },
+  "sample_preview": [
+    {
+      "household_index": 0,
+      "technology_type": "heat_pump",
+      "household_class": "peak_heavy_family",
+      "annual_energy_kWh": 3900.0000000006485,
+      "raw_annual_energy_kWh": 4577.538014951067,
+      "peak_demand_W": 14517.913764773226,
+      "peak_dhw_load_W": 22681.331466421092,
+      "event_peak_W": 3303.368611377695,
+      "occupancy_time_shift_hours": 1.7070599553944072
+    },
+    {
+      "household_index": 1,
+      "technology_type": "resistive",
+      "household_class": "daytime_home",
+      "annual_energy_kWh": 3900.0000000006444,
+      "raw_annual_energy_kWh": 4300.006998038023,
+      "peak_demand_W": 26638.78465043503,
+      "peak_dhw_load_W": 20782.59546641399,
+      "event_peak_W": 6148.876440568251,
+      "occupancy_time_shift_hours": -0.5181611758605245
+    },
+    {
+      "household_index": 2,
+      "technology_type": "heat_pump",
+      "household_class": "workday_absent",
+      "annual_energy_kWh": 3900.000000000646,
+      "raw_annual_energy_kWh": 3593.882208998133,
+      "peak_demand_W": 95800.2852201908,
+      "peak_dhw_load_W": 13475.732406362977,
+      "event_peak_W": 22247.166512277316,
+      "occupancy_time_shift_hours": 0.27496478381157496
+    }
+  ]
+}

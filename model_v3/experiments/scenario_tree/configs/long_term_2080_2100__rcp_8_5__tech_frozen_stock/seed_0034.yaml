@@ -1,0 +1,10 @@
+schema_version: model_v3.scenario_seed_config.v1
+status: configured_not_run
+scenario_id: long_term_2080_2100__rcp_8_5__tech_frozen_stock
+scenario_leaf_id: long_term_2080_2100__rcp_8_5__tech_frozen_stock__seed_0034
+realization_id: seed_0034
+seed_index: 34
+seed_value: 34
+run_config: model_v3/experiments/scenario_tree/runs/long_term_2080_2100__rcp_8_5__tech_frozen_stock__seed_0034/run_config.yaml
+inputs_manifest: model_v3/experiments/scenario_tree/runs/long_term_2080_2100__rcp_8_5__tech_frozen_stock__seed_0034/inputs_manifest.yaml
+output_dir: model_v3/experiments/scenario_tree/runs/long_term_2080_2100__rcp_8_5__tech_frozen_stock__seed_0034/outputs

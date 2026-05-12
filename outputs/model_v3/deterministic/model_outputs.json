@@ -1,0 +1,40 @@
+{
+  "run_id": "model-v3-2023-01-01t00-00-00-01-00",
+  "artifact_labels": [
+    "phase-1-contract-correction",
+    "phase-2-modular-architecture",
+    "phase-3-cohort-engine",
+    "phase-4-uncertainty-propagation",
+    "physics-finalization-v1-reference-integration"
+  ],
+  "timestamp": "2023-01-01T00:00:00+01:00",
+  "T_indoor_next_C": 16.938936709651685,
+  "Q_unmet_heating_W": 0.0,
+  "Q_excess_heat_W": 0.0,
+  "comfort_violation_degC": 0.0,
+  "comfort_violation_degree_hours": 0.0,
+  "P_el_total_W": 392.2022245616332,
+  "P_el_space_heating_W": 0.0,
+  "P_el_dhw_W": 91.80587960103954,
+  "P_el_appliances_W": 235.64411235644116,
+  "P_el_lighting_W": 32.378580323785805,
+  "P_el_cooking_W": 32.37365228036672,
+  "metadata": {
+    "system_state_id": "model-v3-system",
+    "enabled_modules": [
+      "physics",
+      "control",
+      "systems"
+    ],
+    "temperature_clamped": false,
+    "integration_substeps": 1,
+    "pipeline_timings_seconds": {
+      "load_all_sources": 5.585744916,
+      "build_prepared_forcing": 0.33455654099999954,
+      "run_physics": 5.654200000027032e-05,
+      "run_control": 4.000000000026205e-05,
+      "run_systems": 4.8042000000414475e-05,
+      "assemble_outputs": 4.916600000015592e-05
+    }
+  }
+}

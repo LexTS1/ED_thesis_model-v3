@@ -1,0 +1,66 @@
+schema_version: "1.0.0"
+description: >
+  Canonical climate analysis windows for model_v3 scenario enumeration. Dates
+  use inclusive start and inclusive end semantics.
+
+date_semantics:
+  canonical_start: inclusive
+  canonical_end: inclusive
+  note: >
+    A timestamp belongs to a canonical analysis window when it is greater than
+    or equal to canonical_start and less than or equal to canonical_end.
+
+temporal_window_policy:
+  raw_processed_files_may_overlap: true
+  overlapping_years:
+    - 2050
+  canonical_analysis_windows_must_overlap: false
+  year_2050_assignment: mid_century_2050_2070
+  near_future_excludes_2050: true
+  rationale: >
+    Existing processed files may preserve their validated source-file coverage,
+    but canonical analysis windows are non-overlapping to avoid double-counting
+    2050 in cross-window statistics.
+
+climate_windows:
+  baseline_1981_2005:
+    climate_window_id: baseline_1981_2005
+    canonical_start: "1981-01-01"
+    canonical_end: "2005-12-31"
+    source_file_window: "1981-2005"
+    window_type: baseline
+    allowed_pathways:
+      - historical
+
+  near_future_2030_2049:
+    climate_window_id: near_future_2030_2049
+    canonical_start: "2030-01-01"
+    canonical_end: "2049-12-31"
+    source_file_window: "2030-2050"
+    window_type: future
+    allowed_pathways:
+      - rcp_2_6
+      - rcp_4_5
+      - rcp_8_5
+
+  mid_century_2050_2070:
+    climate_window_id: mid_century_2050_2070
+    canonical_start: "2050-01-01"
+    canonical_end: "2070-12-31"
+    source_file_window: "2050-2070"
+    window_type: future
+    allowed_pathways:
+      - rcp_2_6
+      - rcp_4_5
+      - rcp_8_5
+
+  long_term_2080_2100:
+    climate_window_id: long_term_2080_2100
+    canonical_start: "2080-01-01"
+    canonical_end: "2100-12-31"
+    source_file_window: "2080-2100"
+    window_type: future
+    allowed_pathways:
+      - rcp_2_6
+      - rcp_4_5
+      - rcp_8_5

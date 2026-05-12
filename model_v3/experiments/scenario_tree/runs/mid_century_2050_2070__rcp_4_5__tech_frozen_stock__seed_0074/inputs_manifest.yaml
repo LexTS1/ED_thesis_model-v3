@@ -1,0 +1,25 @@
+schema_version: model_v3.inputs_manifest.v1
+status: configured_not_run
+scenario_leaf_id: mid_century_2050_2070__rcp_4_5__tech_frozen_stock__seed_0074
+scenario_id: mid_century_2050_2070__rcp_4_5__tech_frozen_stock
+climate_forcing:
+  file: inputs/climate/processed/mid_century/weather_mid_century_rcp_4_5_cnrm_cerfacs_cm5_cnrm_aladin63_r1i1p1.csv
+  exists: true
+  climate_window_id: mid_century_2050_2070
+  climate_pathway_id: rcp_4_5
+  source_file_window: 2050-2070
+  analysis_start: '2050-01-01'
+  analysis_end: '2070-12-31'
+technology:
+  case_id: tech_frozen_stock
+  metadata_file: config/model_v3/scenario_tree/technology_cases.yaml
+  belgian_technology_inputs: config/model_v3/belgian_technology_inputs.yaml
+  belgian_technology_inputs_exists: true
+stochastic:
+  realization_id: seed_0074
+  seed_index: 74
+  seed_value: 74
+  cohort_size: 100
+validation:
+  config_complete: true
+  missing_required_inputs: []

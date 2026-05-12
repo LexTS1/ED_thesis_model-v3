@@ -1,0 +1,12 @@
+cdsapi
+xarray
+netCDF4
+h5netcdf
+dask
+pandas
+numpy
+pyyaml
+scipy
+matplotlib
+pyarrow
+pytest

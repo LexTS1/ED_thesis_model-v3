@@ -1,0 +1,40 @@
+dt_minutes: 15
+
+states: [away, awake, sleep]
+
+conditioning:
+  - daytype  # weekday vs weekend
+
+# Stickiness = P(stay in same state over one 15-min step)
+stickiness:
+  away: 0.90
+  awake: 0.80
+  sleep: 0.97
+
+# When not all states have explicit probabilities at a given time slot,
+# distribute remaining probability mass according to these weights.
+# These are *weights*, not absolute probabilities.
+fallback_weights:
+  weekday:
+    away: 0.30
+    awake: 0.60
+    sleep: 0.10
+  weekend:
+    away: 0.20
+    awake: 0.65
+    sleep: 0.15
+
+# Time-of-day rules: each rule sets an *absolute* probability for a state
+# over the specified window. Overlaps are allowed; probabilities are summed,
+# and the remaining mass is assigned via fallback_weights.
+rules:
+  weekday:
+    - { state: sleep, start: "23:00", end: "07:00", p: 0.85 }
+    - { state: away,  start: "08:30", end: "17:30", p: 0.75 }
+    - { state: awake, start: "17:30", end: "23:00", p: 0.80 }
+
+  weekend:
+    - { state: sleep, start: "00:00", end: "08:00", p: 0.85 }
+    - { state: awake, start: "09:00", end: "13:00", p: 0.75 }
+    - { state: away,  start: "13:00", end: "17:00", p: 0.35 }
+    - { state: awake, start: "17:00", end: "18:00", p: 0.75 }

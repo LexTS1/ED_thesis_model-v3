@@ -1,0 +1,26 @@
+schema_version: "1.0.0"
+description: >
+  Stochastic realization policy for model_v3 scenario leaves. This phase
+  defines reproducible realization identifiers only; it does not generate
+  household cohorts.
+
+realization_policy:
+  realization_id_template: "seed_{seed_index:04d}"
+  seed_padding_length: 4
+  seed_start_index: 0
+  seed_stop_index: 99
+  number_of_seeds: 100
+  seed_index_semantics: inclusive_start_inclusive_stop
+  deterministic_reproducibility_rule: >
+    A given realization_id maps to exactly one integer seed index. Later model
+    phases must use that seed index to initialize stochastic household and
+    cohort sampling so repeated runs of the same scenario leaf are reproducible.
+  cohort_mapping_description: >
+    The seed will later control stochastic household/cohort draws, including
+    sampled household characteristics and stochastic demand profiles. The
+    scenario-tree metadata records the seed identity before those cohorts exist.
+  cohorts_generated_in_this_phase: false
+  generated_realization_id_examples:
+    - seed_0000
+    - seed_0001
+    - seed_0099

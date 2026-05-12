@@ -1,0 +1,149 @@
+schema_version: "1.0.0"
+schema_name: model_v3_scenario_tree_contract
+description: >
+  Machine-readable contract for enumerating model_v3 scenario leaves before
+  any scenario simulation is executed.
+
+identifier_conventions:
+  separator: "__"
+  scenario_id_template: "{climate_window_id}__{climate_pathway_id}__{technology_case_id}"
+  scenario_leaf_id_template: "{climate_window_id}__{climate_pathway_id}__{technology_case_id}__{realization_id}"
+  allowed_dimension_names:
+    - climate_window_id
+    - climate_pathway_id
+    - technology_case_id
+    - realization_id
+  id_grammar:
+    climate_window_id_regex: "^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$"
+    climate_pathway_id_regex: "^(historical|rcp_[0-9]_[0-9])$"
+    technology_case_id_regex: "^tech_[a-z0-9]+(?:_[a-z0-9]+)*$"
+    realization_id_regex: "^seed_[0-9]{4}$"
+    scenario_id_regex: "^[a-z][a-z0-9]*(?:_[a-z0-9]+)*__(historical|rcp_[0-9]_[0-9])__tech_[a-z0-9]+(?:_[a-z0-9]+)*$"
+    scenario_leaf_id_regex: "^[a-z][a-z0-9]*(?:_[a-z0-9]+)*__(historical|rcp_[0-9]_[0-9])__tech_[a-z0-9]+(?:_[a-z0-9]+)*__seed_[0-9]{4}$"
+  reserved_separator_policy: >
+    Double underscores are reserved as dimension separators. Individual
+    dimension identifiers must use single underscores only.
+
+definitions:
+  scenario:
+    description: >
+      Deterministic parent combination of climate_window_id,
+      climate_pathway_id, and technology_case_id.
+    required_dimensions:
+      - climate_window_id
+      - climate_pathway_id
+      - technology_case_id
+  realization:
+    description: >
+      Stochastic sampling instance associated with a reproducible seed and,
+      in later phases, a household or cohort draw.
+    required_dimensions:
+      - realization_id
+  scenario_leaf:
+    description: >
+      Unique executable simulation leaf formed by one deterministic scenario
+      and one stochastic realization.
+    required_dimensions:
+      - climate_window_id
+      - climate_pathway_id
+      - technology_case_id
+      - realization_id
+    uniqueness: scenario_leaf_id_must_be_globally_unique
+
+climate_pathways:
+  baseline_pathway: historical
+  future_pathways:
+    - rcp_2_6
+    - rcp_4_5
+    - rcp_8_5
+
+baseline_rules:
+  baseline_window_id: baseline_1981_2005
+  required_climate_pathway_id: historical
+  forbidden_climate_pathway_ids:
+    - rcp_2_6
+    - rcp_4_5
+    - rcp_8_5
+  required_technology_case_id: tech_current_stock
+  rule: >
+    The baseline represents the observed historical reference period and must
+    not be combined with an RCP pathway or future technology case.
+
+future_window_rules:
+  window_type: future
+  required_climate_pathway_ids:
+    - rcp_2_6
+    - rcp_4_5
+    - rcp_8_5
+  default_allowed_technology_case_ids:
+    - tech_frozen_stock
+    - tech_moderate_electrification
+    - tech_high_electrification_pv_ev
+  default_forbidden_technology_case_ids:
+    - tech_current_stock
+  rule: >
+    Future climate windows must use RCP climate pathways and future technology
+    assumptions unless a technology case explicitly permits future use.
+
+enumeration_rules:
+  scenario_id_construction:
+    ordered_dimensions:
+      - climate_window_id
+      - climate_pathway_id
+      - technology_case_id
+    separator: "__"
+  scenario_leaf_id_construction:
+    ordered_dimensions:
+      - climate_window_id
+      - climate_pathway_id
+      - technology_case_id
+      - realization_id
+    separator: "__"
+  baseline_enumeration:
+    climate_window_ids:
+      - baseline_1981_2005
+    climate_pathway_ids:
+      - historical
+    technology_case_ids:
+      - tech_current_stock
+    realization_ids_source: realization_policy
+  future_enumeration:
+    window_type: future
+    climate_pathway_ids:
+      - rcp_2_6
+      - rcp_4_5
+      - rcp_8_5
+    technology_case_ids:
+      - tech_frozen_stock
+      - tech_moderate_electrification
+      - tech_high_electrification_pv_ev
+    realization_ids_source: realization_policy
+  model_execution_required: false
+
+validation_rules:
+  required_yaml_files:
+    - scenario_tree_schema.yaml
+    - climate_windows.yaml
+    - technology_cases.yaml
+    - realization_policy.yaml
+  fail_on_missing_required_fields: true
+  fail_on_invalid_id_format: true
+  fail_on_duplicate_ids: true
+  fail_on_duplicate_scenario_leaf_ids: true
+  fail_on_overlapping_canonical_analysis_windows: true
+  raw_source_window_overlap_allowed_if_policy_permits: true
+  required_temporal_policy_checks:
+    raw_processed_files_may_overlap: true
+    overlapping_years:
+      - 2050
+    canonical_analysis_windows_must_overlap: false
+    year_2050_assignment: mid_century_2050_2070
+    near_future_excludes_2050: true
+  required_baseline_checks:
+    baseline_uses_historical_pathway: true
+    baseline_forbids_rcp_pathways: true
+    baseline_uses_only_tech_current_stock: true
+  required_future_checks:
+    future_windows_include_required_rcps: true
+    future_windows_forbid_historical_pathway: true
+    future_windows_forbid_tech_current_stock_unless_explicitly_permitted: true

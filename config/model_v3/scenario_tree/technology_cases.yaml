@@ -1,0 +1,86 @@
+schema_version: "1.0.0"
+description: >
+  Technology-case metadata for model_v3 scenario enumeration. These identifiers
+  define modelling assumptions qualitatively and do not assign calibrated
+  adoption rates in this phase.
+
+baseline_technology_case_id: tech_current_stock
+future_allowed_technology_case_ids:
+  - tech_frozen_stock
+  - tech_moderate_electrification
+  - tech_high_electrification_pv_ev
+
+technology_cases:
+  tech_current_stock:
+    technology_case_id: tech_current_stock
+    label: Current stock
+    description: >
+      Historical reference technology mix representing the current residential
+      stock used for baseline calibration and comparison.
+    applicable_window_types:
+      - baseline
+    modelling_interpretation: >
+      Preserve the current-stock technology representation already used by
+      model_v3 for baseline residential demand.
+    heat_pump_adoption_assumed: false
+    pv_assumed: false
+    ev_adoption_assumed: false
+    building_envelope_improvement_assumed: false
+    allowed_for_baseline: true
+    explicitly_permitted_for_future: false
+
+  tech_frozen_stock:
+    technology_case_id: tech_frozen_stock
+    label: Frozen stock
+    description: >
+      Counterfactual future case in which the residential technology mix is
+      held fixed relative to the current-stock baseline.
+    applicable_window_types:
+      - future
+    modelling_interpretation: >
+      Apply future climate forcing while preserving the baseline technology
+      stock as a climate-only sensitivity case.
+    heat_pump_adoption_assumed: false
+    pv_assumed: false
+    ev_adoption_assumed: false
+    building_envelope_improvement_assumed: false
+    allowed_for_baseline: false
+    explicitly_permitted_for_future: true
+
+  tech_moderate_electrification:
+    technology_case_id: tech_moderate_electrification
+    label: Moderate electrification
+    description: >
+      Future technology case with qualitative moderate electrification of
+      residential heating and end-use demand.
+    applicable_window_types:
+      - future
+    modelling_interpretation: >
+      Represent a future residential stock with heat-pump uptake and some
+      building-envelope improvement, without assigning adoption shares in this
+      metadata phase.
+    heat_pump_adoption_assumed: true
+    pv_assumed: false
+    ev_adoption_assumed: false
+    building_envelope_improvement_assumed: true
+    allowed_for_baseline: false
+    explicitly_permitted_for_future: true
+
+  tech_high_electrification_pv_ev:
+    technology_case_id: tech_high_electrification_pv_ev
+    label: High electrification with PV and EV
+    description: >
+      Future technology case combining high residential electrification with
+      photovoltaic generation and electric-vehicle adoption assumptions.
+    applicable_window_types:
+      - future
+    modelling_interpretation: >
+      Represent a strongly electrified future stock including heat pumps, PV,
+      EV charging demand, and building-envelope improvement, without assigning
+      calibrated rates in this metadata phase.
+    heat_pump_adoption_assumed: true
+    pv_assumed: true
+    ev_adoption_assumed: true
+    building_envelope_improvement_assumed: true
+    allowed_for_baseline: false
+    explicitly_permitted_for_future: true

@@ -1,0 +1,123 @@
+{
+  "metrics": {
+    "mean": {
+      "MBE": -8.789265611615822e-17,
+      "MAE": 0.26682419191848117,
+      "RMSE": 0.3084997576460125,
+      "CVRMSE": 30.84997576460125
+    },
+    "variance": {
+      "variance_model": 0.006531572483276802,
+      "variance_data": 0.11279084152292852,
+      "CV_model": 0.08081814451765645,
+      "CV_data": 0.33584347771384293,
+      "Levene_statistic": 27.913811056286168,
+      "Levene_p_value": 3.377127856193269e-06
+    },
+    "distribution": {
+      "Anderson_Darling_statistic": 3.5389856234262194,
+      "P10_error": 0.3571677972480932,
+      "P50_error": -0.055345485133050154,
+      "P90_error": -0.38621651407121305
+    },
+    "temporal": {
+      "Pearson_correlation": 0.36865769321604785,
+      "autocorrelation_difference_mean": 0.8383218803134136,
+      "autocorrelation_difference_max": 1.9417256934023674,
+      "peak_timing_error_hours": 7.0
+    },
+    "events": {
+      "seasonal_shape_MAE": 1.1102230246251565e-16,
+      "seasonal_peak_month_error": 0.0,
+      "peak_day_error": 0.36936880453685794,
+      "peak_MAE_kW": 0.0,
+      "extreme_condition_error": 1.1102230246251565e-16
+    },
+    "shape": {
+      "MBE": -8.789265611615822e-17,
+      "MAE": 0.26682419191848117,
+      "RMSE": 0.3084997576460125,
+      "CVRMSE": 30.84997576460125
+    },
+    "seasonal": {
+      "seasonal_shape_MAE": 1.1102230246251565e-16,
+      "seasonal_peak_month_error": 0.0
+    }
+  },
+  "acceptance_metrics": {
+    "MBE_monthly": -1.4456028966473392e-16,
+    "CVRMSE_monthly": 1.445602896647339e-16,
+    "MBE_hourly": -8.789265611615822e-17,
+    "CVRMSE_hourly": 0.3084997576460125,
+    "peak_MAE_kW": 0.0,
+    "P10_error_kW": 0.0003571677972480932,
+    "P90_error_kW": 0.00038621651407121305
+  },
+  "acceptance": {
+    "checks": {
+      "monthly_MBE_ok": true,
+      "monthly_CVRMSE_ok": true,
+      "hourly_MBE_ok": true,
+      "hourly_CVRMSE_ok": false,
+      "peak_MAE_ok": true,
+      "quantile_ok": true,
+      "overall": false
+    },
+    "good_checks": {
+      "hourly_MBE_good": true,
+      "hourly_CVRMSE_good": false,
+      "peak_MAE_good": true,
+      "quantile_good": true
+    },
+    "acceptable_thresholds": {
+      "monthly_MBE_max": 0.05,
+      "monthly_CVRMSE_max": 0.15,
+      "hourly_MBE_max": 0.1,
+      "hourly_CVRMSE_max": 0.3,
+      "peak_MAE_kW_max": 0.2,
+      "quantile_error_kW_max": 0.2
+    },
+    "good_thresholds": {
+      "hourly_MBE_max": 0.05,
+      "hourly_CVRMSE_max": 0.2,
+      "peak_MAE_kW_max": 0.1,
+      "quantile_error_kW_max": 0.1
+    }
+  },
+  "independence": {
+    "dataset_independent": false,
+    "partial_overlap": true,
+    "validation_independence": "weak",
+    "validation_dataset_family": "lcl",
+    "validation_data_role": [
+      "validation"
+    ],
+    "input_dataset_paths": [
+      "inputs/model_v3/load_profiles/LCL_2013.csv"
+    ],
+    "implications": "Validation uses the same dataset path as at least one model input, so the result is not independent."
+  },
+  "alignment": {
+    "model_resolution_seconds": 3600,
+    "data_resolution_seconds": 1800,
+    "target_resolution_seconds": 3600,
+    "model_resampled": false,
+    "data_resampled": true,
+    "matched_timestamps": 24,
+    "dropped_model_rows": 0,
+    "dropped_data_rows": 8734
+  },
+  "aggregate_aggregation": "mean_across_columns",
+  "aggregate_reference_year_mode": "map_to_model_year",
+  "aggregate_reference_year_warnings": [
+    "collapsed 2 duplicate timestamps after reference-year mapping"
+  ],
+  "quick_mode": {
+    "enabled": false,
+    "max_steps": null,
+    "cohort_households": null,
+    "minimum_households": null,
+    "overrides": [],
+    "debug_only": false
+  }
+}

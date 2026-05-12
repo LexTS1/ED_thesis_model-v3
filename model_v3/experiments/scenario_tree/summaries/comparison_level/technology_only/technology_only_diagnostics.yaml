@@ -1,0 +1,141 @@
+comparison_name: technology_only
+reference_technology_case_id: tech_frozen_stock
+compared_technology_case_ids:
+- tech_moderate_electrification
+- tech_high_electrification_pv_ev
+expected_scenarios:
+- near_future_2030_2049__rcp_2_6__tech_frozen_stock
+- near_future_2030_2049__rcp_2_6__tech_moderate_electrification
+- near_future_2030_2049__rcp_2_6__tech_high_electrification_pv_ev
+- near_future_2030_2049__rcp_4_5__tech_frozen_stock
+- near_future_2030_2049__rcp_4_5__tech_moderate_electrification
+- near_future_2030_2049__rcp_4_5__tech_high_electrification_pv_ev
+- near_future_2030_2049__rcp_8_5__tech_frozen_stock
+- near_future_2030_2049__rcp_8_5__tech_moderate_electrification
+- near_future_2030_2049__rcp_8_5__tech_high_electrification_pv_ev
+- mid_century_2050_2070__rcp_2_6__tech_frozen_stock
+- mid_century_2050_2070__rcp_2_6__tech_moderate_electrification
+- mid_century_2050_2070__rcp_2_6__tech_high_electrification_pv_ev
+- mid_century_2050_2070__rcp_4_5__tech_frozen_stock
+- mid_century_2050_2070__rcp_4_5__tech_moderate_electrification
+- mid_century_2050_2070__rcp_4_5__tech_high_electrification_pv_ev
+- mid_century_2050_2070__rcp_8_5__tech_frozen_stock
+- mid_century_2050_2070__rcp_8_5__tech_moderate_electrification
+- mid_century_2050_2070__rcp_8_5__tech_high_electrification_pv_ev
+- long_term_2080_2100__rcp_2_6__tech_frozen_stock
+- long_term_2080_2100__rcp_2_6__tech_moderate_electrification
+- long_term_2080_2100__rcp_2_6__tech_high_electrification_pv_ev
+- long_term_2080_2100__rcp_4_5__tech_frozen_stock
+- long_term_2080_2100__rcp_4_5__tech_moderate_electrification
+- long_term_2080_2100__rcp_4_5__tech_high_electrification_pv_ev
+- long_term_2080_2100__rcp_8_5__tech_frozen_stock
+- long_term_2080_2100__rcp_8_5__tech_moderate_electrification
+- long_term_2080_2100__rcp_8_5__tech_high_electrification_pv_ev
+missing_groups:
+- scenario_id: long_term_2080_2100__rcp_2_6__tech_frozen_stock
+  exists_in_leaf_index: true
+  successful_realizations: 0
+  reason: no_successful_runs_in_metrics_table
+- scenario_id: long_term_2080_2100__rcp_2_6__tech_high_electrification_pv_ev
+  exists_in_leaf_index: true
+  successful_realizations: 0
+  reason: no_successful_runs_in_metrics_table
+- scenario_id: long_term_2080_2100__rcp_2_6__tech_moderate_electrification
+  exists_in_leaf_index: true
+  successful_realizations: 0
+  reason: no_successful_runs_in_metrics_table
+- scenario_id: long_term_2080_2100__rcp_4_5__tech_frozen_stock
+  exists_in_leaf_index: true
+  successful_realizations: 0
+  reason: no_successful_runs_in_metrics_table
+- scenario_id: long_term_2080_2100__rcp_4_5__tech_high_electrification_pv_ev
+  exists_in_leaf_index: true
+  successful_realizations: 0
+  reason: no_successful_runs_in_metrics_table
+- scenario_id: long_term_2080_2100__rcp_4_5__tech_moderate_electrification
+  exists_in_leaf_index: true
+  successful_realizations: 0
+  reason: no_successful_runs_in_metrics_table
+- scenario_id: long_term_2080_2100__rcp_8_5__tech_frozen_stock
+  exists_in_leaf_index: true
+  successful_realizations: 0
+  reason: no_successful_runs_in_metrics_table
+- scenario_id: long_term_2080_2100__rcp_8_5__tech_high_electrification_pv_ev
+  exists_in_leaf_index: true
+  successful_realizations: 0
+  reason: no_successful_runs_in_metrics_table
+- scenario_id: long_term_2080_2100__rcp_8_5__tech_moderate_electrification
+  exists_in_leaf_index: true
+  successful_realizations: 0
+  reason: no_successful_runs_in_metrics_table
+- scenario_id: mid_century_2050_2070__rcp_2_6__tech_frozen_stock
+  exists_in_leaf_index: true
+  successful_realizations: 0
+  reason: no_successful_runs_in_metrics_table
+- scenario_id: mid_century_2050_2070__rcp_2_6__tech_high_electrification_pv_ev
+  exists_in_leaf_index: true
+  successful_realizations: 0
+  reason: no_successful_runs_in_metrics_table
+- scenario_id: mid_century_2050_2070__rcp_2_6__tech_moderate_electrification
+  exists_in_leaf_index: true
+  successful_realizations: 0
+  reason: no_successful_runs_in_metrics_table
+- scenario_id: mid_century_2050_2070__rcp_4_5__tech_frozen_stock
+  exists_in_leaf_index: true
+  successful_realizations: 0
+  reason: no_successful_runs_in_metrics_table
+- scenario_id: mid_century_2050_2070__rcp_4_5__tech_high_electrification_pv_ev
+  exists_in_leaf_index: true
+  successful_realizations: 0
+  reason: no_successful_runs_in_metrics_table
+- scenario_id: mid_century_2050_2070__rcp_4_5__tech_moderate_electrification
+  exists_in_leaf_index: true
+  successful_realizations: 0
+  reason: no_successful_runs_in_metrics_table
+- scenario_id: mid_century_2050_2070__rcp_8_5__tech_frozen_stock
+  exists_in_leaf_index: true
+  successful_realizations: 0
+  reason: no_successful_runs_in_metrics_table
+- scenario_id: mid_century_2050_2070__rcp_8_5__tech_moderate_electrification
+  exists_in_leaf_index: true
+  successful_realizations: 0
+  reason: no_successful_runs_in_metrics_table
+- scenario_id: near_future_2030_2049__rcp_2_6__tech_frozen_stock
+  exists_in_leaf_index: true
+  successful_realizations: 0
+  reason: no_successful_runs_in_metrics_table
+- scenario_id: near_future_2030_2049__rcp_2_6__tech_high_electrification_pv_ev
+  exists_in_leaf_index: true
+  successful_realizations: 0
+  reason: no_successful_runs_in_metrics_table
+- scenario_id: near_future_2030_2049__rcp_2_6__tech_moderate_electrification
+  exists_in_leaf_index: true
+  successful_realizations: 0
+  reason: no_successful_runs_in_metrics_table
+- scenario_id: near_future_2030_2049__rcp_4_5__tech_frozen_stock
+  exists_in_leaf_index: true
+  successful_realizations: 0
+  reason: no_successful_runs_in_metrics_table
+- scenario_id: near_future_2030_2049__rcp_4_5__tech_high_electrification_pv_ev
+  exists_in_leaf_index: true
+  successful_realizations: 0
+  reason: no_successful_runs_in_metrics_table
+- scenario_id: near_future_2030_2049__rcp_4_5__tech_moderate_electrification
+  exists_in_leaf_index: true
+  successful_realizations: 0
+  reason: no_successful_runs_in_metrics_table
+- scenario_id: near_future_2030_2049__rcp_8_5__tech_frozen_stock
+  exists_in_leaf_index: true
+  successful_realizations: 0
+  reason: no_successful_runs_in_metrics_table
+- scenario_id: near_future_2030_2049__rcp_8_5__tech_high_electrification_pv_ev
+  exists_in_leaf_index: true
+  successful_realizations: 0
+  reason: no_successful_runs_in_metrics_table
+- scenario_id: near_future_2030_2049__rcp_8_5__tech_moderate_electrification
+  exists_in_leaf_index: true
+  successful_realizations: 0
+  reason: no_successful_runs_in_metrics_table
+valid_pairs: 0
+missing_reference_matches: 1
+pct_change_division_by_zero_rows: 0

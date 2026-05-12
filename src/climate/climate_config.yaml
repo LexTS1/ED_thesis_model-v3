@@ -1,0 +1,121 @@
+# Reproducible CORDEX climate ingestion configuration for model_v3.
+dataset: projections-cordex-domains-single-levels
+
+domain: europe
+horizontal_resolution: 0_11_degree_x_0_11_degree
+temporal_resolution: daily_mean
+
+request_options:
+  download_format: zip
+  data_format: netcdf
+
+variables:
+  - 2m_air_temperature
+  - surface_solar_radiation_downwards
+
+variable_aliases:
+  temperature:
+    - tas
+    - 2m_air_temperature
+    - 2m_temperature
+    - near_surface_air_temperature
+    - air_temperature
+  solar_radiation:
+    - rsds
+    - surface_solar_radiation_downwards
+    - surface_downwelling_shortwave_flux_in_air
+    - surface_solar_radiation_downward
+
+model_chain:
+  gcm_model: cnrm_cerfacs_cm5
+  rcm_model: cnrm_aladin63
+  ensemble_member: r1i1p1
+
+scenarios:
+  historical:
+    windows:
+      - baseline
+  rcp_2_6:
+    windows:
+      - near_future
+      - mid_century
+      - long_term
+  rcp_4_5:
+    windows:
+      - near_future
+      - mid_century
+      - long_term
+  rcp_8_5:
+    windows:
+      - near_future
+      - mid_century
+      - long_term
+
+climate_windows:
+  baseline:
+    start: 1981-01-01
+    end: 2005-12-31
+    start_year: 1981
+    end_year: 2005
+    chunks:
+      - {start_year: 1981, end_year: 1985}
+      - {start_year: 1986, end_year: 1990}
+      - {start_year: 1991, end_year: 1995}
+      - {start_year: 1996, end_year: 2000}
+      - {start_year: 2001, end_year: 2005}
+  near_future:
+    start: 2030-01-01
+    end: 2050-12-31
+    start_year: 2030
+    end_year: 2050
+    chunks:
+      # CDS exposes future CORDEX data in fixed blocks such as 2026-2030,
+      # 2031-2035, etc. Preprocessing clips exactly to 2030-2050.
+      - {start_year: 2026, end_year: 2030}
+      - {start_year: 2031, end_year: 2035}
+      - {start_year: 2036, end_year: 2040}
+      - {start_year: 2041, end_year: 2045}
+      - {start_year: 2046, end_year: 2050}
+  mid_century:
+    start: 2050-01-01
+    end: 2070-12-31
+    start_year: 2050
+    end_year: 2070
+    chunks:
+      # Boundary blocks overlap the climate window and are clipped later.
+      - {start_year: 2046, end_year: 2050}
+      - {start_year: 2051, end_year: 2055}
+      - {start_year: 2056, end_year: 2060}
+      - {start_year: 2061, end_year: 2065}
+      - {start_year: 2066, end_year: 2070}
+  long_term:
+    start: 2080-01-01
+    end: 2100-12-31
+    start_year: 2080
+    end_year: 2100
+    chunks:
+      # Boundary blocks overlap the climate window and are clipped later.
+      - {start_year: 2076, end_year: 2080}
+      - {start_year: 2081, end_year: 2085}
+      - {start_year: 2086, end_year: 2090}
+      - {start_year: 2091, end_year: 2095}
+      - {start_year: 2096, end_year: 2100}
+
+paths:
+  raw_root: inputs/climate/raw
+  processed_root: inputs/climate/processed
+  extraction_root: inputs/climate/raw/_extracted
+  reports_dir: reports
+
+spatial:
+  method: nearest_point
+  target_lat: 50.85
+  target_lon: 4.35
+
+  # Alternative spatial extraction mode:
+  # method: belgium_box_mean
+  belgium_box:
+    lat_min: 49.5
+    lat_max: 51.5
+    lon_min: 2.5
+    lon_max: 6.5

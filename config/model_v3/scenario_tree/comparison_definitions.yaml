@@ -1,0 +1,145 @@
+schema_version: "model_v3.comparison_definitions.v1"
+description: >
+  Analytical comparison definitions for interpreting model_v3 scenario-tree
+  outputs. These definitions consume standardized Phase 5 summary tables only
+  and do not run simulations.
+
+metric_sets:
+  major_energy_metrics:
+    - annual_electricity_gross_kWh
+    - annual_grid_import_kWh
+    - annual_grid_export_kWh
+    - annual_gas_kWh
+    - annual_useful_heating_kWh
+    - annual_dhw_kWh
+    - peak_grid_import_W
+    - winter_peak_grid_import_W
+    - summer_peak_grid_import_W
+    - pv_generation_kWh
+    - pv_self_consumption_kWh
+    - pv_export_fraction
+    - ev_charging_kWh
+
+  climate_sensitivity_metrics:
+    - mean_T_out_C
+    - winter_mean_T_out_C
+    - summer_mean_T_out_C
+    - HDD_15
+    - HDD_18
+    - CDD_22
+    - mean_solar_W_m2
+
+  all_major_metrics:
+    - annual_electricity_gross_kWh
+    - annual_grid_import_kWh
+    - annual_grid_export_kWh
+    - annual_gas_kWh
+    - annual_useful_heating_kWh
+    - annual_dhw_kWh
+    - peak_grid_import_W
+    - winter_peak_grid_import_W
+    - summer_peak_grid_import_W
+    - pv_generation_kWh
+    - pv_self_consumption_kWh
+    - pv_export_fraction
+    - ev_charging_kWh
+    - mean_T_out_C
+    - winter_mean_T_out_C
+    - summer_mean_T_out_C
+    - HDD_15
+    - HDD_18
+    - CDD_22
+    - mean_solar_W_m2
+
+comparison_groups:
+  climate_only:
+    description: >
+      Isolates climate pathway and climate-window effects under a frozen-stock
+      technology assumption for future scenarios, compared against the
+      historical current-stock baseline.
+    baseline_scenario:
+      climate_window_id: baseline_1981_2005
+      climate_pathway_id: historical
+      technology_case_id: tech_current_stock
+    future_technology_case_id: tech_frozen_stock
+    group_by:
+      - climate_window_id
+      - climate_pathway_id
+    include_climate_windows:
+      - near_future_2030_2049
+      - mid_century_2050_2070
+      - long_term_2080_2100
+    include_pathways:
+      - rcp_2_6
+      - rcp_4_5
+      - rcp_8_5
+    metrics: all_major_metrics
+    baseline_matching: same_realization_id
+
+  technology_only:
+    description: >
+      Compares technology assumptions within the same climate window and RCP
+      pathway. This isolates the technology-case effect conditional on climate
+      scenario.
+    reference_technology_case_id: tech_frozen_stock
+    compared_technology_case_ids:
+      - tech_moderate_electrification
+      - tech_high_electrification_pv_ev
+    group_by:
+      - climate_window_id
+      - climate_pathway_id
+      - technology_case_id
+    include_climate_windows:
+      - near_future_2030_2049
+      - mid_century_2050_2070
+      - long_term_2080_2100
+    include_pathways:
+      - rcp_2_6
+      - rcp_4_5
+      - rcp_8_5
+    metrics: all_major_metrics
+    baseline_matching: same_realization_id_within_climate_pathway
+
+  combined_stress_case:
+    description: >
+      Compares historical current-stock baseline against the long-term
+      high-climate, high-electrification PV/EV stress case.
+    baseline_scenario:
+      climate_window_id: baseline_1981_2005
+      climate_pathway_id: historical
+      technology_case_id: tech_current_stock
+    stress_scenario:
+      climate_window_id: long_term_2080_2100
+      climate_pathway_id: rcp_8_5
+      technology_case_id: tech_high_electrification_pv_ev
+    metrics: all_major_metrics
+    baseline_matching: same_realization_id
+
+  stochastic_robustness:
+    description: >
+      Quantifies within-scenario spread across stochastic realizations.
+    group_by:
+      - scenario_id
+      - climate_window_id
+      - climate_pathway_id
+      - technology_case_id
+    quantiles:
+      - 0.05
+      - 0.10
+      - 0.50
+      - 0.90
+      - 0.95
+    metrics: all_major_metrics
+
+output_policy:
+  write_delta_tables: true
+  write_percentage_change_tables: true
+  write_uncertainty_band_tables: true
+  include_absolute_values: true
+  include_baseline_values: true
+  include_diagnostics: true
+
+temporal_policy:
+  preserve_canonical_windows: true
+  near_future_excludes_2050: true
+  mid_century_includes_2050: true

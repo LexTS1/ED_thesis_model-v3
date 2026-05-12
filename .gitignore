@@ -1,0 +1,405 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# CDS credentials must live outside the repository, normally at ~/.cdsapirc.
+.cdsapirc
+
+# Raw CDS/CORDEX downloads are large and reproducible from src/climate/climate_config.yaml.
+inputs/climate/raw/**
+!inputs/climate/raw/
+!inputs/climate/raw/**/
+!inputs/climate/raw/**/.gitkeep
+
+# Extracted NetCDF staging folders and large temporary climate artifacts.
+inputs/climate/**/_extracted/**
+inputs/climate/**/extracted/**
+*.nc
+*.nc4
+*.cdf
+*.zip
+*.tmp
+*.part
+
+# Processed CSVs are deterministic from the config and raw inputs. Track them only
+# when a model run or thesis result needs frozen forcing inputs; otherwise regenerate.
+# inputs/climate/processed/**/*.csv
+# inputs/climate/processed/**/*.metadata.json
+
+# --- Excluded from GitHub push ---
+# Large/raw data
+data/
+datasets/
+inputs/raw/
+inputs/climate/raw/
+inputs/weather/raw/
+inputs/solar/raw/
+inputs/load_profiles/raw/
+
+# Generated / heavy figures
+figures/
+plots/
+images/generated/
+
+# Documentation and reports repositories/folders
+docs/
+reports/
+
+# Common large scientific data formats
+*.nc
+*.nc4
+*.grib
+*.grb
+*.grb2
+*.hdf
+*.h5
+*.parquet
+*.feather
+*.pkl
+*.pickle
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.7z
+*.rar
+
+# Python/cache/build artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.env
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+
+# OS/editor files
+.DS_Store
+.vscode/
+.idea/
+
+# --- Excluded from GitHub push ---
+
+# Large/raw data
+data/
+datasets/
+inputs/raw/
+inputs/climate/raw/
+inputs/weather/raw/
+inputs/solar/raw/
+inputs/load_profiles/raw/
+inputs/**/raw/
+
+# Generated / heavy figures
+figures/
+plots/
+images/generated/
+
+# Documentation and reports repositories/folders
+docs/
+reports/
+
+# Common large scientific data formats
+*.nc
+*.nc4
+*.grib
+*.grb
+*.grb2
+*.hdf
+*.h5
+*.parquet
+*.feather
+*.pkl
+*.pickle
+*.csv.gz
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.7z
+*.rar
+
+# Python/cache/build artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.env
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+
+# OS/editor files
+.DS_Store
+.vscode/
+.idea/
+
+# --- Excluded from GitHub push ---
+
+# Large/raw data
+data/
+datasets/
+inputs/raw/
+inputs/climate/raw/
+inputs/weather/raw/
+inputs/solar/raw/
+inputs/load_profiles/raw/
+inputs/**/raw/
+
+# Generated / heavy figures
+figures/
+plots/
+images/generated/
+
+# Documentation and reports repositories/folders
+docs/
+reports/
+
+# Common large scientific data formats
+*.nc
+*.nc4
+*.grib
+*.grb
+*.grb2
+*.hdf
+*.h5
+*.parquet
+*.feather
+*.pkl
+*.pickle
+*.csv.gz
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.7z
+*.rar
+
+# Python/cache/build artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.env
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+
+# OS/editor files
+.DS_Store
+.vscode/
+.idea/
+
+# --- Excluded from GitHub push ---
+
+# Large/raw data
+data/
+datasets/
+inputs/raw/
+inputs/climate/raw/
+inputs/weather/raw/
+inputs/solar/raw/
+inputs/load_profiles/raw/
+inputs/**/raw/
+
+# Generated / heavy figures
+figures/
+plots/
+images/generated/
+
+# Documentation and reports repositories/folders
+docs/
+reports/
+
+# Common large scientific data formats
+*.nc
+*.nc4
+*.grib
+*.grb
+*.grb2
+*.hdf
+*.h5
+*.parquet
+*.feather
+*.pkl
+*.pickle
+*.csv.gz
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.7z
+*.rar
+
+# Python/cache/build artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.env
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+
+# OS/editor files
+.DS_Store
+.vscode/
+.idea/
+
+# --- Excluded from GitHub push ---
+
+# Large/raw data
+data/
+datasets/
+inputs/raw/
+inputs/climate/raw/
+inputs/weather/raw/
+inputs/solar/raw/
+inputs/load_profiles/raw/
+inputs/**/raw/
+
+# Generated / heavy figures
+figures/
+plots/
+images/generated/
+
+# Documentation and reports repositories/folders
+docs/
+reports/
+
+# Common large scientific data formats
+*.nc
+*.nc4
+*.grib
+*.grb
+*.grb2
+*.hdf
+*.h5
+*.parquet
+*.feather
+*.pkl
+*.pickle
+*.csv.gz
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.7z
+*.rar
+
+# Python/cache/build artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.env
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+
+# OS/editor files
+.DS_Store
+.vscode/
+.idea/
+
+# --- Excluded from GitHub push ---
+
+# Large/raw/input data
+data/
+datasets/
+inputs/raw/
+inputs/**/raw/
+inputs/model_v3/load_profiles/
+inputs/model_v3/weather/
+inputs/model_v3/climate/raw/
+inputs/model_v3/solar/raw/
+inputs/climate/raw/
+inputs/weather/raw/
+inputs/solar/raw/
+inputs/load_profiles/raw/
+inputs/load_profiles/
+inputs/weather/
+inputs/solar/raw/
+
+# Generated / heavy figures and plots
+figures/
+plots/
+images/generated/
+
+# Documentation and reports repositories/folders
+docs/
+reports/
+
+# Large tabular/scientific data formats
+*.nc
+*.nc4
+*.grib
+*.grb
+*.grb2
+*.hdf
+*.h5
+*.parquet
+*.feather
+*.pkl
+*.pickle
+*.csv.gz
+
+# Large raw CSV datasets
+*_Open_Data_*.csv
+LCL_2013.csv
+house_*-elec.csv
+aws_1hour_Uccle.csv
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.7z
+*.rar
+
+# Python/cache/build artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.env
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+
+# OS/editor files
+.DS_Store
+.vscode/
+.idea/
