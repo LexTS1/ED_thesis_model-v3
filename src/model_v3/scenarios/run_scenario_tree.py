@@ -42,8 +42,8 @@ from model_v3.scenarios.selection import (
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_EXPERIMENT_ROOT = REPO_ROOT / "model_v3" / "experiments" / "scenario_tree"
-DEFAULT_CONFIG_ROOT = REPO_ROOT / "config" / "model_v3" / "scenario_tree"
+DEFAULT_EXPERIMENT_ROOT = REPO_ROOT / "experiments" / "scenario_tree"
+DEFAULT_CONFIG_ROOT = REPO_ROOT / "config" / "scenario_tree"
 DEFAULT_LEAF_INDEX = DEFAULT_EXPERIMENT_ROOT / "manifests" / "scenario_leaf_index.csv"
 REQUIRED_RUN_CONFIG_SECTIONS = {
     "schema_version",

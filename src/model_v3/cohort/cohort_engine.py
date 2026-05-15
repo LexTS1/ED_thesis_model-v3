@@ -17,6 +17,36 @@ from model_v3.validation.core.metrics_temporal import compute_diversity_factor
 
 LOGGER = logging.getLogger(__name__)
 
+AGGREGATED_POWER_COLUMNS = (
+    "P_el_total_W",
+    "P_el_gross_actual_W",
+    "P_el_grid_import_W",
+    "P_el_grid_export_W",
+    "P_el_ev_charging_W",
+    "P_pv_generation_W",
+    "P_gas_total_W",
+    "P_oil_total_W",
+    "P_biomass_total_W",
+    "P_propane_total_W",
+    "P_coal_total_W",
+    "P_district_heat_total_W",
+    "P_gas_space_heating_W",
+    "P_gas_dhw_W",
+    "P_oil_space_heating_W",
+    "P_oil_dhw_W",
+    "P_biomass_space_heating_W",
+    "P_biomass_dhw_W",
+    "P_propane_space_heating_W",
+    "P_propane_dhw_W",
+    "P_coal_space_heating_W",
+    "P_coal_dhw_W",
+    "P_district_heat_space_heating_W",
+    "P_district_heat_dhw_W",
+    "Q_heating_supplied_W",
+    "Q_dhw_demand_W",
+    "Q_total_thermal_W",
+)
+
 
 def _update_numeric_ranges(target: dict[str, dict[str, float]], prefix: str, values: Mapping[str, Any]) -> None:
     """Track min/max ranges for numeric sampled parameters."""
@@ -132,13 +162,21 @@ def run_cohort_simulation(config: Mapping[str, Any]) -> dict[str, Any]:
     sample_preview: list[dict[str, Any]] = []
     parameter_ranges: dict[str, dict[str, float]] = {}
     technology_counts: dict[str, int] = {}
+    dhw_technology_counts: dict[str, int] = {}
     household_class_counts: dict[str, int] = {}
+    pv_household_count = 0
+    ev_household_count = 0
     occupant_count_tracker: list[float] = []
     occupant_count_counts: dict[str, int] = {}
     household_profiles: list[np.ndarray] = []
+    aggregate_power_profiles: dict[str, np.ndarray] = {}
     household_event_profiles: dict[str, list[float]] = {}
     household_total_profiles: dict[str, list[float]] = {}
+    household_nonthermal_profiles: dict[str, list[float]] = {}
+    household_base_profiles: dict[str, list[float]] = {}
+    household_lighting_profiles: dict[str, list[float]] = {}
     household_dhw_profiles: dict[str, list[float]] = {}
+    household_occupancy_profiles: dict[str, list[float]] = {}
     household_summaries: list[dict[str, Any]] = []
     household_calibration_diagnostics: list[dict[str, Any]] = []
     annual_energy_kwh_tracker: list[float] = []
@@ -184,7 +222,16 @@ def run_cohort_simulation(config: Mapping[str, Any]) -> dict[str, Any]:
         profile_frame = pd.DataFrame(outputs["profile_frame"]).copy()
         household_profile = _frame_column_or_zeros(profile_frame, "P_el_total_W")
         event_profile = _frame_column_or_zeros(profile_frame, "P_events_W")
+        nonthermal_profile = _frame_column_or_zeros(profile_frame, "P_nonthermal_W")
+        base_profile = _frame_column_or_zeros(profile_frame, "P_base_W")
+        lighting_profile = _frame_column_or_zeros(profile_frame, "P_lighting_household_W")
         dhw_profile = _frame_column_or_zeros(profile_frame, "Q_dhw_demand_W")
+        for column_name in AGGREGATED_POWER_COLUMNS:
+            column_values = _frame_column_or_zeros(profile_frame, column_name)
+            if column_name not in aggregate_power_profiles:
+                aggregate_power_profiles[column_name] = np.zeros(len(column_values), dtype=float)
+            if len(aggregate_power_profiles[column_name]) == len(column_values):
+                aggregate_power_profiles[column_name] += column_values
         if timestamps is None:
             timestamps = [pd.Timestamp(value) for value in profile_frame["timestamp"]]
         if timestep_seconds is None and outputs.get("timestep_seconds") is not None:
@@ -193,7 +240,14 @@ def run_cohort_simulation(config: Mapping[str, Any]) -> dict[str, Any]:
         household_id = f"household_{household_index:03d}"
         household_total_profiles[household_id] = household_profile.tolist()
         household_event_profiles[household_id] = event_profile.tolist()
+        household_nonthermal_profiles[household_id] = nonthermal_profile.tolist()
+        household_base_profiles[household_id] = base_profile.tolist()
+        household_lighting_profiles[household_id] = lighting_profile.tolist()
         household_dhw_profiles[household_id] = dhw_profile.tolist()
+        stochastic_household = dict(outputs.get("stochastic_household", {}))
+        occupancy_profile = list(stochastic_household.get("dhw_occupied_probability", []))
+        if len(occupancy_profile) == len(household_profile):
+            household_occupancy_profiles[household_id] = [float(value) for value in occupancy_profile]
         calibrated_annual_energy_kwh = float(outputs.get("annual_energy_kWh", 0.0))
         annual_energy_kwh_tracker.append(calibrated_annual_energy_kwh)
         annual_dhw_thermal_kwh_tracker.append(float(outputs.get("dhw_thermal_kWh", 0.0)))
@@ -215,6 +269,9 @@ def run_cohort_simulation(config: Mapping[str, Any]) -> dict[str, Any]:
         household_class = str(behaviour.get("household_class", "low_flat"))
         occupants_per_dwelling = float(behaviour.get("occupants_per_dwelling", 2.0))
         technology_type = str(technology.get("technology_type", "unknown"))
+        dhw_technology_type = str(technology.get("dhw_technology_type", "unknown"))
+        has_pv = bool(technology.get("has_pv", False))
+        has_ev = bool(technology.get("has_ev", behaviour.get("has_ev", False)))
         electricity_calibration = dict(outputs.get("household_electricity_calibration", outputs.get("electricity_calibration", {})))
         raw_annual_energy_kwh = _sum_numeric_mapping(dict(electricity_calibration.get("raw_annual_kWh_by_end_use", {})))
         target_annual_energy_kwh = _sum_numeric_mapping(dict(electricity_calibration.get("target_annual_kWh_by_end_use", {})))
@@ -226,6 +283,7 @@ def run_cohort_simulation(config: Mapping[str, Any]) -> dict[str, Any]:
                 {
                     "household_id": household_id,
                     "technology_type": technology_type,
+                    "dhw_technology_type": dhw_technology_type,
                     "household_class": household_class,
                     "target_annual_kWh_by_end_use": dict(electricity_calibration.get("target_annual_kWh_by_end_use", {})),
                     "raw_annual_kWh_by_end_use": dict(electricity_calibration.get("raw_annual_kWh_by_end_use", {})),
@@ -244,14 +302,25 @@ def run_cohort_simulation(config: Mapping[str, Any]) -> dict[str, Any]:
         c_tracker.append(c_h)
         household_summary = {
             "household_id": household_id,
+            "building_archetype_id": physical.get("building_archetype_id"),
+            "dwelling_type": physical.get("dwelling_type"),
+            "renovation_state": physical.get("renovation_state"),
+            "construction_period_id": physical.get("construction_period_id"),
+            "u_value_package_id": physical.get("u_value_package_id"),
             "technology_type": technology_type,
+            "dhw_technology_type": dhw_technology_type,
             "household_class": household_class,
             "occupants_per_dwelling": occupants_per_dwelling,
             "household_random_effect_u": float(behaviour.get("household_random_effect_u", 0.0)),
             "UA_h_W_per_C": ua_h,
             "C_h_J_per_K": c_h,
             "has_dryer": bool(behaviour.get("has_dryer", False)),
-            "has_ev": bool(behaviour.get("has_ev", False)),
+            "has_pv": has_pv,
+            "has_ev": has_ev,
+            "technology_probability": float(technology.get("technology_probability", 0.0)),
+            "dhw_technology_probability": float(technology.get("dhw_technology_probability", 0.0)),
+            "technology_probability_source": str(technology.get("technology_probability_source", "")),
+            "dhw_technology_probability_source": str(technology.get("dhw_technology_probability_source", "")),
             "annual_energy_kWh": calibrated_annual_energy_kwh,
             "calibrated_annual_energy_kWh": calibrated_annual_energy_kwh,
             "raw_annual_energy_kWh": raw_annual_energy_kwh if electricity_calibration else None,
@@ -272,6 +341,9 @@ def run_cohort_simulation(config: Mapping[str, Any]) -> dict[str, Any]:
         _update_numeric_ranges(parameter_ranges, "behaviour", behaviour)
         _update_numeric_ranges(parameter_ranges, "technology", technology)
         technology_counts[technology_type] = technology_counts.get(technology_type, 0) + 1
+        dhw_technology_counts[dhw_technology_type] = dhw_technology_counts.get(dhw_technology_type, 0) + 1
+        pv_household_count += int(has_pv)
+        ev_household_count += int(has_ev)
         household_class_counts[household_class] = household_class_counts.get(household_class, 0) + 1
         occupant_count_tracker.append(occupants_per_dwelling)
         occupant_count_key = str(int(round(occupants_per_dwelling)))
@@ -303,6 +375,9 @@ def run_cohort_simulation(config: Mapping[str, Any]) -> dict[str, Any]:
                 {
                     "household_index": household_index,
                     "technology_type": technology_type,
+                    "dhw_technology_type": dhw_technology_type,
+                    "has_pv": has_pv,
+                    "has_ev": has_ev,
                     "household_class": household_class,
                     "annual_energy_kWh": calibrated_annual_energy_kwh,
                     "raw_annual_energy_kWh": raw_annual_energy_kwh if electricity_calibration else None,
@@ -318,7 +393,7 @@ def run_cohort_simulation(config: Mapping[str, Any]) -> dict[str, Any]:
 
     profile_matrix = np.vstack(household_profiles) if household_profiles else np.zeros((1, 1), dtype=float)
     dhw_matrix = np.vstack([np.asarray(values, dtype=float) for values in household_dhw_profiles.values()]) if household_dhw_profiles else np.zeros((1, 1), dtype=float)
-    aggregate_profile = profile_matrix.sum(axis=0)
+    aggregate_profile = aggregate_power_profiles.get("P_el_total_W", profile_matrix.sum(axis=0))
     aggregate_dhw_profile = dhw_matrix.sum(axis=0)
     per_household_profile = aggregate_profile / max(n_households, 1)
     per_household_dhw_profile = aggregate_dhw_profile / max(n_households, 1)
@@ -343,18 +418,24 @@ def run_cohort_simulation(config: Mapping[str, Any]) -> dict[str, Any]:
     P90_profile = float(np.mean(p90_profile_series))
     timestamp_index = pd.to_datetime(timestamps or [pd.Timestamp("2023-01-01")])
     variance_by_hour = compute_diurnal_variance(pd.Series(per_household_profile, index=timestamp_index))
-    profile_frame = pd.DataFrame(
-        {
-            "timestamp": timestamp_index,
-            "aggregate_profile_W": aggregate_profile,
-            "per_household_profile_W": per_household_profile,
-            "aggregate_dhw_W": aggregate_dhw_profile,
-            "per_household_dhw_W": per_household_dhw_profile,
-            "P10_W": p10_profile_series,
-            "P50_W": p50_profile_series,
-            "P90_W": p90_profile_series,
-        }
-    )
+    profile_payload = {
+        "timestamp": timestamp_index,
+        "aggregate_profile_W": aggregate_profile,
+        "per_household_profile_W": per_household_profile,
+        "aggregate_dhw_W": aggregate_dhw_profile,
+        "per_household_dhw_W": per_household_dhw_profile,
+        "P10_W": p10_profile_series,
+        "P50_W": p50_profile_series,
+        "P90_W": p90_profile_series,
+    }
+    for column_name, values in sorted(aggregate_power_profiles.items()):
+        if len(values) == len(timestamp_index):
+            profile_payload[column_name] = values
+    profile_frame = pd.DataFrame(profile_payload)
+    annual_energy_by_carrier_aggregate = {
+        carrier_name: float(np.sum(values))
+        for carrier_name, values in sorted(carrier_energy_trackers.items())
+    }
     annual_energy_summary = {
         "aggregate_calibrated_electricity_kWh": float(np.sum(annual_energy_array)),
         "per_household_calibrated_electricity_kWh": _distribution_summary(annual_energy_array),
@@ -397,6 +478,11 @@ def run_cohort_simulation(config: Mapping[str, Any]) -> dict[str, Any]:
     }
     sampled_population = {
         "technology_counts": dict(sorted(technology_counts.items())),
+        "dhw_technology_counts": dict(sorted(dhw_technology_counts.items())),
+        "pv_household_count": int(pv_household_count),
+        "ev_household_count": int(ev_household_count),
+        "pv_household_share": float(pv_household_count / max(n_households, 1)),
+        "ev_household_share": float(ev_household_count / max(n_households, 1)),
         "household_class_counts": dict(sorted(household_class_counts.items())),
         "occupant_count_counts": dict(sorted(occupant_count_counts.items(), key=lambda item: int(item[0]))),
         "occupants_per_dwelling": _distribution_summary(occupant_count_tracker),
@@ -438,6 +524,14 @@ def run_cohort_simulation(config: Mapping[str, Any]) -> dict[str, Any]:
         "profile_frame": profile_frame,
         "n_steps": int(len(per_household_profile)),
         "profile_representation": "per_household",
+        "annual_energy_kWh": float(np.sum(annual_energy_array)),
+        "annual_energy_by_carrier_kWh": annual_energy_by_carrier_aggregate,
+        "annual_grid_import_kWh": annual_energy_by_carrier_aggregate.get("electricity_grid_import", 0.0),
+        "annual_grid_export_kWh": annual_energy_by_carrier_aggregate.get("electricity_grid_export", 0.0),
+        "annual_pv_generation_kWh": annual_energy_by_carrier_aggregate.get("pv_generation", 0.0),
+        "annual_ev_charging_kWh": annual_energy_by_carrier_aggregate.get("ev_charging", 0.0),
+        "space_heating_thermal_kWh": float(np.sum(space_heating_array)),
+        "dhw_thermal_kWh": float(np.sum(annual_dhw_thermal_array)),
         "mean_peak_demand_W": float(np.mean(peak_array)),
         "annual_energy_kWh_mean": float(np.mean(annual_energy_array)),
         "annual_energy_kWh_std": float(np.std(annual_energy_array, ddof=0)),
@@ -497,7 +591,11 @@ def run_cohort_simulation(config: Mapping[str, Any]) -> dict[str, Any]:
         "household_class_counts": household_class_counts,
         "household_profiles": household_total_profiles,
         "household_event_profiles": household_event_profiles,
+        "household_nonthermal_profiles": household_nonthermal_profiles,
+        "household_base_profiles": household_base_profiles,
+        "household_lighting_profiles": household_lighting_profiles,
         "household_dhw_profiles": household_dhw_profiles,
+        "household_occupancy_profiles": household_occupancy_profiles,
         "household_summaries": household_summaries,
         "household_calibration_diagnostics": household_calibration_diagnostics,
         "peak_dhw_distribution": {

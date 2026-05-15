@@ -16,7 +16,7 @@ from model_v3.scenario_tree import paths  # noqa: E402
 from model_v3.scenario_tree.naming import ScenarioTreeNamingError  # noqa: E402
 
 
-EXPERIMENT_ROOT = Path("model_v3/experiments/scenario_tree")
+EXPERIMENT_ROOT = Path("experiments/scenario_tree")
 SCENARIO_ID = "mid_century_2050_2070__rcp_8_5__tech_high_electrification_pv_ev"
 SCENARIO_LEAF_ID = f"{SCENARIO_ID}__seed_0042"
 

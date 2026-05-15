@@ -43,12 +43,12 @@ def test_invalid_technology_and_window_references_fail() -> None:
     bad_tech["comparison_groups"] = dict(definitions["comparison_groups"])
     bad_tech["comparison_groups"]["technology_only"] = dict(definitions["comparison_groups"]["technology_only"])
     bad_tech["comparison_groups"]["technology_only"]["compared_technology_case_ids"] = ["bad_technology"]
-    errors = _validate_definition_references(bad_tech, frame, Path("config/model_v3/scenario_tree"))
+    errors = _validate_definition_references(bad_tech, frame, Path("config/scenario_tree"))
     assert any("bad_technology" in error for error in errors)
 
     bad_window = dict(definitions)
     bad_window["comparison_groups"] = dict(definitions["comparison_groups"])
     bad_window["comparison_groups"]["climate_only"] = dict(definitions["comparison_groups"]["climate_only"])
     bad_window["comparison_groups"]["climate_only"]["include_climate_windows"] = ["bad_window"]
-    errors = _validate_definition_references(bad_window, frame, Path("config/model_v3/scenario_tree"))
+    errors = _validate_definition_references(bad_window, frame, Path("config/scenario_tree"))
     assert any("bad_window" in error for error in errors)

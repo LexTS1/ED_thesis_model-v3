@@ -34,7 +34,7 @@ class ModelV3SmokeTest(unittest.TestCase):
     """Verify that the model_v3 scaffold imports and runs."""
 
     def test_main_smoke(self) -> None:
-        config_path = Path(__file__).resolve().parents[1] / "config" / "model_v3" / "model_v3.yaml"
+        config_path = Path(__file__).resolve().parents[1] / "config" / "model.yaml"
         config = run_model_v3.load_config(config_path=config_path)
         input_data = load_all_sources(config=config)
         prepared = build_prepared_forcing(input_dataset=input_data)
@@ -64,7 +64,7 @@ class ModelV3SmokeTest(unittest.TestCase):
             self.assertIsNotNone(getattr(outputs, field_name))
 
     def test_cohort_smoke(self) -> None:
-        config_path = Path(__file__).resolve().parents[1] / "config" / "model_v3" / "model_v3.yaml"
+        config_path = Path(__file__).resolve().parents[1] / "config" / "model.yaml"
         config = run_model_v3.load_config(config_path=config_path)
         config.setdefault("cohort", {})
         config.setdefault("simulation", {})
@@ -115,7 +115,7 @@ class ModelV3SmokeTest(unittest.TestCase):
             self.assertNotIn("aggregate_profile", summary)
 
     def test_validation_smoke(self) -> None:
-        config_path = Path(__file__).resolve().parents[1] / "config" / "model_v3" / "model_v3.yaml"
+        config_path = Path(__file__).resolve().parents[1] / "config" / "model.yaml"
         config = run_model_v3.load_config(config_path=config_path)
         config.setdefault("cohort", {})
         config.setdefault("simulation", {})
@@ -142,7 +142,7 @@ class ModelV3SmokeTest(unittest.TestCase):
         self.assertLessEqual(metrics["temporal"]["Pearson_correlation"], 1.0)
 
     def test_annual_simulation_smoke(self) -> None:
-        config_path = Path(__file__).resolve().parents[1] / "config" / "model_v3" / "model_v3.yaml"
+        config_path = Path(__file__).resolve().parents[1] / "config" / "model.yaml"
         config = run_model_v3.load_config(config_path=config_path)
         config.setdefault("simulation", {})
         config["simulation"]["max_steps"] = 24
@@ -190,7 +190,7 @@ class ModelV3SmokeTest(unittest.TestCase):
             )
 
     def test_systems_module_flag_disables_equipment_outputs(self) -> None:
-        config_path = Path(__file__).resolve().parents[1] / "config" / "model_v3" / "model_v3.yaml"
+        config_path = Path(__file__).resolve().parents[1] / "config" / "model.yaml"
         config = run_model_v3.load_config(config_path=config_path)
         config.setdefault("simulation", {})
         config["simulation"]["max_steps"] = 24
@@ -211,7 +211,7 @@ class ModelV3SmokeTest(unittest.TestCase):
         self.assertEqual(annual_results["annual_energy_by_carrier_kWh"]["natural_gas"], 0.0)
 
     def test_cohort_module_flag_disables_cohort_runner(self) -> None:
-        config_path = Path(__file__).resolve().parents[1] / "config" / "model_v3" / "model_v3.yaml"
+        config_path = Path(__file__).resolve().parents[1] / "config" / "model.yaml"
         config = run_model_v3.load_config(config_path=config_path)
         config.setdefault("modules", {})
         config["modules"]["cohort"] = False
@@ -222,7 +222,7 @@ class ModelV3SmokeTest(unittest.TestCase):
             run_cohort_simulation(config=config)
 
     def test_belgian_technology_yaml_is_loaded(self) -> None:
-        config_path = Path(__file__).resolve().parents[1] / "config" / "model_v3" / "model_v3.yaml"
+        config_path = Path(__file__).resolve().parents[1] / "config" / "model.yaml"
         config = run_model_v3.load_config(config_path=config_path)
 
         self.assertIn("technologies", config)
@@ -238,7 +238,7 @@ class ModelV3SmokeTest(unittest.TestCase):
         self.assertTrue(config["uncertainty"]["technology"]["use_belgian_stock_baseline"])
 
     def test_carrier_aware_heating_pv_and_ev_outputs(self) -> None:
-        config_path = Path(__file__).resolve().parents[1] / "config" / "model_v3" / "model_v3.yaml"
+        config_path = Path(__file__).resolve().parents[1] / "config" / "model.yaml"
         config = run_model_v3.load_config(config_path=config_path)
         config.setdefault("simulation", {})
         config["simulation"]["max_steps"] = 24
@@ -267,7 +267,7 @@ class ModelV3SmokeTest(unittest.TestCase):
         self.assertTrue((frame["P_el_grid_export_W"] >= 0.0).all())
 
     def test_aggregate_validation_smoke(self) -> None:
-        config_path = Path(__file__).resolve().parents[1] / "config" / "model_v3" / "model_v3.yaml"
+        config_path = Path(__file__).resolve().parents[1] / "config" / "model.yaml"
         config = run_model_v3.load_config(config_path=config_path)
         config.setdefault("simulation", {})
         config["simulation"]["max_steps"] = 24
@@ -284,7 +284,7 @@ class ModelV3SmokeTest(unittest.TestCase):
         self.assertIn("validation_independence", validation_results["independence"])
 
     def test_baseline_annual_validation_smoke(self) -> None:
-        config_path = Path(__file__).resolve().parents[1] / "config" / "model_v3" / "model_v3.yaml"
+        config_path = Path(__file__).resolve().parents[1] / "config" / "model.yaml"
         config = run_model_v3.load_config(config_path=config_path)
         config.setdefault("simulation", {})
         config["simulation"]["max_steps"] = 24
@@ -298,7 +298,7 @@ class ModelV3SmokeTest(unittest.TestCase):
         self.assertIn("electricity_calibration", results)
 
     def test_full_year_thermal_scaling_sanity(self) -> None:
-        config_path = Path(__file__).resolve().parents[1] / "config" / "model_v3" / "model_v3.yaml"
+        config_path = Path(__file__).resolve().parents[1] / "config" / "model.yaml"
 
         for household_count in (1, 10):
             with self.subTest(household_count=household_count):
@@ -315,7 +315,7 @@ class ModelV3SmokeTest(unittest.TestCase):
                 self.assertGreater(annual_results["dhw_thermal_kWh"], 1000.0)
 
     def test_full_year_stochastic_variance_and_peak_sanity(self) -> None:
-        config_path = Path(__file__).resolve().parents[1] / "config" / "model_v3" / "model_v3.yaml"
+        config_path = Path(__file__).resolve().parents[1] / "config" / "model.yaml"
         config = run_model_v3.load_config(config_path=config_path)
         config.setdefault("simulation", {})
         config.setdefault("cohort", {})
@@ -389,13 +389,13 @@ class ModelV3SmokeTest(unittest.TestCase):
 
     def test_validation_runner_cli_accepts_config(self) -> None:
         parser = build_runner_cli("unit parser")
-        args = parser.parse_args(["--config", "config/model_v3/model_v3_thesis.yaml", "--quick"])
-        self.assertEqual(args.config, "config/model_v3/model_v3_thesis.yaml")
+        args = parser.parse_args(["--config", "config/thesis.yaml", "--quick"])
+        self.assertEqual(args.config, "config/thesis.yaml")
         self.assertTrue(args.quick)
 
         parser_without_quick = build_runner_cli("unit parser", include_quick=False)
-        args_without_quick = parser_without_quick.parse_args(["--config", "config/model_v3/model_v3_thesis.yaml"])
-        self.assertEqual(args_without_quick.config, "config/model_v3/model_v3_thesis.yaml")
+        args_without_quick = parser_without_quick.parse_args(["--config", "config/thesis.yaml"])
+        self.assertEqual(args_without_quick.config, "config/thesis.yaml")
         self.assertFalse(hasattr(args_without_quick, "quick"))
 
 

@@ -24,7 +24,7 @@ from model_v3.scenario_tree.validate_scenario_tree import (  # noqa: E402
 )
 
 
-CONFIG_ROOT = REPO_ROOT / "config" / "model_v3" / "scenario_tree"
+CONFIG_ROOT = REPO_ROOT / "config" / "scenario_tree"
 
 
 def _parse_date(value: str) -> date:

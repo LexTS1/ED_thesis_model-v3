@@ -12,6 +12,7 @@ import pandas as pd
 import yaml
 
 from model_v3.scenarios.summary_contract import REQUIRED_METRIC_COLUMNS
+from model_v3.systems.distributed_energy import value_from_range
 from model_v3.utils.energy import infer_step_durations_seconds, integrate_power_series_kwh
 
 
@@ -182,9 +183,12 @@ def _technology_case(run_config: Mapping[str, Any], repo_root: Path = REPO_ROOT)
 
 def _technology_flags(run_config: Mapping[str, Any]) -> dict[str, bool]:
     case = _technology_case(run_config)
+    assignment = dict(case.get("household_assignment", {}))
+    pv_probability = value_from_range(dict(assignment.get("pv", {})).get("household_probability"), 0.0)
+    ev_probability = value_from_range(dict(assignment.get("ev", {})).get("household_probability"), 0.0)
     return {
-        "pv_assumed": bool(case.get("pv_assumed", False)),
-        "ev_assumed": bool(case.get("ev_adoption_assumed", False)),
+        "pv_assumed": bool(case.get("pv_assumed", False)) or pv_probability > 0.0,
+        "ev_assumed": bool(case.get("ev_adoption_assumed", False)) or ev_probability > 0.0,
         "heat_pump_assumed": bool(case.get("heat_pump_adoption_assumed", False)),
     }
 

@@ -34,7 +34,7 @@ from model_v3.utils.feature_flags import (
 )
 
 
-DEFAULT_CONFIG = Path(__file__).resolve().parents[2] / "config" / "model_v3" / "model_v3.yaml"
+DEFAULT_CONFIG = Path(__file__).resolve().parents[2] / "config" / "model.yaml"
 LOGGER = logging.getLogger(__name__)
 
 
@@ -196,6 +196,6 @@ def main(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run the one-step deterministic model_v3 pipeline.")
-    parser.add_argument("--config", default=None, help="Path to the model_v3 YAML config. Defaults to config/model_v3/model_v3.yaml.")
+    parser.add_argument("--config", default=None, help="Path to the model_v3 YAML config. Defaults to config/model.yaml.")
     args = parser.parse_args()
     main(config_path=args.config)

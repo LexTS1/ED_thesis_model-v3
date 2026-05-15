@@ -19,7 +19,7 @@ def output_root(config: Mapping[str, Any]) -> Path:
     """Resolve the configured output root directory."""
 
     outputs_cfg = dict(config.get("outputs", {}))
-    return Path(outputs_cfg.get("root_dir", "outputs/model_v3"))
+    return Path(outputs_cfg.get("root_dir", "outputs"))
 
 
 def run_output_dir(config: Mapping[str, Any], run_mode: str, *, final: bool = False) -> Path:
@@ -250,7 +250,7 @@ def write_run_manifest(
         "artifact_hygiene": {
             "canonical_output_dir": str(output_dir),
             "legacy_outputs_retained": True,
-            "note": "Older outputs under outputs/model_v3/* are not deleted and may come from mixed configs or partial runs.",
+            "note": "Older outputs under outputs/* are not deleted and may come from mixed configs or partial runs.",
         },
     }
     if extra:

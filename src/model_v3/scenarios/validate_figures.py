@@ -59,7 +59,7 @@ def _allowed_source(path: Path, experiment_root: Path) -> bool:
     allowed_roots = [
         (experiment_root / "summaries").resolve(),
         (experiment_root / "manifests").resolve(),
-        (REPO_ROOT / "config" / "model_v3" / "scenario_tree").resolve(),
+        (REPO_ROOT / "config" / "scenario_tree").resolve(),
     ]
     return any(resolved == root or root in resolved.parents for root in allowed_roots)
 

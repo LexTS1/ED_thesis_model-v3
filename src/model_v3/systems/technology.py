@@ -5,9 +5,11 @@ from __future__ import annotations
 from typing import Any, Mapping
 
 from model_v3.systems.distributed_energy import value_from_range
+from model_v3.systems.heat_pump_performance import heat_pump_performance
 
 
 ELECTRIC_CARRIERS = {"electricity"}
+HEAT_PUMP_TECHNOLOGIES = {"air_water", "air_air", "ground_source", "hpwh"}
 THERMAL_CARRIER_COLUMNS = (
     "P_gas_space_heating_W",
     "P_oil_space_heating_W",
@@ -150,6 +152,10 @@ def convert_heat_to_carriers(
     technology_type: str,
     technologies_cfg: Mapping[str, Any],
     systems_cfg: Mapping[str, Any],
+    source_temperature_c: float | None = None,
+    indoor_setpoint_c: float | None = None,
+    capacity_w: float | None = None,
+    mode: str = "heating",
 ) -> dict[str, Any]:
     """Convert useful heat into delivered-energy powers by carrier."""
 
@@ -162,7 +168,16 @@ def convert_heat_to_carriers(
         hp_fraction = value_from_range(hybrid_cfg.get("hp_load_fraction"), 0.65)
         hp_useful = useful_heat_w * min(max(hp_fraction, 0.0), 1.0)
         gas_useful = useful_heat_w - hp_useful
-        hp_carrier, hp_factor = _technology_performance("air_water", technologies_cfg, systems_cfg)
+        hp_performance = heat_pump_performance(
+            "hybrid_hp_gas",
+            systems_cfg=systems_cfg,
+            outdoor_temperature_c=float(source_temperature_c if source_temperature_c is not None else 7.0),
+            indoor_setpoint_c=float(indoor_setpoint_c if indoor_setpoint_c is not None else 20.0),
+            useful_heat_w=hp_useful,
+            capacity_w=float(capacity_w if capacity_w is not None else useful_heat_w),
+            mode=mode,
+        )
+        hp_carrier, hp_factor = "electricity", float(hp_performance["cop"])
         gas_carrier, gas_factor = _technology_performance("gas_boiler", technologies_cfg, systems_cfg)
         _assign_carrier_power(
             result,
@@ -182,11 +197,34 @@ def convert_heat_to_carriers(
                 "energy_carrier": "electricity+gas",
                 "conversion_factor": None,
                 "hybrid_hp_load_fraction": float(min(max(hp_fraction, 0.0), 1.0)),
+                "heat_pump_cop": float(hp_performance["cop"]),
+                "heat_pump_cop_base": float(hp_performance["cop_base"]),
+                "heat_pump_emitter_type": hp_performance["emitter_type"],
+                "heat_pump_refrigerant": hp_performance["refrigerant"],
+                "heat_pump_source_temperature_C": float(hp_performance["source_temperature_C"]),
+                "heat_pump_sink_temperature_C": float(hp_performance["sink_temperature_C"]),
+                "heat_pump_defrost_factor": float(hp_performance["defrost_factor"]),
+                "heat_pump_part_load_ratio": float(hp_performance["part_load_ratio"]),
+                "heat_pump_part_load_factor": float(hp_performance["part_load_factor"]),
+                "heat_pump_capacity_available_fraction": float(hp_performance["capacity_available_fraction"]),
             }
         )
         return result
 
-    carrier, factor = _technology_performance(tech, technologies_cfg, systems_cfg)
+    hp_performance: dict[str, Any] | None = None
+    if tech in HEAT_PUMP_TECHNOLOGIES:
+        hp_performance = heat_pump_performance(
+            tech,
+            systems_cfg=systems_cfg,
+            outdoor_temperature_c=float(source_temperature_c if source_temperature_c is not None else 7.0),
+            indoor_setpoint_c=float(indoor_setpoint_c if indoor_setpoint_c is not None else 20.0),
+            useful_heat_w=useful_heat_w,
+            capacity_w=float(capacity_w if capacity_w is not None else useful_heat_w),
+            mode=mode,
+        )
+        carrier, factor = "electricity", float(hp_performance["cop"])
+    else:
+        carrier, factor = _technology_performance(tech, technologies_cfg, systems_cfg)
     delivered_power_w = useful_heat_w / max(float(factor), 1e-9)
     _assign_carrier_power(result, prefix=prefix, carrier=carrier, delivered_power_w=delivered_power_w)
     result.update(
@@ -196,6 +234,21 @@ def convert_heat_to_carriers(
             "conversion_factor": float(factor),
         }
     )
+    if hp_performance is not None:
+        result.update(
+            {
+                "heat_pump_cop": float(hp_performance["cop"]),
+                "heat_pump_cop_base": float(hp_performance["cop_base"]),
+                "heat_pump_emitter_type": hp_performance["emitter_type"],
+                "heat_pump_refrigerant": hp_performance["refrigerant"],
+                "heat_pump_source_temperature_C": float(hp_performance["source_temperature_C"]),
+                "heat_pump_sink_temperature_C": float(hp_performance["sink_temperature_C"]),
+                "heat_pump_defrost_factor": float(hp_performance["defrost_factor"]),
+                "heat_pump_part_load_ratio": float(hp_performance["part_load_ratio"]),
+                "heat_pump_part_load_factor": float(hp_performance["part_load_factor"]),
+                "heat_pump_capacity_available_fraction": float(hp_performance["capacity_available_fraction"]),
+            }
+        )
     return result
 
 

@@ -498,6 +498,6 @@ def main(config_path: str | Path | None = None) -> dict[str, object]:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run the model_v3 stochastic cohort or climate ensemble pipeline.")
-    parser.add_argument("--config", default=None, help="Path to the model_v3 YAML config. Defaults to config/model_v3/model_v3.yaml.")
+    parser.add_argument("--config", default=None, help="Path to the model_v3 YAML config. Defaults to config/model.yaml.")
     args = parser.parse_args()
     main(config_path=args.config)

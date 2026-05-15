@@ -313,8 +313,31 @@ def _solar_snapshot(
 ) -> dict[str, float]:
     """Compute orientation-resolved solar gains at one target timestep."""
 
+    index = _index_for_timestamp(solar_dataset, target_timestamp)
+    generic_irradiance = None
+    for column_name in ("I_global_W_m2", "I_solar_W_m2"):
+        if column_name in solar_dataset.columns:
+            generic_irradiance = _value_at(solar_dataset, column_name, index=index, default=0.0)
+            break
+    if generic_irradiance is not None:
+        total_glazing_area_m2 = float(floor_area_m2) * float(glazing_ratio) * float(frame_fraction)
+        q_solar_total = (
+            float(incidence_factor)
+            * float(dirt_factor)
+            * float(g_value)
+            * float(shading_factor)
+            * total_glazing_area_m2
+            * max(float(generic_irradiance), 0.0)
+        )
+        return {
+            "I_solar_north_W_per_m2": max(float(generic_irradiance), 0.0),
+            "I_solar_east_W_per_m2": max(float(generic_irradiance), 0.0),
+            "I_solar_south_W_per_m2": max(float(generic_irradiance), 0.0),
+            "I_solar_west_W_per_m2": max(float(generic_irradiance), 0.0),
+            "Q_solar_gains_W": max(q_solar_total, 0.0),
+        }
+
     if "Q_solar_gains_W" in solar_dataset.columns:
-        index = _index_for_timestamp(solar_dataset, target_timestamp)
         q_solar = _value_at(solar_dataset, "Q_solar_gains_W", index=index, default=0.0)
         return {
             "I_solar_north_W_per_m2": 0.0,
@@ -324,7 +347,6 @@ def _solar_snapshot(
             "Q_solar_gains_W": q_solar,
         }
 
-    index = _index_for_timestamp(solar_dataset, target_timestamp)
     total_glazing_area_m2 = float(floor_area_m2) * float(glazing_ratio) * float(frame_fraction)
     q_solar_total = 0.0
     resolved: dict[str, float] = {}

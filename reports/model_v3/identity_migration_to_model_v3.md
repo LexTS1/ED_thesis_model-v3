@@ -1,0 +1,382 @@
+# Identity Migration To model_v3
+
+- Timestamp: `2026-05-05T21:43:53+02:00`
+- Scope source: `reports/model_v3/migration_from_model_v2.md` copied-file list
+- Copied files in scope: `215`
+- Files moved to model_v3-style paths: `208`
+- Text files rewritten with model_v3 identity: `98`
+- Empty old model_v2 directories removed: `50`
+- Destination collisions: `0`
+- Missing copied files before conversion: `0`
+- Protected pre-existing files changed: `0`
+
+Safety statement: Only files listed as copied in the original migration report were moved or rewritten. Pre-existing model_v3 files were not modified.
+
+## Path Moves
+
+- `config/model_v2/archetypes.yaml` -> `config/model_v3/archetypes.yaml`
+- `config/model_v2/model_v2.yaml` -> `config/model_v3/model_v3.yaml`
+- `config/model_v2/model_v2_thesis.yaml` -> `config/model_v3/model_v3_thesis.yaml`
+- `inputs/model_v2/.DS_Store` -> `inputs/model_v3/.DS_Store`
+- `inputs/model_v2/README.md` -> `inputs/model_v3/README.md`
+- `inputs/model_v2/building/airflow_archetypes_v2.csv` -> `inputs/model_v3/building/airflow_archetypes_v2.csv`
+- `inputs/model_v2/building/archetype_parameters_merged_v2.csv` -> `inputs/model_v3/building/archetype_parameters_merged_v2.csv`
+- `inputs/model_v2/building/archetype_parameters_merged_v2.md` -> `inputs/model_v3/building/archetype_parameters_merged_v2.md`
+- `inputs/model_v2/building/archetype_parameters_v1.csv` -> `inputs/model_v3/building/archetype_parameters_v1.csv`
+- `inputs/model_v2/building/internal_gains_archetypes_v2.csv` -> `inputs/model_v3/building/internal_gains_archetypes_v2.csv`
+- `inputs/model_v2/end_use/EU27_BE_household_enduse_2019.csv` -> `inputs/model_v3/end_use/EU27_BE_household_enduse_2019.csv`
+- `inputs/model_v2/load_profiles/.DS_Store` -> `inputs/model_v3/load_profiles/.DS_Store`
+- `inputs/model_v2/load_profiles/LCL_2013.csv` -> `inputs/model_v3/load_profiles/LCL_2013.csv`
+- `inputs/model_v2/load_profiles/fluvius/.DS_Store` -> `inputs/model_v3/load_profiles/fluvius/.DS_Store`
+- `inputs/model_v2/load_profiles/fluvius/P6269_Open_Data_EV_geen_ZP.csv` -> `inputs/model_v3/load_profiles/fluvius/P6269_Open_Data_EV_geen_ZP.csv`
+- `inputs/model_v2/load_profiles/fluvius/P6269_Open_Data_EV_met_ZP.csv` -> `inputs/model_v3/load_profiles/fluvius/P6269_Open_Data_EV_met_ZP.csv`
+- `inputs/model_v2/load_profiles/fluvius/P6269_Open_Data_WP_EV_geen_ZP.csv` -> `inputs/model_v3/load_profiles/fluvius/P6269_Open_Data_WP_EV_geen_ZP.csv`
+- `inputs/model_v2/load_profiles/fluvius/P6269_Open_Data_WP_EV_met_ZP.csv` -> `inputs/model_v3/load_profiles/fluvius/P6269_Open_Data_WP_EV_met_ZP.csv`
+- `inputs/model_v2/load_profiles/fluvius/P6269_Open_Data_WP_geen_ZP.csv` -> `inputs/model_v3/load_profiles/fluvius/P6269_Open_Data_WP_geen_ZP.csv`
+- `inputs/model_v2/load_profiles/fluvius/P6269_Open_Data_WP_met_ZP.csv` -> `inputs/model_v3/load_profiles/fluvius/P6269_Open_Data_WP_met_ZP.csv`
+- `inputs/model_v2/load_profiles/fluvius/P6269_Open_Data_enkel_ZP.csv` -> `inputs/model_v3/load_profiles/fluvius/P6269_Open_Data_enkel_ZP.csv`
+- `inputs/model_v2/load_profiles/fluvius/P6269_Open_Data_geen_ZP.csv` -> `inputs/model_v3/load_profiles/fluvius/P6269_Open_Data_geen_ZP.csv`
+- `inputs/model_v2/load_profiles/kul/.DS_Store` -> `inputs/model_v3/load_profiles/kul/.DS_Store`
+- `inputs/model_v2/load_profiles/kul/house_1/house_1-elec.csv` -> `inputs/model_v3/load_profiles/kul/house_1/house_1-elec.csv`
+- `inputs/model_v2/load_profiles/kul/house_1/house_1-metadata.md` -> `inputs/model_v3/load_profiles/kul/house_1/house_1-metadata.md`
+- `inputs/model_v2/load_profiles/kul/house_2/house_2-elec.csv` -> `inputs/model_v3/load_profiles/kul/house_2/house_2-elec.csv`
+- `inputs/model_v2/load_profiles/kul/house_2/house_2-metadata.md` -> `inputs/model_v3/load_profiles/kul/house_2/house_2-metadata.md`
+- `inputs/model_v2/load_profiles/kul/house_3/house_3-elec.csv` -> `inputs/model_v3/load_profiles/kul/house_3/house_3-elec.csv`
+- `inputs/model_v2/load_profiles/kul/house_3/house_3-metadata.md` -> `inputs/model_v3/load_profiles/kul/house_3/house_3-metadata.md`
+- `inputs/model_v2/occupancy/occupancy_model_spec_v1.yaml` -> `inputs/model_v3/occupancy/occupancy_model_spec_v1.yaml`
+- `inputs/model_v2/solar/TimeseriesEAST_50.830_4.350_SA3_90deg_-90deg_2005_2023.csv` -> `inputs/model_v3/solar/TimeseriesEAST_50.830_4.350_SA3_90deg_-90deg_2005_2023.csv`
+- `inputs/model_v2/solar/TimeseriesNORTH_50.830_4.350_SA3_90deg_-179deg_2005_2023.csv` -> `inputs/model_v3/solar/TimeseriesNORTH_50.830_4.350_SA3_90deg_-179deg_2005_2023.csv`
+- `inputs/model_v2/solar/TimeseriesSOUTH_50.830_4.350_SA3_90deg_0deg_2005_2023.csv` -> `inputs/model_v3/solar/TimeseriesSOUTH_50.830_4.350_SA3_90deg_0deg_2005_2023.csv`
+- `inputs/model_v2/solar/TimeseriesWEST_50.830_4.350_SA3_90deg_90deg_2005_2023.csv` -> `inputs/model_v3/solar/TimeseriesWEST_50.830_4.350_SA3_90deg_90deg_2005_2023.csv`
+- `inputs/model_v2/solar/raw_inputs/ods001.csv` -> `inputs/model_v3/solar/raw_inputs/ods001.csv`
+- `inputs/model_v2/solar/raw_inputs/solardata_50.847_4.352_SA3_90deg_-179deg_2023_2023.csv` -> `inputs/model_v3/solar/raw_inputs/solardata_50.847_4.352_SA3_90deg_-179deg_2023_2023.csv`
+- `inputs/model_v2/solar/raw_inputs/solardata_50.847_4.352_SA3_90deg_-90deg_2023_2023.csv` -> `inputs/model_v3/solar/raw_inputs/solardata_50.847_4.352_SA3_90deg_-90deg_2023_2023.csv`
+- `inputs/model_v2/solar/raw_inputs/solardata_50.847_4.352_SA3_90deg_0deg_2023_2023.csv` -> `inputs/model_v3/solar/raw_inputs/solardata_50.847_4.352_SA3_90deg_0deg_2023_2023.csv`
+- `inputs/model_v2/solar/raw_inputs/solardata_50.847_4.352_SA3_90deg_90deg_2023_2023.csv` -> `inputs/model_v3/solar/raw_inputs/solardata_50.847_4.352_SA3_90deg_90deg_2023_2023.csv`
+- `inputs/model_v2/weather/Timeseries_pvgisWEATHER_50.830_4.350_SA3_0deg_0deg_2005_2023.csv` -> `inputs/model_v3/weather/Timeseries_pvgisWEATHER_50.830_4.350_SA3_0deg_0deg_2005_2023.csv`
+- `inputs/model_v2/weather/aws_1hour_Uccle.csv` -> `inputs/model_v3/weather/aws_1hour_Uccle.csv`
+- `outputs/model_v2/.DS_Store` -> `outputs/model_v3/.DS_Store`
+- `outputs/model_v2/annual/annual_demand_profile.png` -> `outputs/model_v3/annual/annual_demand_profile.png`
+- `outputs/model_v2/annual/annual_indoor_temperature.png` -> `outputs/model_v3/annual/annual_indoor_temperature.png`
+- `outputs/model_v2/annual/annual_profile.csv` -> `outputs/model_v3/annual/annual_profile.csv`
+- `outputs/model_v2/annual/annual_profile.parquet` -> `outputs/model_v3/annual/annual_profile.parquet`
+- `outputs/model_v2/annual/annual_summary.json` -> `outputs/model_v3/annual/annual_summary.json`
+- `outputs/model_v2/climate_uncertainty/ensemble_summary.json` -> `outputs/model_v3/climate_uncertainty/ensemble_summary.json`
+- `outputs/model_v2/climate_uncertainty/member_stats.parquet` -> `outputs/model_v3/climate_uncertainty/member_stats.parquet`
+- `outputs/model_v2/deterministic/model_outputs.json` -> `outputs/model_v3/deterministic/model_outputs.json`
+- `outputs/model_v2/final/annual/annual_demand_profile.png` -> `outputs/model_v3/final/annual/annual_demand_profile.png`
+- `outputs/model_v2/final/annual/annual_indoor_temperature.png` -> `outputs/model_v3/final/annual/annual_indoor_temperature.png`
+- `outputs/model_v2/final/annual/annual_profile.csv` -> `outputs/model_v3/final/annual/annual_profile.csv`
+- `outputs/model_v2/final/annual/annual_profile.parquet` -> `outputs/model_v3/final/annual/annual_profile.parquet`
+- `outputs/model_v2/final/annual/annual_summary.json` -> `outputs/model_v3/final/annual/annual_summary.json`
+- `outputs/model_v2/final/annual/run_manifest.json` -> `outputs/model_v3/final/annual/run_manifest.json`
+- `outputs/model_v2/final/climate_uncertainty/ensemble_summary.json` -> `outputs/model_v3/final/climate_uncertainty/ensemble_summary.json`
+- `outputs/model_v2/final/climate_uncertainty/member_stats.parquet` -> `outputs/model_v3/final/climate_uncertainty/member_stats.parquet`
+- `outputs/model_v2/final/climate_uncertainty/run_manifest.json` -> `outputs/model_v3/final/climate_uncertainty/run_manifest.json`
+- `outputs/model_v2/final/stochastic/aggregate_profile.csv` -> `outputs/model_v3/final/stochastic/aggregate_profile.csv`
+- `outputs/model_v2/final/stochastic/aggregate_profile.png` -> `outputs/model_v3/final/stochastic/aggregate_profile.png`
+- `outputs/model_v2/final/stochastic/cohort_summary.json` -> `outputs/model_v3/final/stochastic/cohort_summary.json`
+- `outputs/model_v2/final/stochastic/household_annual_energy.csv` -> `outputs/model_v3/final/stochastic/household_annual_energy.csv`
+- `outputs/model_v2/final/stochastic/household_calibration_diagnostics.json` -> `outputs/model_v3/final/stochastic/household_calibration_diagnostics.json`
+- `outputs/model_v2/final/stochastic/run_manifest.json` -> `outputs/model_v3/final/stochastic/run_manifest.json`
+- `outputs/model_v2/stochastic/aggregate_profile.csv` -> `outputs/model_v3/stochastic/aggregate_profile.csv`
+- `outputs/model_v2/stochastic/aggregate_profile.png` -> `outputs/model_v3/stochastic/aggregate_profile.png`
+- `outputs/model_v2/stochastic/cohort_summary.json` -> `outputs/model_v3/stochastic/cohort_summary.json`
+- `outputs/model_v2/validation/.DS_Store` -> `outputs/model_v3/validation/.DS_Store`
+- `outputs/model_v2/validation/aggregate/aligned_normalized_timeseries.csv` -> `outputs/model_v3/validation/aggregate/aligned_normalized_timeseries.csv`
+- `outputs/model_v2/validation/aggregate/load_duration_curve.png` -> `outputs/model_v3/validation/aggregate/load_duration_curve.png`
+- `outputs/model_v2/validation/aggregate/mean_daily_profile_overlay.png` -> `outputs/model_v3/validation/aggregate/mean_daily_profile_overlay.png`
+- `outputs/model_v2/validation/aggregate/metrics.json` -> `outputs/model_v3/validation/aggregate/metrics.json`
+- `outputs/model_v2/validation/aggregate/uncertainty_bands.png` -> `outputs/model_v3/validation/aggregate/uncertainty_bands.png`
+- `outputs/model_v2/validation/aggregate/validation_report_v2_aggregate.md` -> `outputs/model_v3/validation/aggregate/validation_report_v3_aggregate.md`
+- `outputs/model_v2/validation/aggregate/variance_by_hour.png` -> `outputs/model_v3/validation/aggregate/variance_by_hour.png`
+- `outputs/model_v2/validation/baseline_annual/annual_profile.csv` -> `outputs/model_v3/validation/baseline_annual/annual_profile.csv`
+- `outputs/model_v2/validation/baseline_annual/baseline_metrics.json` -> `outputs/model_v3/validation/baseline_annual/baseline_metrics.json`
+- `outputs/model_v2/validation/baseline_annual/validation_report_v2_baseline_annual.md` -> `outputs/model_v3/validation/baseline_annual/validation_report_v3_baseline_annual.md`
+- `outputs/model_v2/validation/fluvius_external/aligned_absolute_timeseries.csv` -> `outputs/model_v3/validation/fluvius_external/aligned_absolute_timeseries.csv`
+- `outputs/model_v2/validation/fluvius_external/load_duration_curve.png` -> `outputs/model_v3/validation/fluvius_external/load_duration_curve.png`
+- `outputs/model_v2/validation/fluvius_external/mean_daily_profile_overlay.png` -> `outputs/model_v3/validation/fluvius_external/mean_daily_profile_overlay.png`
+- `outputs/model_v2/validation/fluvius_external/metrics.json` -> `outputs/model_v3/validation/fluvius_external/metrics.json`
+- `outputs/model_v2/validation/fluvius_external/uncertainty_bands.png` -> `outputs/model_v3/validation/fluvius_external/uncertainty_bands.png`
+- `outputs/model_v2/validation/fluvius_external/variance_by_hour.png` -> `outputs/model_v3/validation/fluvius_external/variance_by_hour.png`
+- `outputs/model_v2/validation/full_year_parity/validation_report_v2_full_year_parity.json` -> `outputs/model_v3/validation/full_year_parity/validation_report_v3_full_year_parity.json`
+- `outputs/model_v2/validation/full_year_parity/validation_report_v2_full_year_parity.md` -> `outputs/model_v3/validation/full_year_parity/validation_report_v3_full_year_parity.md`
+- `outputs/model_v2/validation/kuleuven_high_freq/house_1_24h_segment.png` -> `outputs/model_v3/validation/kuleuven_high_freq/house_1_24h_segment.png`
+- `outputs/model_v2/validation/kuleuven_high_freq/house_1_aligned_timeseries.csv` -> `outputs/model_v3/validation/kuleuven_high_freq/house_1_aligned_timeseries.csv`
+- `outputs/model_v2/validation/kuleuven_high_freq/house_1_ramp_histogram.png` -> `outputs/model_v3/validation/kuleuven_high_freq/house_1_ramp_histogram.png`
+- `outputs/model_v2/validation/kuleuven_high_freq/house_1_spike_comparison.png` -> `outputs/model_v3/validation/kuleuven_high_freq/house_1_spike_comparison.png`
+- `outputs/model_v2/validation/kuleuven_high_freq/house_2_24h_segment.png` -> `outputs/model_v3/validation/kuleuven_high_freq/house_2_24h_segment.png`
+- `outputs/model_v2/validation/kuleuven_high_freq/house_2_aligned_timeseries.csv` -> `outputs/model_v3/validation/kuleuven_high_freq/house_2_aligned_timeseries.csv`
+- `outputs/model_v2/validation/kuleuven_high_freq/house_2_ramp_histogram.png` -> `outputs/model_v3/validation/kuleuven_high_freq/house_2_ramp_histogram.png`
+- `outputs/model_v2/validation/kuleuven_high_freq/house_2_spike_comparison.png` -> `outputs/model_v3/validation/kuleuven_high_freq/house_2_spike_comparison.png`
+- `outputs/model_v2/validation/kuleuven_high_freq/house_3_24h_segment.png` -> `outputs/model_v3/validation/kuleuven_high_freq/house_3_24h_segment.png`
+- `outputs/model_v2/validation/kuleuven_high_freq/house_3_aligned_timeseries.csv` -> `outputs/model_v3/validation/kuleuven_high_freq/house_3_aligned_timeseries.csv`
+- `outputs/model_v2/validation/kuleuven_high_freq/house_3_ramp_histogram.png` -> `outputs/model_v3/validation/kuleuven_high_freq/house_3_ramp_histogram.png`
+- `outputs/model_v2/validation/kuleuven_high_freq/house_3_spike_comparison.png` -> `outputs/model_v3/validation/kuleuven_high_freq/house_3_spike_comparison.png`
+- `outputs/model_v2/validation/kuleuven_high_freq/metrics.json` -> `outputs/model_v3/validation/kuleuven_high_freq/metrics.json`
+- `outputs/model_v2/validation/parity/validation_report_v2_parity.json` -> `outputs/model_v3/validation/parity/validation_report_v3_parity.json`
+- `outputs/model_v2/validation/parity/validation_report_v2_parity.md` -> `outputs/model_v3/validation/parity/validation_report_v3_parity.md`
+- `outputs/model_v2/validation/smart_meter/aligned_timeseries.csv` -> `outputs/model_v3/validation/smart_meter/aligned_timeseries.csv`
+- `outputs/model_v2/validation/smart_meter/load_duration_curve.png` -> `outputs/model_v3/validation/smart_meter/load_duration_curve.png`
+- `outputs/model_v2/validation/smart_meter/mean_daily_profile_overlay.png` -> `outputs/model_v3/validation/smart_meter/mean_daily_profile_overlay.png`
+- `outputs/model_v2/validation/smart_meter/metrics.json` -> `outputs/model_v3/validation/smart_meter/metrics.json`
+- `outputs/model_v2/validation/smart_meter/model_profile.csv` -> `outputs/model_v3/validation/smart_meter/model_profile.csv`
+- `outputs/model_v2/validation/smart_meter/uncertainty_bands.png` -> `outputs/model_v3/validation/smart_meter/uncertainty_bands.png`
+- `outputs/model_v2/validation/smart_meter/validation_report_v2_smart_meter.md` -> `outputs/model_v3/validation/smart_meter/validation_report_v3_smart_meter.md`
+- `outputs/model_v2/validation/smart_meter/variance_by_hour.png` -> `outputs/model_v3/validation/smart_meter/variance_by_hour.png`
+- `outputs/model_v2/validation/synthetic/aligned_timeseries.csv` -> `outputs/model_v3/validation/synthetic/aligned_timeseries.csv`
+- `outputs/model_v2/validation/synthetic/load_duration_curve.png` -> `outputs/model_v3/validation/synthetic/load_duration_curve.png`
+- `outputs/model_v2/validation/synthetic/mean_daily_profile_overlay.png` -> `outputs/model_v3/validation/synthetic/mean_daily_profile_overlay.png`
+- `outputs/model_v2/validation/synthetic/metrics.json` -> `outputs/model_v3/validation/synthetic/metrics.json`
+- `outputs/model_v2/validation/synthetic/model_bands.csv` -> `outputs/model_v3/validation/synthetic/model_bands.csv`
+- `outputs/model_v2/validation/synthetic/uncertainty_bands.png` -> `outputs/model_v3/validation/synthetic/uncertainty_bands.png`
+- `outputs/model_v2/validation/synthetic/validation_report_v2_synthetic.md` -> `outputs/model_v3/validation/synthetic/validation_report_v3_synthetic.md`
+- `outputs/model_v2/validation/synthetic/variance_by_hour.png` -> `outputs/model_v3/validation/synthetic/variance_by_hour.png`
+- `outputs/model_v2/validation/validation_report_v2_fluvius_external.md` -> `outputs/model_v3/validation/validation_report_v3_fluvius_external.md`
+- `outputs/model_v2/validation/validation_report_v2_kuleuven_high_freq.md` -> `outputs/model_v3/validation/validation_report_v3_kuleuven_high_freq.md`
+- `reports/model_v2/model_v2_global_summary.md` -> `reports/model_v3/model_v3_global_summary.md`
+- `reports/model_v2/model_v2_runtime_contract.md` -> `reports/model_v3/model_v3_runtime_contract.md`
+- `reports/model_v2/model_v2_skeleton.md` -> `reports/model_v3/model_v3_skeleton.md`
+- `reports/model_v2/model_v2_small_report.md` -> `reports/model_v3/model_v3_small_report.md`
+- `src/model_v2/__init__.py` -> `src/model_v3/__init__.py`
+- `src/model_v2/adapters/__init__.py` -> `src/model_v3/adapters/__init__.py`
+- `src/model_v2/adapters/adapter_module.py` -> `src/model_v3/adapters/adapter_module.py`
+- `src/model_v2/adapters/fluvius_loader.py` -> `src/model_v3/adapters/fluvius_loader.py`
+- `src/model_v2/adapters/forcing_builder.py` -> `src/model_v3/adapters/forcing_builder.py`
+- `src/model_v2/adapters/kuleuven_loader.py` -> `src/model_v3/adapters/kuleuven_loader.py`
+- `src/model_v2/adapters/load_mapping.py` -> `src/model_v3/adapters/load_mapping.py`
+- `src/model_v2/adapters/pvgis_solar_loader.py` -> `src/model_v3/adapters/pvgis_solar_loader.py`
+- `src/model_v2/adapters/pvgis_weather_loader.py` -> `src/model_v3/adapters/pvgis_weather_loader.py`
+- `src/model_v2/baseline.py` -> `src/model_v3/baseline.py`
+- `src/model_v2/cohort/__init__.py` -> `src/model_v3/cohort/__init__.py`
+- `src/model_v2/cohort/cohort_engine.py` -> `src/model_v3/cohort/cohort_engine.py`
+- `src/model_v2/cohort/household_runner.py` -> `src/model_v3/cohort/household_runner.py`
+- `src/model_v2/cohort/household_simulator.py` -> `src/model_v3/cohort/household_simulator.py`
+- `src/model_v2/cohort/profile_stochasticity.py` -> `src/model_v3/cohort/profile_stochasticity.py`
+- `src/model_v2/control/__init__.py` -> `src/model_v3/control/__init__.py`
+- `src/model_v2/control/control_core.py` -> `src/model_v3/control/control_core.py`
+- `src/model_v2/control/control_module.py` -> `src/model_v3/control/control_module.py`
+- `src/model_v2/control/thermostat.py` -> `src/model_v3/control/thermostat.py`
+- `src/model_v2/data/__init__.py` -> `src/model_v3/data/__init__.py`
+- `src/model_v2/data/data_module.py` -> `src/model_v3/data/data_module.py`
+- `src/model_v2/data/harmonisation.py` -> `src/model_v3/data/harmonisation.py`
+- `src/model_v2/data/loaders.py` -> `src/model_v3/data/loaders.py`
+- `src/model_v2/data/preprocessing.py` -> `src/model_v3/data/preprocessing.py`
+- `src/model_v2/interfaces.py` -> `src/model_v3/interfaces.py`
+- `src/model_v2/output/__init__.py` -> `src/model_v3/output/__init__.py`
+- `src/model_v2/output/output_core.py` -> `src/model_v3/output/output_core.py`
+- `src/model_v2/output/output_module.py` -> `src/model_v3/output/output_module.py`
+- `src/model_v2/output/persistence.py` -> `src/model_v3/output/persistence.py`
+- `src/model_v2/physics/__init__.py` -> `src/model_v3/physics/__init__.py`
+- `src/model_v2/physics/physics_core.py` -> `src/model_v3/physics/physics_core.py`
+- `src/model_v2/physics/physics_module.py` -> `src/model_v3/physics/physics_module.py`
+- `src/model_v2/physics/thermal_dynamics.py` -> `src/model_v3/physics/thermal_dynamics.py`
+- `src/model_v2/simulation/__init__.py` -> `src/model_v3/simulation/__init__.py`
+- `src/model_v2/simulation/annual_runner.py` -> `src/model_v3/simulation/annual_runner.py`
+- `src/model_v2/stochastic/__init__.py` -> `src/model_v3/stochastic/__init__.py`
+- `src/model_v2/stochastic/base_load.py` -> `src/model_v3/stochastic/base_load.py`
+- `src/model_v2/stochastic/dhw_generator.py` -> `src/model_v3/stochastic/dhw_generator.py`
+- `src/model_v2/stochastic/event_generator.py` -> `src/model_v3/stochastic/event_generator.py`
+- `src/model_v2/stochastic/household_classifier.py` -> `src/model_v3/stochastic/household_classifier.py`
+- `src/model_v2/stochastic/lighting_model.py` -> `src/model_v3/stochastic/lighting_model.py`
+- `src/model_v2/stochastic/sampler.py` -> `src/model_v3/stochastic/sampler.py`
+- `src/model_v2/stochastic/shared_driver.py` -> `src/model_v3/stochastic/shared_driver.py`
+- `src/model_v2/systems/__init__.py` -> `src/model_v3/systems/__init__.py`
+- `src/model_v2/systems/electricity.py` -> `src/model_v3/systems/electricity.py`
+- `src/model_v2/systems/heating_system.py` -> `src/model_v3/systems/heating_system.py`
+- `src/model_v2/systems/system_core.py` -> `src/model_v3/systems/system_core.py`
+- `src/model_v2/systems/systems_module.py` -> `src/model_v3/systems/systems_module.py`
+- `src/model_v2/utils/__init__.py` -> `src/model_v3/utils/__init__.py`
+- `src/model_v2/utils/config.py` -> `src/model_v3/utils/config.py`
+- `src/model_v2/utils/energy.py` -> `src/model_v3/utils/energy.py`
+- `src/model_v2/utils/matplotlib_config.py` -> `src/model_v3/utils/matplotlib_config.py`
+- `src/model_v2/validation/__init__.py` -> `src/model_v3/validation/__init__.py`
+- `src/model_v2/validation/acceptance_criteria.py` -> `src/model_v3/validation/acceptance_criteria.py`
+- `src/model_v2/validation/core/__init__.py` -> `src/model_v3/validation/core/__init__.py`
+- `src/model_v2/validation/core/metrics_distribution.py` -> `src/model_v3/validation/core/metrics_distribution.py`
+- `src/model_v2/validation/core/metrics_end_use.py` -> `src/model_v3/validation/core/metrics_end_use.py`
+- `src/model_v2/validation/core/metrics_events.py` -> `src/model_v3/validation/core/metrics_events.py`
+- `src/model_v2/validation/core/metrics_mean.py` -> `src/model_v3/validation/core/metrics_mean.py`
+- `src/model_v2/validation/core/metrics_temporal.py` -> `src/model_v3/validation/core/metrics_temporal.py`
+- `src/model_v2/validation/core/metrics_variance.py` -> `src/model_v3/validation/core/metrics_variance.py`
+- `src/model_v2/validation/reports/README.md` -> `src/model_v3/validation/reports/README.md`
+- `src/model_v2/validation/runners/__init__.py` -> `src/model_v3/validation/runners/__init__.py`
+- `src/model_v2/validation/runners/model_runner.py` -> `src/model_v3/validation/runners/model_runner.py`
+- `src/model_v2/validation/runners/runner_utils.py` -> `src/model_v3/validation/runners/runner_utils.py`
+- `src/model_v2/validation/runners/validate_against_aggregate.py` -> `src/model_v3/validation/runners/validate_against_aggregate.py`
+- `src/model_v2/validation/runners/validate_against_model_v1_full_year.py` -> `src/model_v3/validation/runners/validate_against_model_v1_full_year.py`
+- `src/model_v2/validation/runners/validate_against_model_v1_parity.py` -> `src/model_v3/validation/runners/validate_against_model_v1_parity.py`
+- `src/model_v2/validation/runners/validate_against_synthetic.py` -> `src/model_v3/validation/runners/validate_against_synthetic.py`
+- `src/model_v2/validation/runners/validate_baseline_annual.py` -> `src/model_v3/validation/runners/validate_baseline_annual.py`
+- `src/model_v2/validation/runners/validate_high_frequency_kuleuven.py` -> `src/model_v3/validation/runners/validate_high_frequency_kuleuven.py`
+- `src/model_v2/validation/utils/__init__.py` -> `src/model_v3/validation/utils/__init__.py`
+- `src/model_v2/validation/utils/alignment.py` -> `src/model_v3/validation/utils/alignment.py`
+- `src/model_v2/validation/utils/independence.py` -> `src/model_v3/validation/utils/independence.py`
+- `src/model_v2/validation/utils/preprocessing.py` -> `src/model_v3/validation/utils/preprocessing.py`
+- `src/model_v2/validation/utils/reference_profile.py` -> `src/model_v3/validation/utils/reference_profile.py`
+- `src/model_v2/weather/__init__.py` -> `src/model_v3/weather/__init__.py`
+- `src/model_v2/weather/ensemble_generator.py` -> `src/model_v3/weather/ensemble_generator.py`
+- `src/model_v2/weather/forcing_builder.py` -> `src/model_v3/weather/forcing_builder.py`
+- `src/model_v2/weather/year_splitter.py` -> `src/model_v3/weather/year_splitter.py`
+- `src/pipelines/run_model_v2.py` -> `src/pipelines/run_model_v3.py`
+- `src/pipelines/run_model_v2_annual.py` -> `src/pipelines/run_model_v3_annual.py`
+- `src/pipelines/run_model_v2_stochastic.py` -> `src/pipelines/run_model_v3_stochastic.py`
+- `tests/test_model_v2_smoke.py` -> `tests/test_model_v3_smoke.py`
+
+## Text Rewrites
+
+- `README.md`
+- `__init__.py`
+- `config/model_v3/model_v3.yaml`
+- `config/model_v3/model_v3_thesis.yaml`
+- `inputs/model_v3/README.md`
+- `inputs/model_v3/building/archetype_parameters_merged_v2.md`
+- `outputs/model_v3/final/annual/run_manifest.json`
+- `outputs/model_v3/final/climate_uncertainty/run_manifest.json`
+- `outputs/model_v3/final/stochastic/cohort_summary.json`
+- `outputs/model_v3/final/stochastic/run_manifest.json`
+- `outputs/model_v3/validation/aggregate/metrics.json`
+- `outputs/model_v3/validation/aggregate/validation_report_v3_aggregate.md`
+- `outputs/model_v3/validation/baseline_annual/baseline_metrics.json`
+- `outputs/model_v3/validation/baseline_annual/validation_report_v3_baseline_annual.md`
+- `outputs/model_v3/validation/fluvius_external/metrics.json`
+- `outputs/model_v3/validation/full_year_parity/validation_report_v3_full_year_parity.json`
+- `outputs/model_v3/validation/full_year_parity/validation_report_v3_full_year_parity.md`
+- `outputs/model_v3/validation/parity/validation_report_v3_parity.json`
+- `outputs/model_v3/validation/parity/validation_report_v3_parity.md`
+- `outputs/model_v3/validation/smart_meter/metrics.json`
+- `outputs/model_v3/validation/smart_meter/validation_report_v3_smart_meter.md`
+- `outputs/model_v3/validation/synthetic/validation_report_v3_synthetic.md`
+- `outputs/model_v3/validation/validation_report_v3_fluvius_external.md`
+- `outputs/model_v3/validation/validation_report_v3_kuleuven_high_freq.md`
+- `reports/model_v3/model_v3_global_summary.md`
+- `reports/model_v3/model_v3_runtime_contract.md`
+- `reports/model_v3/model_v3_skeleton.md`
+- `reports/model_v3/model_v3_small_report.md`
+- `src/model_v3/adapters/__init__.py`
+- `src/model_v3/adapters/adapter_module.py`
+- `src/model_v3/adapters/fluvius_loader.py`
+- `src/model_v3/adapters/forcing_builder.py`
+- `src/model_v3/adapters/kuleuven_loader.py`
+- `src/model_v3/adapters/load_mapping.py`
+- `src/model_v3/baseline.py`
+- `src/model_v3/cohort/__init__.py`
+- `src/model_v3/cohort/cohort_engine.py`
+- `src/model_v3/cohort/household_runner.py`
+- `src/model_v3/cohort/household_simulator.py`
+- `src/model_v3/cohort/profile_stochasticity.py`
+- `src/model_v3/control/__init__.py`
+- `src/model_v3/control/control_core.py`
+- `src/model_v3/control/control_module.py`
+- `src/model_v3/control/thermostat.py`
+- `src/model_v3/data/__init__.py`
+- `src/model_v3/data/data_module.py`
+- `src/model_v3/data/harmonisation.py`
+- `src/model_v3/data/loaders.py`
+- `src/model_v3/data/preprocessing.py`
+- `src/model_v3/interfaces.py`
+- `src/model_v3/output/__init__.py`
+- `src/model_v3/output/output_core.py`
+- `src/model_v3/output/output_module.py`
+- `src/model_v3/output/persistence.py`
+- `src/model_v3/physics/__init__.py`
+- `src/model_v3/physics/physics_core.py`
+- `src/model_v3/physics/physics_module.py`
+- `src/model_v3/physics/thermal_dynamics.py`
+- `src/model_v3/simulation/__init__.py`
+- `src/model_v3/simulation/annual_runner.py`
+- `src/model_v3/stochastic/__init__.py`
+- `src/model_v3/stochastic/dhw_generator.py`
+- `src/model_v3/stochastic/event_generator.py`
+- `src/model_v3/stochastic/sampler.py`
+- `src/model_v3/systems/__init__.py`
+- `src/model_v3/systems/electricity.py`
+- `src/model_v3/systems/heating_system.py`
+- `src/model_v3/systems/system_core.py`
+- `src/model_v3/systems/systems_module.py`
+- `src/model_v3/utils/__init__.py`
+- `src/model_v3/utils/config.py`
+- `src/model_v3/utils/matplotlib_config.py`
+- `src/model_v3/validation/__init__.py`
+- `src/model_v3/validation/core/__init__.py`
+- `src/model_v3/validation/core/metrics_end_use.py`
+- `src/model_v3/validation/reports/README.md`
+- `src/model_v3/validation/runners/__init__.py`
+- `src/model_v3/validation/runners/model_runner.py`
+- `src/model_v3/validation/runners/runner_utils.py`
+- `src/model_v3/validation/runners/validate_against_aggregate.py`
+- `src/model_v3/validation/runners/validate_against_model_v1_full_year.py`
+- `src/model_v3/validation/runners/validate_against_model_v1_parity.py`
+- `src/model_v3/validation/runners/validate_against_synthetic.py`
+- `src/model_v3/validation/runners/validate_baseline_annual.py`
+- `src/model_v3/validation/runners/validate_high_frequency_kuleuven.py`
+- `src/model_v3/validation/utils/__init__.py`
+- `src/model_v3/validation/utils/alignment.py`
+- `src/model_v3/validation/utils/reference_profile.py`
+- `src/model_v3/weather/__init__.py`
+- `src/model_v3/weather/forcing_builder.py`
+- `src/pipelines/__init__.py`
+- `src/pipelines/run_model_v3.py`
+- `src/pipelines/run_model_v3_annual.py`
+- `src/pipelines/run_model_v3_stochastic.py`
+- `src/shared/__init__.py`
+- `src/sitecustomize.py`
+- `tests/__init__.py`
+- `tests/test_model_v3_smoke.py`
+
+## Removed Empty Directories
+
+- `config/model_v2`
+- `inputs/model_v2`
+- `inputs/model_v2/building`
+- `inputs/model_v2/end_use`
+- `inputs/model_v2/load_profiles`
+- `inputs/model_v2/load_profiles/fluvius`
+- `inputs/model_v2/load_profiles/kul`
+- `inputs/model_v2/load_profiles/kul/house_1`
+- `inputs/model_v2/load_profiles/kul/house_2`
+- `inputs/model_v2/load_profiles/kul/house_3`
+- `inputs/model_v2/occupancy`
+- `inputs/model_v2/solar`
+- `inputs/model_v2/solar/raw_inputs`
+- `inputs/model_v2/weather`
+- `outputs/model_v2`
+- `outputs/model_v2/annual`
+- `outputs/model_v2/climate_uncertainty`
+- `outputs/model_v2/deterministic`
+- `outputs/model_v2/final`
+- `outputs/model_v2/final/annual`
+- `outputs/model_v2/final/climate_uncertainty`
+- `outputs/model_v2/final/stochastic`
+- `outputs/model_v2/stochastic`
+- `outputs/model_v2/validation`
+- `outputs/model_v2/validation/aggregate`
+- `outputs/model_v2/validation/baseline_annual`
+- `outputs/model_v2/validation/fluvius_external`
+- `outputs/model_v2/validation/full_year_parity`
+- `outputs/model_v2/validation/kuleuven_high_freq`
+- `outputs/model_v2/validation/parity`
+- `outputs/model_v2/validation/smart_meter`
+- `outputs/model_v2/validation/synthetic`
+- `reports/model_v2`
+- `src/model_v2`
+- `src/model_v2/adapters`
+- `src/model_v2/cohort`
+- `src/model_v2/control`
+- `src/model_v2/data`
+- `src/model_v2/output`
+- `src/model_v2/physics`
+- `src/model_v2/simulation`
+- `src/model_v2/stochastic`
+- `src/model_v2/systems`
+- `src/model_v2/utils`
+- `src/model_v2/validation`
+- `src/model_v2/validation/core`
+- `src/model_v2/validation/reports`
+- `src/model_v2/validation/runners`
+- `src/model_v2/validation/utils`
+- `src/model_v2/weather`
+
+## Protected Changes
+
+- None

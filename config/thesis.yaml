@@ -1,0 +1,265 @@
+modules:
+  physics: true
+  control: true
+  systems: true
+  cohort: true
+  stochastic: true
+
+technology_inputs_path: "belgian_technology_inputs.yaml"
+
+simulation:
+  n_samples: 2
+  start_timestamp: "2023-01-01T00:00:00+01:00"
+  reference_year: 2023
+  max_steps: ~
+
+baseline:
+  electricity_annual_kWh: 3900
+  electricity_range_kWh: [3600, 3900]
+  space_heating_kWh: 12000
+  space_heating_range_kWh: [12000, 16000]
+  dhw_kWh: 3000
+  dhw_range_kWh: [2500, 3300]
+
+electricity_split:
+  appliances: 0.524
+  lighting: 0.072
+  cooking: 0.067
+  dhw: 0.19
+  space_heating: 0.137
+  other: 0.01
+  note: "Lighting share is derived from the EU appliance-lighting bucket fallback."
+
+thermal_split:
+  space_heating: 0.83
+  dhw: 0.17
+
+technology_baseline:
+  gas_share: 0.49
+  oil_share: 0.39
+  electric_share: 0.07
+  other_share: 0.05
+  heat_pump_share: 0.04
+
+heat_pump:
+  cop_nominal_range: [3.0, 5.0]
+  note: "Use as nominal; apply seasonal degradation"
+
+cohort:
+  n_households: 30
+  minimum_households: 30
+  random_seed: 42
+  diversity_slots: 24
+  quantile_buffer_size: 512
+
+climate:
+  enabled: false
+  mode: "climate_only"
+  n_members: 50
+  seed: 42
+  rho: 0.8
+  occupancy_seed: 42
+  occupancy_seed_stride: 1000
+  mu_month: {}
+  inputs:
+    weather_path: "inputs/weather/Timeseries_pvgisWEATHER_50.830_4.350_SA3_0deg_0deg_2005_2023.csv"
+    solar_paths:
+      south: "inputs/solar/TimeseriesSOUTH_50.830_4.350_SA3_90deg_0deg_2005_2023.csv"
+      east: "inputs/solar/TimeseriesEAST_50.830_4.350_SA3_90deg_-90deg_2005_2023.csv"
+      west: "inputs/solar/TimeseriesWEST_50.830_4.350_SA3_90deg_90deg_2005_2023.csv"
+      north: "inputs/solar/TimeseriesNORTH_50.830_4.350_SA3_90deg_-179deg_2005_2023.csv"
+
+uncertainty:
+  physical:
+    sample_building_archetype_by_stock_weight: true
+    UA_sigma: 0.25
+    thermal_mass_sigma: 0.20
+    infiltration_sigma: 0.4
+    cop_sigma: 0.10
+  behaviour:
+    occupancy_sigma: 0.2
+    dhw_sigma: 0.4
+    dhw_cohort_scale: 3.217
+    appliance_sigma: 0.5
+    household_size_probabilities:
+      1: 0.36
+      2: 0.31
+      3: 0.145
+      4: 0.11
+      5: 0.04
+      6: 0.02
+      7: 0.01
+    household_size_distribution_note: "Belgian private-household-size working distribution; normalized during sampling because rounded probabilities sum to 0.995."
+    dhw_event_volume_sigma: 0.4
+    dhw_event_lambda: 3.0
+    dhw_start_jitter_hours: 0.75
+    appliance_start_jitter_hours: 1.0
+    high_frequency_sigma: 0.08
+  technology:
+    use_belgian_stock_baseline: true
+    heat_pump_share: 0.6
+    resistive_share: 0.4
+
+data:
+  target_resolution_seconds: 3600
+  harmonisation:
+    methods:
+      weather: forward_fill
+      load_profiles: mean
+      internal_gains: mean
+      solar: mean
+  reconstruction:
+    methods:
+      weather: forward_fill
+      load_profiles: zero_fill
+      internal_gains: zero_fill
+      solar: zero_fill
+  sources:
+    occupancy:
+      spec_path: "inputs/occupancy/occupancy_model_spec_v1.yaml"
+      data_role: ["input"]
+    weather:
+      file_path: "inputs/weather/aws_1hour_Uccle.csv"
+      data_role: ["input"]
+      timestamp_column: "timestamp"
+      column_mapping:
+        T_outdoor_C: "temp_dry_shelter_avg"
+      original_timestep_seconds: 3600
+      timestamps:
+        - "2023-01-01T00:00:00+01:00"
+      data:
+        T_outdoor_C: [5.0]
+    load_profiles:
+      file_path: "inputs/load_profiles/LCL_2013.csv"
+      data_role: ["input"]
+      timestamp_column: "DateTime"
+      original_timestep_seconds: 1800
+      units: "kWh_per_interval"
+      timestamps:
+        - "2023-01-01T00:00:00+01:00"
+      data:
+        appliances: [0.0]
+        lighting: [0.0]
+        cooking: [0.0]
+    end_use_shares:
+      file_path: "inputs/end_use/EU27_BE_household_enduse_2019.csv"
+      data_role: ["calibration"]
+      parameter_column: "parameter"
+      value_column: "value"
+      lighting_fraction_of_appliance_bucket: 0.18
+    internal_gains:
+      data_role: ["input"]
+      original_timestep_seconds: 3600
+      timestamps:
+        - "2023-01-01T00:00:00+01:00"
+      data:
+        Q_internal_gains_W: [0.0]
+    solar:
+      raw_dir: "inputs/solar/raw_inputs"
+      data_role: ["input"]
+      original_timestep_seconds: 3600
+      timestamps:
+        - "2023-03-15T13:00:00+01:00"
+      data:
+        Q_solar_gains_W: [0.0]
+
+forcing:
+  T_outdoor_C: 5.0
+  T_indoor_initial_C: 17.0
+  T_set_C: 21.0
+  dhw:
+    demand_W: 0.0
+  electric_loads_W:
+    appliances: 0.0
+    lighting: 0.0
+    cooking: 0.0
+
+building:
+  heat_loss_coefficient_W_per_C: 180.0
+  ua_multiplier: 1.10
+  thermal_mass_Wh_per_C: 4500.0
+  tabula_archetypes_path: "config/archetypes.yaml"
+  archetype_source:
+    file_path: "inputs/building/archetype_parameters_merged_v3.csv"
+    selection: "highest_stock_weight"
+  internal_gains_reference_csv: "inputs/building/internal_gains_archetypes_v2.csv"
+  airflow_reference_csv: "inputs/building/airflow_archetypes_v2.csv"
+
+model:
+  timestep_seconds: 3600
+  initial_indoor_temperature_C: 17.0
+  occupancy_threshold: 0.5
+  initial_heating_on: false
+
+control:
+  deadband: 1.0
+
+setpoints:
+  occupied_day: 21.0
+  sleeping: 17.0
+  away: 16.0
+
+air:
+  rho: 1.2
+  cp: 1000.0
+
+ventilation:
+  window_opening:
+    enabled: false
+    extra_ach: 0.5
+    trigger_above_setpoint_c: 1.0
+    min_indoor_minus_outdoor_c: 1.0
+
+systems:
+  heating:
+    capacity_W: 8000
+    cop: 3.0
+  dhw:
+    cop: 1.0
+
+comfort:
+  T_min_C: 18
+  T_max_C: 26
+
+outputs:
+  root_dir: "outputs"
+
+validation:
+  enabled: true
+  dataset: "fluvius_external"
+  model_source: "cohort"
+  aggregate_mode: "fluvius_external"
+  resolution: "auto"
+  quick_mode:
+    enabled: false
+    max_steps: 168
+    cohort_households: 5
+    minimum_households: 5
+  fluvius:
+    enabled: true
+    base_path: "inputs/load_profiles/fluvius"
+    households: 30
+    profile_weights:
+      base: 0.6
+      ev: 0.2
+      hp: 0.15
+      ev_hp: 0.05
+  kuleuven:
+    enabled: true
+    base_path: "inputs/load_profiles/kul"
+  aggregate_reference_year_mode: "map_to_model_year"
+  timestamp_column: "DateTime"
+  aggregate_aggregation: "mean_across_columns"
+  aggregate_units: "kWh_per_interval"
+  aggregate_interval_seconds: 1800
+  acceptance:
+    monthly_MBE_max: 0.05
+    monthly_CVRMSE_max: 0.15
+    hourly_MBE_max: 0.10
+    hourly_CVRMSE_max: 0.30
+    peak_MAE_kW_max: 0.2
+    quantile_error_kW_max: 0.2
+    good_hourly_MBE_max: 0.05
+    good_hourly_CVRMSE_max: 0.20
+    good_peak_MAE_kW_max: 0.1
+    good_quantile_error_kW_max: 0.1

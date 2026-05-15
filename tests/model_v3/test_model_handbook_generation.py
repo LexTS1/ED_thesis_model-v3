@@ -16,7 +16,7 @@ def _write(path: Path, text: str) -> None:
 
 def _minimal_repo(root: Path) -> None:
     _write(
-        root / "config/model_v3/scenario_tree/climate_windows.yaml",
+        root / "config/scenario_tree/climate_windows.yaml",
         """
 schema_version: "1.0.0"
 temporal_window_policy:
@@ -57,7 +57,7 @@ climate_windows:
 """,
     )
     _write(
-        root / "config/model_v3/scenario_tree/technology_cases.yaml",
+        root / "config/scenario_tree/technology_cases.yaml",
         """
 technology_cases:
   tech_current_stock:
@@ -74,12 +74,12 @@ technology_cases:
     applicable_window_types: [future]
 """,
     )
-    _write(root / "config/model_v3/scenario_tree/scenario_tree_schema.yaml", "schema_version: '1.0.0'\n")
-    _write(root / "config/model_v3/scenario_tree/realization_policy.yaml", "realization_policy:\n  number_of_seeds: 100\n")
-    _write(root / "config/model_v3/scenario_tree/comparison_definitions.yaml", "comparison_groups: {}\n")
-    _write(root / "config/model_v3/belgian_technology_inputs.yaml", "technologies: {}\n")
-    _write(root / "model_v3/experiments/scenario_tree/manifests/scenario_leaf_index.csv", "scenario_leaf_id,scenario_id\n")
-    _write(root / "model_v3/experiments/scenario_tree/manifests/run_registry.csv", "scenario_leaf_id,status\n")
+    _write(root / "config/scenario_tree/scenario_tree_schema.yaml", "schema_version: '1.0.0'\n")
+    _write(root / "config/scenario_tree/realization_policy.yaml", "realization_policy:\n  number_of_seeds: 100\n")
+    _write(root / "config/scenario_tree/comparison_definitions.yaml", "comparison_groups: {}\n")
+    _write(root / "config/belgian_technology_inputs.yaml", "technologies: {}\n")
+    _write(root / "experiments/scenario_tree/manifests/scenario_leaf_index.csv", "scenario_leaf_id,scenario_id\n")
+    _write(root / "experiments/scenario_tree/manifests/run_registry.csv", "scenario_leaf_id,status\n")
     _write(root / "docs/model_v3_scenario_tree_design.md", "# design\n")
     _write(root / "src/model_v3/interfaces.py", "class InputDataset: pass\n")
 

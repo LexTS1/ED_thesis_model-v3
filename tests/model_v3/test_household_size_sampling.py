@@ -51,6 +51,30 @@ class HouseholdSizeSamplingTest(unittest.TestCase):
         self.assertAlmostEqual(sum(DEFAULT_HOUSEHOLD_SIZE_PROBABILITIES.values()), 0.995)
         self.assertEqual(set(DEFAULT_HOUSEHOLD_SIZE_PROBABILITIES), {1, 2, 3, 4, 5, 6, 7})
 
+    def test_stock_weighted_building_archetype_sampling_can_be_enabled(self) -> None:
+        rng = np.random.default_rng(10)
+        config = {
+            "building": {
+                "archetype_source": {
+                    "file_path": "inputs/building/archetype_parameters_merged_v3.csv",
+                    "selection": "highest_stock_weight",
+                }
+            },
+            "uncertainty": {
+                "physical": {
+                    "sample_building_archetype_by_stock_weight": True,
+                }
+            },
+        }
+
+        sample = sample_household_parameters(config=config, rng=rng)
+        physical = sample["physical"]
+
+        self.assertIn("building_archetype_id", physical)
+        self.assertIn("construction_period_id", physical)
+        self.assertIn("u_value_package_id", physical)
+        self.assertGreater(physical["building_archetype_stock_weight"], 0.0)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -33,7 +33,7 @@ from .validate_scenario_tree import (
 
 DEFAULT_EXPERIMENT_ROOT = paths.get_experiment_root(REPO_ROOT)
 DEFAULT_CLIMATE_PROCESSED_ROOT = REPO_ROOT / "inputs" / "climate" / "processed"
-DEFAULT_BELGIAN_TECHNOLOGY_INPUTS = REPO_ROOT / "config" / "model_v3" / "belgian_technology_inputs.yaml"
+DEFAULT_BELGIAN_TECHNOLOGY_INPUTS = REPO_ROOT / "config" / "belgian_technology_inputs.yaml"
 
 RUN_CONFIG_SCHEMA_VERSION = "model_v3.scenario_leaf_config.v1"
 INPUTS_MANIFEST_SCHEMA_VERSION = "model_v3.inputs_manifest.v1"
@@ -257,7 +257,7 @@ def validate_leaf_index(rows: list[dict[str, str]], result: ValidationResult) ->
                     f"metadata value {getattr(expected_leaf, field_name)!r}."
                 )
 
-        expected_paths = paths.paths_for_leaf(Path("model_v3/experiments/scenario_tree"), leaf_id)
+        expected_paths = paths.paths_for_leaf(Path("experiments/scenario_tree"), leaf_id)
         for field_name, expected_path_key in (
             ("run_config_path", "run_config_path"),
             ("inputs_manifest_path", "inputs_manifest_path"),

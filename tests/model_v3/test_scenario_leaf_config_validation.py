@@ -18,7 +18,7 @@ from model_v3.scenario_tree.generate_leaf_configs import generate_leaf_configs, 
 from model_v3.scenario_tree.validate_leaf_configs import validate_leaf_configs  # noqa: E402
 
 
-CONFIG_ROOT = REPO_ROOT / "config" / "model_v3" / "scenario_tree"
+CONFIG_ROOT = REPO_ROOT / "config" / "scenario_tree"
 
 
 def _write_csv(path: Path) -> None:

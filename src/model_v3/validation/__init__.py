@@ -2,6 +2,7 @@
 
 __all__ = [
     "validate_against_aggregate",
+    "validate_against_richardson",
     "validate_against_synthetic",
     "validate_high_frequency_kuleuven",
 ]

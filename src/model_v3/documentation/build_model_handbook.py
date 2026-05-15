@@ -36,27 +36,27 @@ ASSET_DIR_NAME = "model_v3_handbook_assets"
 SUPERVISOR_STEM = "model_v3_supervisor_briefing"
 
 EXPECTED_REPOSITORY_PATHS = [
-    "config/model_v3/",
-    "config/model_v3/scenario_tree/",
-    "config/model_v3/scenario_tree/scenario_tree_schema.yaml",
-    "config/model_v3/scenario_tree/climate_windows.yaml",
-    "config/model_v3/scenario_tree/technology_cases.yaml",
-    "config/model_v3/scenario_tree/realization_policy.yaml",
-    "config/model_v3/scenario_tree/comparison_definitions.yaml",
-    "config/model_v3/belgian_technology_inputs.yaml",
+    "config/",
+    "config/scenario_tree/",
+    "config/scenario_tree/scenario_tree_schema.yaml",
+    "config/scenario_tree/climate_windows.yaml",
+    "config/scenario_tree/technology_cases.yaml",
+    "config/scenario_tree/realization_policy.yaml",
+    "config/scenario_tree/comparison_definitions.yaml",
+    "config/belgian_technology_inputs.yaml",
     "inputs/",
     "inputs/climate/",
     "inputs/climate/processed/",
-    "model_v3/experiments/scenario_tree/",
-    "model_v3/experiments/scenario_tree/manifests/scenario_tree_manifest.yaml",
-    "model_v3/experiments/scenario_tree/manifests/scenario_leaf_index.csv",
-    "model_v3/experiments/scenario_tree/manifests/run_registry.csv",
-    "model_v3/experiments/scenario_tree/manifests/config_validation_report.md",
-    "model_v3/experiments/scenario_tree/manifests/summary_validation_report.md",
-    "model_v3/experiments/scenario_tree/manifests/comparison_validation_report.md",
-    "model_v3/experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics.csv",
-    "model_v3/experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv",
-    "model_v3/experiments/scenario_tree/summaries/comparison_level/comparison_index.csv",
+    "experiments/scenario_tree/",
+    "experiments/scenario_tree/manifests/scenario_tree_manifest.yaml",
+    "experiments/scenario_tree/manifests/scenario_leaf_index.csv",
+    "experiments/scenario_tree/manifests/run_registry.csv",
+    "experiments/scenario_tree/manifests/config_validation_report.md",
+    "experiments/scenario_tree/manifests/summary_validation_report.md",
+    "experiments/scenario_tree/manifests/comparison_validation_report.md",
+    "experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics.csv",
+    "experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv",
+    "experiments/scenario_tree/summaries/comparison_level/comparison_index.csv",
     "figures/scenario_tree/",
     "figures/scenario_tree/metadata/figure_metadata.yaml",
     "figures/scenario_tree/thesis_caption_drafts.md",
@@ -76,15 +76,15 @@ EXPECTED_REPOSITORY_PATHS = [
 ]
 
 KEY_SOURCE_GLOBS = [
-    "config/model_v3/**/*.yaml",
+    "config/**/*.yaml",
     "docs/model_v3_*.md",
     "reports/scenario_tree*.md",
     "reports/scenario_tree*.yaml",
     "reports/scenario_tree*.csv",
     "src/model_v3/**/*.py",
-    "model_v3/experiments/scenario_tree/manifests/*",
-    "model_v3/experiments/scenario_tree/summaries/**/*.csv",
-    "model_v3/experiments/scenario_tree/summaries/**/*.yaml",
+    "experiments/scenario_tree/manifests/*",
+    "experiments/scenario_tree/summaries/**/*.csv",
+    "experiments/scenario_tree/summaries/**/*.yaml",
     "figures/scenario_tree/metadata/*",
     "figures/scenario_tree/thesis_caption_drafts.md",
 ]
@@ -260,8 +260,8 @@ def first_and_last_csv_rows(path: Path) -> tuple[list[str], list[str], list[str]
 def infer_csv_inventory(repo_root: Path) -> list[dict[str, str]]:
     roots = [
         repo_root / "inputs",
-        repo_root / "config" / "model_v3",
-        repo_root / "model_v3" / "experiments" / "scenario_tree" / "summaries",
+        repo_root / "config",
+        repo_root / "experiments" / "scenario_tree" / "summaries",
     ]
     inventory: list[dict[str, str]] = []
     for root in roots:
@@ -284,23 +284,23 @@ def infer_csv_inventory(repo_root: Path) -> list[dict[str, str]]:
                 purpose = "Processed climate forcing for a canonical scenario-tree branch."
                 scenario_dimension = "climate_window_id, climate_pathway_id"
                 required = "required_for_configured_climate_leaves"
-            elif rel.startswith("inputs/model_v3/building"):
+            elif rel.startswith("inputs/building"):
                 category = "building"
                 purpose = "Building or archetype parameters used by the model input layer."
                 scenario_dimension = "building/archetype assumptions"
-            elif rel.startswith("inputs/model_v3/solar"):
+            elif rel.startswith("inputs/solar"):
                 category = "solar"
                 purpose = "Solar generation or irradiance input data."
                 scenario_dimension = "technology/PV and forcing"
-            elif rel.startswith("inputs/model_v3/load_profiles"):
+            elif rel.startswith("inputs/load_profiles"):
                 category = "load_profiles"
                 purpose = "Observed or representative load profile input data."
                 scenario_dimension = "stochastic/end-use behaviour"
-            elif rel.startswith("inputs/model_v3/occupancy"):
+            elif rel.startswith("inputs/occupancy"):
                 category = "occupancy"
                 purpose = "Occupancy model specification."
                 scenario_dimension = "stochastic behaviour"
-            elif rel.startswith("config/model_v3/scenario_tree"):
+            elif rel.startswith("config/scenario_tree"):
                 category = "scenario_tree_config"
                 purpose = "Scenario-tree contract, dimensions, or comparison definitions."
                 scenario_dimension = "scenario tree"
@@ -346,7 +346,7 @@ def infer_csv_inventory(repo_root: Path) -> list[dict[str, str]]:
 
 
 def summarize_registry(repo_root: Path, audit_summary: Mapping[str, Any]) -> dict[str, Any]:
-    path = repo_root / "model_v3" / "experiments" / "scenario_tree" / "manifests" / "run_registry.csv"
+    path = repo_root / "experiments" / "scenario_tree" / "manifests" / "run_registry.csv"
     rows = read_csv_rows(path)
     status_counts = Counter(row.get("status", "") for row in rows)
     successful_leaves = sorted({row.get("scenario_leaf_id", "") for row in rows if row.get("status") == "success"})
@@ -356,7 +356,7 @@ def summarize_registry(repo_root: Path, audit_summary: Mapping[str, Any]) -> dic
         latest_successful = len(successful_leaves)
     total_leaves = counts.get("scenario_leaves")
     if total_leaves is None:
-        leaf_info = csv_shape(repo_root / "model_v3" / "experiments" / "scenario_tree" / "manifests" / "scenario_leaf_index.csv")
+        leaf_info = csv_shape(repo_root / "experiments" / "scenario_tree" / "manifests" / "scenario_leaf_index.csv")
         total_leaves = leaf_info.rows or 0
     return {
         "path": relpath(path, repo_root),
@@ -381,10 +381,10 @@ def detect_phase_statuses(repo_root: Path, registry: Mapping[str, Any], counts: 
             "Phase 1 - scenario-tree schema",
             "Schema, climate windows, technology cases, realization policy.",
             [
-                "config/model_v3/scenario_tree/scenario_tree_schema.yaml",
-                "config/model_v3/scenario_tree/climate_windows.yaml",
-                "config/model_v3/scenario_tree/technology_cases.yaml",
-                "config/model_v3/scenario_tree/realization_policy.yaml",
+                "config/scenario_tree/scenario_tree_schema.yaml",
+                "config/scenario_tree/climate_windows.yaml",
+                "config/scenario_tree/technology_cases.yaml",
+                "config/scenario_tree/realization_policy.yaml",
             ],
             "Validate schema before changing branch dimensions.",
         ),
@@ -392,15 +392,15 @@ def detect_phase_statuses(repo_root: Path, registry: Mapping[str, Any], counts: 
             "Phase 2 - directory and naming convention",
             "Experiment space, manifests, stable scenario and leaf paths.",
             [
-                "model_v3/experiments/scenario_tree/manifests/scenario_tree_manifest.yaml",
-                "model_v3/experiments/scenario_tree/manifests/scenario_leaf_index.csv",
+                "experiments/scenario_tree/manifests/scenario_tree_manifest.yaml",
+                "experiments/scenario_tree/manifests/scenario_leaf_index.csv",
             ],
             "Regenerate experiment space if the leaf index is stale.",
         ),
         (
             "Phase 3 - scenario-leaf configs",
             "Per-leaf run_config.yaml and inputs_manifest.yaml files.",
-            ["model_v3/experiments/scenario_tree/manifests/config_validation_report.md"],
+            ["experiments/scenario_tree/manifests/config_validation_report.md"],
             "Run leaf-config validation after changing inputs or technology files.",
         ),
         (
@@ -408,7 +408,7 @@ def detect_phase_statuses(repo_root: Path, registry: Mapping[str, Any], counts: 
             "Scenario-tree runner, provenance, logs, run registry.",
             [
                 "src/model_v3/scenarios/run_scenario_tree.py",
-                "model_v3/experiments/scenario_tree/manifests/run_registry.csv",
+                "experiments/scenario_tree/manifests/run_registry.csv",
             ],
             "Run dry-run first; execute a small pair before batch execution.",
         ),
@@ -417,7 +417,7 @@ def detect_phase_statuses(repo_root: Path, registry: Mapping[str, Any], counts: 
             "Per-leaf summaries and scenario aggregate metrics.",
             [
                 "src/model_v3/scenarios/summarize_outputs.py",
-                "model_v3/experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics.csv",
+                "experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics.csv",
             ],
             "Regenerate summaries after new successful runs.",
         ),
@@ -425,8 +425,8 @@ def detect_phase_statuses(repo_root: Path, registry: Mapping[str, Any], counts: 
             "Phase 6 - comparison framework",
             "Climate-only, technology-only, stress-case, stochastic robustness tables.",
             [
-                "config/model_v3/scenario_tree/comparison_definitions.yaml",
-                "model_v3/experiments/scenario_tree/summaries/comparison_level/comparison_index.csv",
+                "config/scenario_tree/comparison_definitions.yaml",
+                "experiments/scenario_tree/summaries/comparison_level/comparison_index.csv",
             ],
             "Regenerate comparisons when more leaves have summaries.",
         ),
@@ -472,7 +472,7 @@ def detect_phase_statuses(repo_root: Path, registry: Mapping[str, Any], counts: 
         if phase.startswith("Phase 4") and total and successful < total:
             status = "implemented"
             warning = f"runner exists, but registry/audit supports only {successful} latest-successful leaves out of {total} enumerated leaves"
-        if phase.startswith("Phase 6") and exists("model_v3/experiments/scenario_tree/manifests/comparison_validation_report.md"):
+        if phase.startswith("Phase 6") and exists("experiments/scenario_tree/manifests/comparison_validation_report.md"):
             warning = "comparison validation reports missing groups where no successful summary rows exist"
         rows.append(
             {
@@ -507,28 +507,28 @@ def collect_context(repo_root: Path) -> Context:
             missing.append(path_text)
 
     yaml_paths = {
-        "climate_windows": repo_root / "config/model_v3/scenario_tree/climate_windows.yaml",
-        "technology_cases": repo_root / "config/model_v3/scenario_tree/technology_cases.yaml",
-        "realization_policy": repo_root / "config/model_v3/scenario_tree/realization_policy.yaml",
-        "scenario_tree_schema": repo_root / "config/model_v3/scenario_tree/scenario_tree_schema.yaml",
-        "comparison_definitions": repo_root / "config/model_v3/scenario_tree/comparison_definitions.yaml",
-        "scenario_tree_manifest": repo_root / "model_v3/experiments/scenario_tree/manifests/scenario_tree_manifest.yaml",
-        "run_registry_summary": repo_root / "model_v3/experiments/scenario_tree/manifests/run_registry_summary.yaml",
-        "config_validation": repo_root / "model_v3/experiments/scenario_tree/manifests/config_validation_report.yaml",
-        "summary_validation": repo_root / "model_v3/experiments/scenario_tree/manifests/summary_validation_report.yaml",
-        "comparison_validation": repo_root / "model_v3/experiments/scenario_tree/manifests/comparison_validation_report.yaml",
+        "climate_windows": repo_root / "config/scenario_tree/climate_windows.yaml",
+        "technology_cases": repo_root / "config/scenario_tree/technology_cases.yaml",
+        "realization_policy": repo_root / "config/scenario_tree/realization_policy.yaml",
+        "scenario_tree_schema": repo_root / "config/scenario_tree/scenario_tree_schema.yaml",
+        "comparison_definitions": repo_root / "config/scenario_tree/comparison_definitions.yaml",
+        "scenario_tree_manifest": repo_root / "experiments/scenario_tree/manifests/scenario_tree_manifest.yaml",
+        "run_registry_summary": repo_root / "experiments/scenario_tree/manifests/run_registry_summary.yaml",
+        "config_validation": repo_root / "experiments/scenario_tree/manifests/config_validation_report.yaml",
+        "summary_validation": repo_root / "experiments/scenario_tree/manifests/summary_validation_report.yaml",
+        "comparison_validation": repo_root / "experiments/scenario_tree/manifests/comparison_validation_report.yaml",
         "audit_summary": repo_root / "reports/scenario_tree_audit_summary.yaml",
         "figure_metadata": repo_root / "figures/scenario_tree/metadata/figure_metadata.yaml",
-        "metric_schema": repo_root / "model_v3/experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics_schema.yaml",
+        "metric_schema": repo_root / "experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics_schema.yaml",
     }
     yaml_data = {name: read_yaml(path) for name, path in yaml_paths.items() if path.exists()}
 
     csv_paths = {
-        "scenario_leaf_index": repo_root / "model_v3/experiments/scenario_tree/manifests/scenario_leaf_index.csv",
-        "run_registry": repo_root / "model_v3/experiments/scenario_tree/manifests/run_registry.csv",
-        "scenario_leaf_metrics": repo_root / "model_v3/experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics.csv",
-        "scenario_aggregate_metrics": repo_root / "model_v3/experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv",
-        "comparison_index": repo_root / "model_v3/experiments/scenario_tree/summaries/comparison_level/comparison_index.csv",
+        "scenario_leaf_index": repo_root / "experiments/scenario_tree/manifests/scenario_leaf_index.csv",
+        "run_registry": repo_root / "experiments/scenario_tree/manifests/run_registry.csv",
+        "scenario_leaf_metrics": repo_root / "experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics.csv",
+        "scenario_aggregate_metrics": repo_root / "experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv",
+        "comparison_index": repo_root / "experiments/scenario_tree/summaries/comparison_level/comparison_index.csv",
         "traceability_matrix": repo_root / "reports/scenario_tree_traceability_matrix.csv",
     }
     csv_info = {name: csv_shape(path) for name, path in csv_paths.items()}
@@ -732,7 +732,7 @@ def generate_handbook_figures(context: Context, assets_dir: Path, write_figures:
                 p,
                 "model_v3 architecture",
                 [
-                    ("Config\nconfig/model_v3", 0.04, 0.70, 0.17, 0.14),
+                    ("Config\nconfig", 0.04, 0.70, 0.17, 0.14),
                     ("Inputs\nclimate, building, loads", 0.04, 0.42, 0.17, 0.14),
                     ("Data adapters\nsrc/model_v3/data", 0.27, 0.56, 0.18, 0.14),
                     ("Physics\nthermal balance", 0.50, 0.70, 0.17, 0.14),
@@ -770,16 +770,16 @@ def generate_handbook_figures(context: Context, assets_dir: Path, write_figures:
             "climate_window_timeline_2050_policy.png",
             "Climate-window timeline showing the 2050 overlap policy.",
             "Shows that source files may overlap in 2050 while canonical analysis windows do not: near-future ends in 2049 and mid-century starts in 2050.",
-            "config/model_v3/scenario_tree/climate_windows.yaml",
+            "config/scenario_tree/climate_windows.yaml",
             lambda p: draw_timeline(p, climate_windows),
         ),
-        ("scenario_leaf_id_decomposition", "scenario_leaf_id_decomposition.png", "Scenario leaf ID decomposition diagram.", "Explains the four fields of a scenario leaf ID and why double underscores are reserved as dimension separators.", "config/model_v3/scenario_tree/scenario_tree_schema.yaml", draw_leaf_id),
+        ("scenario_leaf_id_decomposition", "scenario_leaf_id_decomposition.png", "Scenario leaf ID decomposition diagram.", "Explains the four fields of a scenario leaf ID and why double underscores are reserved as dimension separators.", "config/scenario_tree/scenario_tree_schema.yaml", draw_leaf_id),
         (
             "runner_provenance_workflow",
             "runner_provenance_workflow.png",
             "Runner and provenance workflow.",
             "Shows how generated configs are executed by the runner and recorded in registry, logs, hashes, and output paths.",
-            "src/model_v3/scenarios/run_scenario_tree.py and model_v3/experiments/scenario_tree/manifests/run_registry.csv",
+            "src/model_v3/scenarios/run_scenario_tree.py and experiments/scenario_tree/manifests/run_registry.csv",
             lambda p: draw_boxes(
                 p,
                 "Runner and provenance workflow",
@@ -818,7 +818,7 @@ def generate_handbook_figures(context: Context, assets_dir: Path, write_figures:
             "comparison_framework.png",
             "Comparison framework diagram.",
             "Summarizes climate-only, technology-only, combined stress-case, and stochastic robustness comparisons.",
-            "config/model_v3/scenario_tree/comparison_definitions.yaml",
+            "config/scenario_tree/comparison_definitions.yaml",
             lambda p: draw_boxes(
                 p,
                 "Comparison framework",
@@ -833,8 +833,8 @@ def generate_handbook_figures(context: Context, assets_dir: Path, write_figures:
                 [(0, 1), (0, 3), (1, 4), (2, 4), (3, 4), (2, 5), (3, 5)],
             ),
         ),
-        ("input_data_inventory", "input_data_inventory.png", "Input data inventory chart.", "Counts detected input, config, summary, and metadata files by file type.", "Repository file inventory under inputs/, config/model_v3/, and scenario-tree summaries.", lambda p: draw_inventory_chart(p, context.input_inventory)),
-        ("metric_taxonomy", "metric_taxonomy.png", "Metric taxonomy diagram.", "Groups standardized metrics into energy totals, grid stress, technology metrics, climate metrics, comparisons, and uncertainty summaries.", "model_v3/experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics_schema.yaml", draw_metric_taxonomy),
+        ("input_data_inventory", "input_data_inventory.png", "Input data inventory chart.", "Counts detected input, config, summary, and metadata files by file type.", "Repository file inventory under inputs/, config/, and scenario-tree summaries.", lambda p: draw_inventory_chart(p, context.input_inventory)),
+        ("metric_taxonomy", "metric_taxonomy.png", "Metric taxonomy diagram.", "Groups standardized metrics into energy totals, grid stress, technology metrics, climate metrics, comparisons, and uncertainty summaries.", "experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics_schema.yaml", draw_metric_taxonomy),
         ("caveats_and_gaps_overview", "caveats_and_gaps_overview.png", "Caveats and gaps overview heatmap.", "Gives a schematic severity overview of the main caveat families discussed in Chapter 13.", "Schematic generated from the caveat table in the handbook.", draw_caveats_heatmap),
     ]
 
@@ -877,7 +877,7 @@ def generate_handbook_figures(context: Context, assets_dir: Path, write_figures:
                 path=relpath(scenario_asset, context.repo_root),
                 caption="Scenario-tree structure diagram.",
                 explanation="Schematic because figures/scenario_tree/structure/scenario_tree_structure.png was not found.",
-                source="config/model_v3/scenario_tree/",
+                source="config/scenario_tree/",
                 schematic=True,
             )
         )
@@ -1026,7 +1026,7 @@ def terminology_rows() -> list[list[str]]:
         ("technology case", "A branch describing residential technology assumptions.", "technology_cases.yaml", "It controls heat pumps, PV, EV, gas/electric shifts.", "The metadata may be qualitative unless calibrated."),
         ("stress case", "A high-impact comparison branch such as long-term RCP8.5 with high electrification, PV, and EV.", "comparison_definitions.yaml", "It probes infrastructure stress.", "It is not the most likely future."),
         ("bottom-up model", "A model that builds demand from household/building/end-use mechanisms rather than fitting aggregate totals only.", "model_v3 architecture", "It links assumptions to physical and behavioural drivers.", "It still needs calibration."),
-        ("archetype", "A representative dwelling or household category with shared parameters.", "inputs/model_v3/building and archetypes.yaml", "It reduces complexity while preserving building diversity.", "It may hide within-category variation."),
+        ("archetype", "A representative dwelling or household category with shared parameters.", "inputs/building and archetypes.yaml", "It reduces complexity while preserving building diversity.", "It may hide within-category variation."),
         ("one-zone thermal model", "A lumped building representation with one indoor temperature state.", "physics_core.py and thermal_dynamics.py", "It enables transparent heat-balance simulation.", "It does not model room-by-room dynamics."),
         ("heat balance", "Accounting of heat losses, gains, and supplied heat over a timestep.", "physics_core.py", "It drives useful heating demand.", "Simplified terms may omit detailed dynamics."),
         ("thermal mass", "The effective heat capacity that slows indoor temperature changes.", "InputDataset, PreparedForcing, PhysicsState", "It affects peaks and comfort.", "It is difficult to know precisely for real dwellings."),
@@ -1132,9 +1132,9 @@ def figures_markdown(figures: list[FigureInfo], heading: str = "Handbook figures
 def build_handbook_markdown(context: Context) -> str:
     registry = context.registry
     counts = context.counts
-    climate_windows_file = "`config/model_v3/scenario_tree/climate_windows.yaml`"
-    tech_cases_file = "`config/model_v3/scenario_tree/technology_cases.yaml`"
-    comparison_file = "`config/model_v3/scenario_tree/comparison_definitions.yaml`"
+    climate_windows_file = "`config/scenario_tree/climate_windows.yaml`"
+    tech_cases_file = "`config/scenario_tree/technology_cases.yaml`"
+    comparison_file = "`config/scenario_tree/comparison_definitions.yaml`"
     leaf_count = registry.get("enumerated_scenario_leaves", counts.get("scenario_leaves", "unknown"))
     success_count = registry.get("successful_scenario_leaves", counts.get("successful_scenario_leaves", "unknown"))
     summary_rows = context.csv_info.get("scenario_leaf_metrics", CsvInfo("", False)).rows
@@ -1157,7 +1157,7 @@ This document is generated from local repository metadata, scripts, configs, man
 
     executive = f"""# Executive summary
 
-`model_v3` is a bottom-up residential energy-demand modelling repository with a scenario-tree layer for organizing climate, technology, and stochastic uncertainty. The core model is implemented under `src/model_v3/`; the scenario-tree experiment space is under `model_v3/experiments/scenario_tree/`; the main scenario-tree configuration files are under `config/model_v3/scenario_tree/`.
+`model_v3` is a bottom-up residential energy-demand modelling repository with a scenario-tree layer for organizing climate, technology, and stochastic uncertainty. The core model is implemented under `src/model_v3/`; the scenario-tree experiment space is under `experiments/scenario_tree/`; the main scenario-tree configuration files are under `config/scenario_tree/`.
 
 For the thesis, the scenario-tree layer is useful because it separates three sources of variation that would otherwise be mixed together in output filenames: climate forcing, residential technology assumptions, and stochastic household or cohort realizations. The implemented design supports this claim in a careful form:
 
@@ -1180,7 +1180,7 @@ The thesis goal supported by this repository is to analyse residential energy de
 
 Climate uncertainty matters because outdoor temperature and solar forcing affect heating demand, PV generation, and seasonal grid stress. Technology assumptions matter because electrification, heat pumps, PV, and EV charging can change both annual energy carriers and peak electricity demand. A scenario-tree approach is useful because it keeps these dimensions separate: climate branches answer "what forcing was used?", technology branches answer "what equipment/stock assumption was active?", and realization IDs answer "which stochastic draw produced the result?".
 
-Compared with earlier model versions, the v3 repository visible here adds a modular architecture with explicit interface dataclasses in `src/model_v3/interfaces.py`, scenario-tree metadata under `config/model_v3/scenario_tree/`, reproducible run folders under `model_v3/experiments/scenario_tree/`, and standardized metrics/comparisons for thesis figures. This handbook distinguishes the general modelling concepts from repository-specific evidence.
+Compared with earlier model versions, the v3 repository visible here adds a modular architecture with explicit interface dataclasses in `src/model_v3/interfaces.py`, scenario-tree metadata under `config/scenario_tree/`, reproducible run folders under `experiments/scenario_tree/`, and standardized metrics/comparisons for thesis figures. This handbook distinguishes the general modelling concepts from repository-specific evidence.
 
 Key terms: a bottom-up model builds demand from components; a stochastic model uses controlled random draws; a physics-informed model encodes simplified physical relationships; scenario analysis compares conditional futures; uncertainty propagation follows how input and branch assumptions change output metrics.
 """
@@ -1195,7 +1195,7 @@ The main implementation code is under `src/model_v3/`. The core data contract is
 
 The model engine is the data, physics, control, systems, and output code that simulates one configured run. The scenario-tree layer enumerates and manages combinations of climate, technology, and realization IDs. The runner is the operational entrypoint that validates and executes leaves and records provenance. Validators check schemas, configs, summaries, comparisons, figures, and traceability. A manifest records what was generated and from which sources. Summary tables are standardized CSV outputs used for comparisons and figures.
 
-The configuration layer is under `config/model_v3/`. The input layer includes `inputs/climate/processed/`, `inputs/model_v3/building/`, weather, solar, load-profile, occupancy, and end-use files where present. Climate preprocessing exists under `src/climate/` and the processed climate products are consumed by scenario leaves. Technology assumptions are encoded both qualitatively in `technology_cases.yaml` and concretely through `config/model_v3/belgian_technology_inputs.yaml`. Stochastic realization policy is encoded in `realization_policy.yaml`; cohort generation is handled by the model engine and stochastic/cohort modules rather than by the scenario-tree schema alone.
+The configuration layer is under `config/`. The input layer includes `inputs/climate/processed/`, `inputs/building/`, weather, solar, load-profile, occupancy, and end-use files where present. Climate preprocessing exists under `src/climate/` and the processed climate products are consumed by scenario leaves. Technology assumptions are encoded both qualitatively in `technology_cases.yaml` and concretely through `config/belgian_technology_inputs.yaml`. Stochastic realization policy is encoded in `realization_policy.yaml`; cohort generation is handled by the model engine and stochastic/cohort modules rather than by the scenario-tree schema alone.
 
 The runner/orchestration layer is implemented under `src/model_v3/scenarios/` and `src/model_v3/scenario_tree/`. The output standardization layer is implemented by `src/model_v3/scenarios/summarize_outputs.py`, `summary_contract.py`, and `output_reader.py`. The comparison layer is `generate_comparisons.py` plus `comparison_definitions.yaml`. The figure/documentation layer includes `generate_figures.py`, figure metadata, and this Phase 9 handbook generator.
 """
@@ -1235,17 +1235,17 @@ Processed climate forcing files are expected under `inputs/climate/processed/`. 
 
 ## Building and archetype inputs
 
-Building and archetype inputs were searched under `inputs/model_v3/building/` and `config/model_v3/archetypes.yaml`. The model interface includes floor/volume-like parameters, heat-loss coefficient, thermal mass, ventilation/infiltration, setpoints, glazing/orientation, occupant gains, and heat-gain fractions. Where these values are missing or simplified, the model falls back to configured defaults in the data/interface layer; such defaults should be treated as assumptions, not measurements.
+Building and archetype inputs were searched under `inputs/building/` and `config/archetypes.yaml`. The model interface includes floor/volume-like parameters, heat-loss coefficient, thermal mass, ventilation/infiltration, setpoints, glazing/orientation, occupant gains, and heat-gain fractions. Where these values are missing or simplified, the model falls back to configured defaults in the data/interface layer; such defaults should be treated as assumptions, not measurements.
 
 ## Technology inputs
 
-Technology cases are defined in {tech_cases_file}. `tech_current_stock` is baseline-only unless metadata says otherwise. Future climate-only comparisons use `tech_frozen_stock`, not future `tech_current_stock`. The Belgian technology input YAML is `config/model_v3/belgian_technology_inputs.yaml`.
+Technology cases are defined in {tech_cases_file}. `tech_current_stock` is baseline-only unless metadata says otherwise. Future climate-only comparisons use `tech_frozen_stock`, not future `tech_current_stock`. The Belgian technology input YAML is `config/belgian_technology_inputs.yaml`.
 
 {md_table(["technology case", "label", "applicable windows", "interpretation"], tech_rows)}
 
 ## Stochastic inputs
 
-Realizations are `seed_0000` through `seed_0099` according to `config/model_v3/scenario_tree/realization_policy.yaml`. The seed controls reproducible stochastic sampling in the model engine. Scenario uncertainty is represented by climate and technology branches; stochastic variability is represented by realization IDs and cohort draws. The policy file states that cohorts were not generated in the scenario-tree metadata phase itself.
+Realizations are `seed_0000` through `seed_0099` according to `config/scenario_tree/realization_policy.yaml`. The seed controls reproducible stochastic sampling in the model engine. Scenario uncertainty is represented by climate and technology branches; stochastic variability is represented by realization IDs and cohort draws. The policy file states that cohorts were not generated in the scenario-tree metadata phase itself.
 """
 
     chapter5 = f"""# Chapter 5 - Scenario-tree design
@@ -1268,15 +1268,15 @@ mid_century_2050_2070__rcp_8_5__tech_high_electrification_pv_ev__seed_0042
 
 Double underscores separate scenario dimensions. Individual dimension names use lowercase tokens and single underscores. Accepted abbreviations such as RCP, PV, and EV are encoded in lowercase IDs.
 
-The scenario tree answers four traceability questions: which climate forcing was used, which technology assumptions were active, which stochastic seed/cohort generated the result, and which exact model/config produced the output. The scenario-tree schema is encoded in `config/model_v3/scenario_tree/scenario_tree_schema.yaml`.
+The scenario tree answers four traceability questions: which climate forcing was used, which technology assumptions were active, which stochastic seed/cohort generated the result, and which exact model/config produced the output. The scenario-tree schema is encoded in `config/scenario_tree/scenario_tree_schema.yaml`.
 """
 
     chapter6 = """# Chapter 6 - Directory structure and experiment space
 
-The physical experiment space is rooted at `model_v3/experiments/scenario_tree/`.
+The physical experiment space is rooted at `experiments/scenario_tree/`.
 
 ```text
-model_v3/experiments/scenario_tree/
+experiments/scenario_tree/
   manifests/
   configs/
   runs/
@@ -1290,12 +1290,12 @@ A scenario-level config folder groups seeds under a deterministic scenario ID. A
 """
 
     representative_config = ""
-    sample_run_config = context.repo_root / "model_v3/experiments/scenario_tree/runs/baseline_1981_2005__historical__tech_current_stock__seed_0000/run_config.yaml"
+    sample_run_config = context.repo_root / "experiments/scenario_tree/runs/baseline_1981_2005__historical__tech_current_stock__seed_0000/run_config.yaml"
     if sample_run_config.exists():
         lines = sample_run_config.read_text(encoding="utf-8").splitlines()[:80]
         representative_config = "\n".join(lines)
     else:
-        representative_config = "Sample run config missing: model_v3/experiments/scenario_tree/runs/baseline_1981_2005__historical__tech_current_stock__seed_0000/run_config.yaml"
+        representative_config = "Sample run config missing: experiments/scenario_tree/runs/baseline_1981_2005__historical__tech_current_stock__seed_0000/run_config.yaml"
 
     chapter7 = f"""# Chapter 7 - Configuration generation
 
@@ -1307,7 +1307,7 @@ Representative config excerpt:
 {representative_config}
 ```
 
-Config validation checks required fields, climate file existence, technology case existence, Belgian technology input existence, baseline/future separation, canonical date windows, and the 2050 policy. The latest detected config validation report is `model_v3/experiments/scenario_tree/manifests/config_validation_report.md` if present.
+Config validation checks required fields, climate file existence, technology case existence, Belgian technology input existence, baseline/future separation, canonical date windows, and the 2050 policy. The latest detected config validation report is `experiments/scenario_tree/manifests/config_validation_report.md` if present.
 """
 
     chapter8 = """# Chapter 8 - Running the model
@@ -1383,7 +1383,7 @@ If the denominator is zero, percentage change is left blank or flagged; absolute
 """
 
     validation_rows = [
-        ["scenario-tree schema", "config/model_v3/scenario_tree/*.yaml", "checks IDs, baseline/future rules, 2050 policy"],
+        ["scenario-tree schema", "config/scenario_tree/*.yaml", "checks IDs, baseline/future rules, 2050 policy"],
         ["naming/path validation", "scenario_leaf_index.csv and run folders", "checks stable paths and identifiers"],
         ["config validation", "config_validation_report.md", "checks climate files, technology inputs, required blocks"],
         ["runner dry-run validation", "run_scenario_tree --dry-run", "plans without executing simulations"],
@@ -1403,21 +1403,21 @@ Validation commands:
 
 ```bash
 python3 -m model_v3.scenarios.validate_summaries \\
-  --experiment-root model_v3/experiments/scenario_tree \\
+  --experiment-root experiments/scenario_tree \\
   --print-summary
 ```
 
 ```bash
 python3 -m model_v3.scenarios.validate_comparisons \\
-  --experiment-root model_v3/experiments/scenario_tree \\
-  --comparison-definitions config/model_v3/scenario_tree/comparison_definitions.yaml \\
+  --experiment-root experiments/scenario_tree \\
+  --comparison-definitions config/scenario_tree/comparison_definitions.yaml \\
   --print-summary
 ```
 
 ```bash
 python3 -m model_v3.scenarios.validate_figures \\
   --figures-root figures/scenario_tree \\
-  --experiment-root model_v3/experiments/scenario_tree \\
+  --experiment-root experiments/scenario_tree \\
   --print-summary
 ```
 
@@ -1486,25 +1486,25 @@ Check which phases have actually been implemented, run validation commands, gene
 Important commands:
 
 ```bash
-python3 -m model_v3.scenario_tree.validate_scenario_tree --config-root config/model_v3/scenario_tree
-python3 -m model_v3.scenario_tree.create_scenario_tree_space --config-root config/model_v3/scenario_tree --experiment-root model_v3/experiments/scenario_tree --print-summary
-python3 -m model_v3.scenario_tree.generate_leaf_configs --config-root config/model_v3/scenario_tree --experiment-root model_v3/experiments/scenario_tree --climate-processed-root inputs/climate/processed --belgian-technology-inputs config/model_v3/belgian_technology_inputs.yaml --cohort-size 100 --write-report --print-summary
-python3 -m model_v3.scenario_tree.validate_leaf_configs --experiment-root model_v3/experiments/scenario_tree --config-root config/model_v3/scenario_tree --climate-processed-root inputs/climate/processed --belgian-technology-inputs config/model_v3/belgian_technology_inputs.yaml --print-summary
+python3 -m model_v3.scenario_tree.validate_scenario_tree --config-root config/scenario_tree
+python3 -m model_v3.scenario_tree.create_scenario_tree_space --config-root config/scenario_tree --experiment-root experiments/scenario_tree --print-summary
+python3 -m model_v3.scenario_tree.generate_leaf_configs --config-root config/scenario_tree --experiment-root experiments/scenario_tree --climate-processed-root inputs/climate/processed --belgian-technology-inputs config/belgian_technology_inputs.yaml --cohort-size 100 --write-report --print-summary
+python3 -m model_v3.scenario_tree.validate_leaf_configs --experiment-root experiments/scenario_tree --config-root config/scenario_tree --climate-processed-root inputs/climate/processed --belgian-technology-inputs config/belgian_technology_inputs.yaml --print-summary
 python3 -m model_v3.scenarios.run_scenario_tree --dry-run --print-summary
-python3 -m model_v3.scenarios.summarize_outputs --experiment-root model_v3/experiments/scenario_tree --config-root config/model_v3/scenario_tree --only-successful --write-reports --print-summary
-python3 -m model_v3.scenarios.generate_comparisons --experiment-root model_v3/experiments/scenario_tree --comparison-definitions config/model_v3/scenario_tree/comparison_definitions.yaml --write-reports --print-summary
-python3 -m model_v3.scenarios.generate_figures --experiment-root model_v3/experiments/scenario_tree --figures-root figures/scenario_tree --write-metadata --write-captions --print-summary
-python3 -m model_v3.scenarios.audit_scenario_tree --experiment-root model_v3/experiments/scenario_tree --config-root config/model_v3/scenario_tree --figures-root figures/scenario_tree --write-reports --print-summary
+python3 -m model_v3.scenarios.summarize_outputs --experiment-root experiments/scenario_tree --config-root config/scenario_tree --only-successful --write-reports --print-summary
+python3 -m model_v3.scenarios.generate_comparisons --experiment-root experiments/scenario_tree --comparison-definitions config/scenario_tree/comparison_definitions.yaml --write-reports --print-summary
+python3 -m model_v3.scenarios.generate_figures --experiment-root experiments/scenario_tree --figures-root figures/scenario_tree --write-metadata --write-captions --print-summary
+python3 -m model_v3.scenarios.audit_scenario_tree --experiment-root experiments/scenario_tree --config-root config/scenario_tree --figures-root figures/scenario_tree --write-reports --print-summary
 python3 -m model_v3.documentation.build_model_handbook --repo-root . --output docs/model_v3_complete_model_handbook.pdf --write-source --write-figures --print-summary
 ```
 
 ## Common tasks
 
-List leaves by opening `model_v3/experiments/scenario_tree/manifests/scenario_leaf_index.csv`. Inspect one leaf by opening its run folder under `model_v3/experiments/scenario_tree/runs/{scenario_leaf_id}/`. Rerun a failed leaf with the runner and the same `--scenario-leaf-id`. Force rerun a successful leaf only when you intentionally want to replace or add an attempt. Find outputs under the leaf's `outputs/`, logs under `logs/`, metrics under `summaries/`, comparisons under `summaries/comparison_level/`, figures under `figures/scenario_tree/`, and audit traceability under `reports/scenario_tree_traceability_matrix.csv`.
+List leaves by opening `experiments/scenario_tree/manifests/scenario_leaf_index.csv`. Inspect one leaf by opening its run folder under `experiments/scenario_tree/runs/{scenario_leaf_id}/`. Rerun a failed leaf with the runner and the same `--scenario-leaf-id`. Force rerun a successful leaf only when you intentionally want to replace or add an attempt. Find outputs under the leaf's `outputs/`, logs under `logs/`, metrics under `summaries/`, comparisons under `summaries/comparison_level/`, figures under `figures/scenario_tree/`, and audit traceability under `reports/scenario_tree_traceability_matrix.csv`.
 
 ## Troubleshooting
 
-Missing climate forcing file: run leaf-config validation and inspect `inputs_manifest.yaml`. Ambiguous climate forcing file: check filename tokens and sidecar metadata. Missing Belgian technology input YAML: confirm `config/model_v3/belgian_technology_inputs.yaml`. Invalid scenario ID: validate against `scenario_tree_schema.yaml`. Run already successful and skipped: use registry status and `--force` only if needed. Config validation fails: inspect config validation report. Summary metric missing: inspect raw output files and `output_reader.py` mappings. Figure not generated: validate figures and check source tables. PDF build backend missing: this script uses Matplotlib PDF when Pandoc/WeasyPrint/ReportLab are unavailable.
+Missing climate forcing file: run leaf-config validation and inspect `inputs_manifest.yaml`. Ambiguous climate forcing file: check filename tokens and sidecar metadata. Missing Belgian technology input YAML: confirm `config/belgian_technology_inputs.yaml`. Invalid scenario ID: validate against `scenario_tree_schema.yaml`. Run already successful and skipped: use registry status and `--force` only if needed. Config validation fails: inspect config validation report. Summary metric missing: inspect raw output files and `output_reader.py` mappings. Figure not generated: validate figures and check source tables. PDF build backend missing: this script uses Matplotlib PDF when Pandoc/WeasyPrint/ReportLab are unavailable.
 """
 
     chapter16 = f"""# Chapter 16 - Supervisor presentation guide
@@ -1569,21 +1569,21 @@ This chapter is a study reference. Each term includes definition, where it appea
     appendix_b = """# Appendix B - Command reference
 
 ```bash
-python3 -m model_v3.scenario_tree.validate_scenario_tree --config-root config/model_v3/scenario_tree
-python3 -m model_v3.scenario_tree.create_scenario_tree_space --config-root config/model_v3/scenario_tree --experiment-root model_v3/experiments/scenario_tree --print-summary
-python3 -m model_v3.scenario_tree.generate_leaf_configs --config-root config/model_v3/scenario_tree --experiment-root model_v3/experiments/scenario_tree --climate-processed-root inputs/climate/processed --belgian-technology-inputs config/model_v3/belgian_technology_inputs.yaml --cohort-size 100 --write-report --print-summary
-python3 -m model_v3.scenario_tree.validate_leaf_configs --experiment-root model_v3/experiments/scenario_tree --config-root config/model_v3/scenario_tree --climate-processed-root inputs/climate/processed --belgian-technology-inputs config/model_v3/belgian_technology_inputs.yaml --print-summary
+python3 -m model_v3.scenario_tree.validate_scenario_tree --config-root config/scenario_tree
+python3 -m model_v3.scenario_tree.create_scenario_tree_space --config-root config/scenario_tree --experiment-root experiments/scenario_tree --print-summary
+python3 -m model_v3.scenario_tree.generate_leaf_configs --config-root config/scenario_tree --experiment-root experiments/scenario_tree --climate-processed-root inputs/climate/processed --belgian-technology-inputs config/belgian_technology_inputs.yaml --cohort-size 100 --write-report --print-summary
+python3 -m model_v3.scenario_tree.validate_leaf_configs --experiment-root experiments/scenario_tree --config-root config/scenario_tree --climate-processed-root inputs/climate/processed --belgian-technology-inputs config/belgian_technology_inputs.yaml --print-summary
 python3 -m model_v3.scenarios.run_scenario_tree --dry-run --print-summary
 python3 -m model_v3.scenarios.run_scenario_tree --scenario-leaf-id baseline_1981_2005__historical__tech_current_stock__seed_0000 --print-summary
 python3 -m model_v3.scenarios.run_scenario_tree --scenario-leaf-id mid_century_2050_2070__rcp_8_5__tech_high_electrification_pv_ev__seed_0000 --print-summary
 python3 -m model_v3.scenarios.run_scenario_tree --all --max-workers 1 --continue-on-error --print-summary
-python3 -m model_v3.scenarios.summarize_outputs --experiment-root model_v3/experiments/scenario_tree --config-root config/model_v3/scenario_tree --only-successful --write-reports --print-summary
-python3 -m model_v3.scenarios.validate_summaries --experiment-root model_v3/experiments/scenario_tree --print-summary
-python3 -m model_v3.scenarios.generate_comparisons --experiment-root model_v3/experiments/scenario_tree --comparison-definitions config/model_v3/scenario_tree/comparison_definitions.yaml --write-reports --print-summary
-python3 -m model_v3.scenarios.validate_comparisons --experiment-root model_v3/experiments/scenario_tree --comparison-definitions config/model_v3/scenario_tree/comparison_definitions.yaml --print-summary
-python3 -m model_v3.scenarios.generate_figures --experiment-root model_v3/experiments/scenario_tree --figures-root figures/scenario_tree --write-metadata --write-captions --print-summary
-python3 -m model_v3.scenarios.validate_figures --figures-root figures/scenario_tree --experiment-root model_v3/experiments/scenario_tree --print-summary
-python3 -m model_v3.scenarios.audit_scenario_tree --experiment-root model_v3/experiments/scenario_tree --config-root config/model_v3/scenario_tree --figures-root figures/scenario_tree --write-reports --print-summary
+python3 -m model_v3.scenarios.summarize_outputs --experiment-root experiments/scenario_tree --config-root config/scenario_tree --only-successful --write-reports --print-summary
+python3 -m model_v3.scenarios.validate_summaries --experiment-root experiments/scenario_tree --print-summary
+python3 -m model_v3.scenarios.generate_comparisons --experiment-root experiments/scenario_tree --comparison-definitions config/scenario_tree/comparison_definitions.yaml --write-reports --print-summary
+python3 -m model_v3.scenarios.validate_comparisons --experiment-root experiments/scenario_tree --comparison-definitions config/scenario_tree/comparison_definitions.yaml --print-summary
+python3 -m model_v3.scenarios.generate_figures --experiment-root experiments/scenario_tree --figures-root figures/scenario_tree --write-metadata --write-captions --print-summary
+python3 -m model_v3.scenarios.validate_figures --figures-root figures/scenario_tree --experiment-root experiments/scenario_tree --print-summary
+python3 -m model_v3.scenarios.audit_scenario_tree --experiment-root experiments/scenario_tree --config-root config/scenario_tree --figures-root figures/scenario_tree --write-reports --print-summary
 python3 -m model_v3.documentation.build_model_handbook --repo-root . --output docs/model_v3_complete_model_handbook.pdf --write-source --write-figures --print-summary
 python3 -m model_v3.documentation.validate_model_handbook --handbook docs/model_v3_complete_model_handbook.pdf --source docs/model_v3_complete_model_handbook.md --manifest docs/model_v3_complete_model_handbook_manifest.yaml --print-summary
 ```
@@ -1666,7 +1666,7 @@ Current execution evidence: {reg.get("successful_scenario_leaves")} latest-succe
 
 ## 5. 2050 overlap policy
 
-Raw processed source files may overlap in 2050, but canonical analysis windows do not. Near-future ends on 2049-12-31. Mid-century starts on 2050-01-01. Therefore 2050 belongs only to the mid-century canonical analysis window. This is encoded in `config/model_v3/scenario_tree/climate_windows.yaml`.
+Raw processed source files may overlap in 2050, but canonical analysis windows do not. Near-future ends on 2049-12-31. Mid-century starts on 2050-01-01. Therefore 2050 belongs only to the mid-century canonical analysis window. This is encoded in `config/scenario_tree/climate_windows.yaml`.
 
 ## 6. Outputs and figures available
 
@@ -1904,9 +1904,9 @@ def build_manifest(context: Context, output_pdf: Path, source_md: Path, source_t
         ],
         "reports_included": [
             path for path in [
-                "model_v3/experiments/scenario_tree/manifests/config_validation_report.md",
-                "model_v3/experiments/scenario_tree/manifests/summary_validation_report.md",
-                "model_v3/experiments/scenario_tree/manifests/comparison_validation_report.md",
+                "experiments/scenario_tree/manifests/config_validation_report.md",
+                "experiments/scenario_tree/manifests/summary_validation_report.md",
+                "experiments/scenario_tree/manifests/comparison_validation_report.md",
                 "reports/scenario_tree_validation_report.md",
                 "reports/scenario_tree_audit_summary.yaml",
             ] if (context.repo_root / path).exists()

@@ -21,7 +21,7 @@ from model_v3.scenario_tree.create_scenario_tree_space import create_experiment_
 from model_v3.scenario_tree.generate_leaf_configs import generate_leaf_configs  # noqa: E402
 
 
-CONFIG_ROOT = REPO_ROOT / "config" / "model_v3" / "scenario_tree"
+CONFIG_ROOT = REPO_ROOT / "config" / "scenario_tree"
 
 
 def _write_csv(path: Path) -> None:
