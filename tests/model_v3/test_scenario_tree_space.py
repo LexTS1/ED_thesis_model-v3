@@ -21,7 +21,7 @@ from model_v3.scenario_tree.create_scenario_tree_space import create_experiment_
 from model_v3.scenario_tree.validate_scenario_tree import validate_scenario_tree  # noqa: E402
 
 
-CONFIG_ROOT = REPO_ROOT / "config" / "model_v3" / "scenario_tree"
+CONFIG_ROOT = REPO_ROOT / "config" / "scenario_tree"
 
 
 def _parse_date(value: str) -> date:
@@ -46,15 +46,15 @@ class ScenarioTreeSpaceTest(unittest.TestCase):
         result = validate_scenario_tree(CONFIG_ROOT)
         rows = manifest.leaf_index_rows(
             result.scenario_leaves,
-            Path("model_v3/experiments/scenario_tree"),
-            Path("config/model_v3/scenario_tree"),
+            Path("experiments/scenario_tree"),
+            Path("config/scenario_tree"),
         )
 
         self.assertEqual(len(rows), len(result.scenario_leaves))
 
     def test_every_scenario_leaf_has_deterministic_paths(self) -> None:
         result = validate_scenario_tree(CONFIG_ROOT)
-        experiment_root = Path("model_v3/experiments/scenario_tree")
+        experiment_root = Path("experiments/scenario_tree")
 
         for leaf in result.scenario_leaves:
             self.assertEqual(paths.run_dir(experiment_root, leaf.scenario_leaf_id).name, leaf.scenario_leaf_id)

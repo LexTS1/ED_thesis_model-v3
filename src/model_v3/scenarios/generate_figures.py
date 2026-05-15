@@ -41,9 +41,9 @@ from model_v3.scenarios.summary_contract import BASELINE_SCENARIO_ID, REQUIRED_M
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_EXPERIMENT_ROOT = REPO_ROOT / "model_v3" / "experiments" / "scenario_tree"
+DEFAULT_EXPERIMENT_ROOT = REPO_ROOT / "experiments" / "scenario_tree"
 DEFAULT_FIGURES_ROOT = REPO_ROOT / "figures" / "scenario_tree"
-DEFAULT_COMPARISON_DEFINITIONS = REPO_ROOT / "config" / "model_v3" / "scenario_tree" / "comparison_definitions.yaml"
+DEFAULT_COMPARISON_DEFINITIONS = REPO_ROOT / "config" / "scenario_tree" / "comparison_definitions.yaml"
 SCRIPT_NAME = "model_v3.scenarios.generate_figures"
 
 REQUIRED_DIRECTORIES = [
@@ -697,10 +697,10 @@ def generate_figures(
     metadata_rows: list[dict[str, Any]] = []
 
     config_sources = [
-        REPO_ROOT / "config" / "model_v3" / "scenario_tree" / "scenario_tree_schema.yaml",
-        REPO_ROOT / "config" / "model_v3" / "scenario_tree" / "climate_windows.yaml",
-        REPO_ROOT / "config" / "model_v3" / "scenario_tree" / "technology_cases.yaml",
-        REPO_ROOT / "config" / "model_v3" / "scenario_tree" / "realization_policy.yaml",
+        REPO_ROOT / "config" / "scenario_tree" / "scenario_tree_schema.yaml",
+        REPO_ROOT / "config" / "scenario_tree" / "climate_windows.yaml",
+        REPO_ROOT / "config" / "scenario_tree" / "technology_cases.yaml",
+        REPO_ROOT / "config" / "scenario_tree" / "realization_policy.yaml",
     ]
     aggregate_source = [scenario_aggregates]
     realization_source = [realization_metrics]

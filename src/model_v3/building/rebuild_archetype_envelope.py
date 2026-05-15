@@ -15,11 +15,11 @@ import subprocess
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Mapping
 
 
-DEFAULT_ARCHETYPE_TABLE = Path("inputs/model_v3/building/archetype_parameters_merged_v2.csv")
-DEFAULT_ENVELOPE_TABLE = Path("inputs/model_v3/building/envelope_archetypes_v1.csv")
+DEFAULT_ARCHETYPE_TABLE = Path("inputs/building/archetype_parameters_merged_v2.csv")
+DEFAULT_ENVELOPE_TABLE = Path("inputs/building/envelope_archetypes_v1.csv")
 DEFAULT_REPORT = Path("reports/model_v3_envelope_reconstruction_report.md")
 
 EVIDENCE_NOTE = (
@@ -30,7 +30,7 @@ SOURCE_NOTE = (
     "glazing ratio, and exposed-wall fractions. U-value anchors use local "
     "Belgian archetype evidence: old/as-is facade and roof values from the "
     "DeepSearch TABULA summary, renovated EPB2010 package values from the "
-    "same note, and old floor/window defaults from config/model_v3/archetypes.yaml."
+    "same note, and old floor/window defaults from config/archetypes.yaml."
 )
 
 
@@ -88,7 +88,7 @@ U_VALUES_BY_RENOVATION_STATE: dict[str, UValueSet] = {
         thermal_bridge_fraction=0.10,
         source=(
             "as-is wall/roof from local DeepSearch TABULA summary; "
-            "floor/window from config/model_v3/archetypes.yaml old_stock defaults"
+            "floor/window from config/archetypes.yaml old_stock defaults"
         ),
     ),
     "renovated": UValueSet(
@@ -101,10 +101,64 @@ U_VALUES_BY_RENOVATION_STATE: dict[str, UValueSet] = {
     ),
 }
 
+U_VALUES_BY_PACKAGE: dict[str, UValueSet] = {
+    "tabula_current_pre_1946": UValueSet(
+        wall_W_m2K=2.20,
+        roof_W_m2K=1.70,
+        floor_W_m2K=0.85,
+        window_W_m2K=5.00,
+        thermal_bridge_fraction=0.10,
+        source="Belgian TABULA current-state construction-element package for <1946 stock",
+    ),
+    "tabula_current_1946_1970": UValueSet(
+        wall_W_m2K=1.70,
+        roof_W_m2K=1.90,
+        floor_W_m2K=0.85,
+        window_W_m2K=5.00,
+        thermal_bridge_fraction=0.10,
+        source="Belgian TABULA current-state construction-element package for 1946-1970 stock",
+    ),
+    "tabula_current_1971_1991": UValueSet(
+        wall_W_m2K=1.00,
+        roof_W_m2K=0.85,
+        floor_W_m2K=0.85,
+        window_W_m2K=3.50,
+        thermal_bridge_fraction=0.10,
+        source="Belgian TABULA current-state construction-element package for 1971-1991 stock",
+    ),
+    "tabula_current_1992_2011": UValueSet(
+        wall_W_m2K=0.60,
+        roof_W_m2K=0.60,
+        floor_W_m2K=0.70,
+        window_W_m2K=3.50,
+        thermal_bridge_fraction=0.10,
+        source="Belgian TABULA current-state construction-element package mapped to 1992-2011 stock",
+    ),
+    "tabula_current_2012_plus": UValueSet(
+        wall_W_m2K=0.40,
+        roof_W_m2K=0.30,
+        floor_W_m2K=0.40,
+        window_W_m2K=2.00,
+        thermal_bridge_fraction=0.05,
+        source="Belgian TABULA / EPB2010-equivalent package mapped to 2012+ stock",
+    ),
+    "current_code_deep_renovation": UValueSet(
+        wall_W_m2K=0.24,
+        roof_W_m2K=0.24,
+        floor_W_m2K=0.24,
+        window_W_m2K=1.50,
+        thermal_bridge_fraction=0.05,
+        source="current-code deep-renovation envelope package from Flemish/Walloon EPB levels",
+    ),
+}
+
 ENVELOPE_FIELDS = [
     "archetype_id",
     "dwelling_type",
     "renovation_state",
+    "construction_period_id",
+    "construction_period",
+    "u_value_package_id",
     "floor_area_m2",
     "ceiling_height_m",
     "storeys_assumed",
@@ -147,6 +201,21 @@ def _fmt(value: float, digits: int = 3) -> str:
     return f"{value:.{digits}f}"
 
 
+def u_value_set_for_row(row: Mapping[str, str]) -> UValueSet:
+    """Resolve the most specific U-value set available for an archetype row."""
+
+    package_id = str(row.get("u_value_package_id", "")).strip()
+    if package_id:
+        if package_id not in U_VALUES_BY_PACKAGE:
+            raise ValueError(f"Unsupported u_value_package_id {package_id!r} in {row.get('archetype_id', '<unknown>')}")
+        return U_VALUES_BY_PACKAGE[package_id]
+
+    renovation_state = str(row.get("renovation_state", "")).strip()
+    if renovation_state not in U_VALUES_BY_RENOVATION_STATE:
+        raise ValueError(f"Unsupported renovation_state {renovation_state!r} in {row.get('archetype_id', '<unknown>')}")
+    return U_VALUES_BY_RENOVATION_STATE[renovation_state]
+
+
 def read_csv(path: Path) -> tuple[list[str], list[dict[str, str]]]:
     with path.open(newline="", encoding="utf-8") as handle:
         reader = csv.DictReader(handle)
@@ -170,11 +239,9 @@ def reconstruct_envelope_row(row: dict[str, str]) -> dict[str, str]:
 
     if dwelling_type not in GEOMETRY_BY_DWELLING_TYPE:
         raise ValueError(f"Unsupported dwelling_type {dwelling_type!r} in {archetype_id}")
-    if renovation_state not in U_VALUES_BY_RENOVATION_STATE:
-        raise ValueError(f"Unsupported renovation_state {renovation_state!r} in {archetype_id}")
 
     geometry = GEOMETRY_BY_DWELLING_TYPE[dwelling_type]
-    u_values = U_VALUES_BY_RENOVATION_STATE[renovation_state]
+    u_values = u_value_set_for_row(row)
 
     floor_area = _float(row, "floor_area_m2")
     ceiling_height = _float(row, "ceiling_height_m")
@@ -199,11 +266,18 @@ def reconstruct_envelope_row(row: dict[str, str]) -> dict[str, str]:
     ua_bridge = ua_base * u_values.thermal_bridge_fraction
     ua_total = ua_base + ua_bridge
 
-    caveat = (
-        "Schematic envelope reconstruction: rectangular footprint, type-level "
-        "exposure factors, no dwelling-age split within renovation state, and "
-        "no measured wall/window areas."
-    )
+    if str(row.get("construction_period_id", "")).strip():
+        caveat = (
+            "Schematic envelope reconstruction: rectangular footprint, type-level "
+            "exposure factors, construction-period U-value packages, and no measured "
+            "wall/window areas."
+        )
+    else:
+        caveat = (
+            "Schematic envelope reconstruction: rectangular footprint, type-level "
+            "exposure factors, no dwelling-age split within renovation state, and "
+            "no measured wall/window areas."
+        )
     if window_area < requested_window_area:
         caveat += " Window area was capped at 90% of exposed wall area."
 
@@ -211,6 +285,9 @@ def reconstruct_envelope_row(row: dict[str, str]) -> dict[str, str]:
         "archetype_id": archetype_id,
         "dwelling_type": dwelling_type,
         "renovation_state": renovation_state,
+        "construction_period_id": str(row.get("construction_period_id", "")),
+        "construction_period": str(row.get("construction_period", "")),
+        "u_value_package_id": str(row.get("u_value_package_id", "")),
         "floor_area_m2": _fmt(floor_area, 1),
         "ceiling_height_m": _fmt(ceiling_height, 2),
         "storeys_assumed": _fmt(geometry.storeys, 1),
@@ -249,6 +326,8 @@ def build_envelope_rows(archetype_rows: Iterable[dict[str, str]]) -> list[dict[s
 def update_archetype_rows(
     archetype_rows: Iterable[dict[str, str]],
     envelope_rows: Iterable[dict[str, str]],
+    envelope_table_label: str = "inputs/building/envelope_archetypes_v1.csv",
+    overwrite_notes: bool = True,
 ) -> list[dict[str, str]]:
     by_id = {row["archetype_id"]: row for row in envelope_rows}
     updated: list[dict[str, str]] = []
@@ -260,20 +339,21 @@ def update_archetype_rows(
         ua = by_id[archetype_id]["UA_total_W_K"]
         out["H_W_per_K"] = ua
         out["UA_W_per_K"] = ua
-        out["value_source"] = "empirical_grounding_2026_statbel_tabula_belgian_airtightness_envelope_reconstruction_v1"
-        out["derivation_note"] = (
-            "Stock weights use Census 2021 dwelling-type shares while preserving existing "
-            "as-is/renovated split; floor areas use Belgian TABULA representative type "
-            "means; ACH50 uses Belgian measured airtightness anchors; UA/H is rebuilt "
-            "from inputs/model_v3/building/envelope_archetypes_v1.csv using explicit "
-            "envelope-area and U-value assumptions."
-        )
-        out["uncertainty_note"] = (
-            "Renovation-state shares, exact envelope areas, within-age U-value variation, "
-            "ACH50-to-natural-infiltration conversion, ventilation prevalence, solar "
-            "factors, setpoints, and internal gains remain assumption-based and should "
-            "be sensitivity-tested."
-        )
+        if overwrite_notes:
+            out["value_source"] = "empirical_grounding_2026_statbel_tabula_belgian_airtightness_envelope_reconstruction_v1"
+            out["derivation_note"] = (
+                "Stock weights use Census 2021 dwelling-type shares while preserving existing "
+                "as-is/renovated split; floor areas use Belgian TABULA representative type "
+                "means; ACH50 uses Belgian measured airtightness anchors; UA/H is rebuilt "
+                f"from {envelope_table_label} using explicit "
+                "envelope-area and U-value assumptions."
+            )
+            out["uncertainty_note"] = (
+                "Renovation-state shares, exact envelope areas, within-age U-value variation, "
+                "ACH50-to-natural-infiltration conversion, ventilation prevalence, solar "
+                "factors, setpoints, and internal gains remain assumption-based and should "
+                "be sensitivity-tested."
+            )
         updated.append(out)
     return updated
 

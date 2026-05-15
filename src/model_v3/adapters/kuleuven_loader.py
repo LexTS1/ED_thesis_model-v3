@@ -20,7 +20,7 @@ def _resolve_base_path(base_path: str | Path) -> Path:
     candidate = Path(base_path)
     if candidate.exists():
         return candidate
-    fallback = Path(str(candidate).replace("inputs/load_profiles", "inputs/model_v3/load_profiles"))
+    fallback = Path(str(candidate).replace("inputs/load_profiles", "inputs/load_profiles"))
     if fallback.exists():
         return fallback
     raise FileNotFoundError(f"KU Leuven base path does not exist: {base_path}")

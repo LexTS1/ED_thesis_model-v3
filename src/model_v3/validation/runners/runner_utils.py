@@ -7,7 +7,7 @@ import logging
 from copy import deepcopy
 from typing import Any, Mapping, Sequence
 
-CANONICAL_THESIS_CONFIG = "config/model_v3/model_v3_thesis.yaml"
+CANONICAL_THESIS_CONFIG = "config/thesis.yaml"
 CANONICAL_REFERENCE_YEAR = 2023
 CANONICAL_COHORT_HOUSEHOLDS = 30
 
@@ -16,7 +16,7 @@ def build_runner_cli(description: str, *, include_quick: bool = True) -> argpars
     """Create a CLI parser with standard validation-runner switches."""
 
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument("--config", default=None, help="Path to the model_v3 YAML config. Defaults to config/model_v3/model_v3.yaml.")
+    parser.add_argument("--config", default=None, help="Path to the model_v3 YAML config. Defaults to config/model.yaml.")
     if include_quick:
         parser.add_argument(
             "--quick",

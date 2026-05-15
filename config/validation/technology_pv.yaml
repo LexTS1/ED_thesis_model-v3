@@ -1,0 +1,33 @@
+validation:
+  technology:
+    pv:
+      pvgis:
+        reference_globs:
+          - model_v3/validation/pvgis/*.csv
+          - validation/pvgis/*.csv
+          - outputs/validation/pvgis/*.csv
+          - inputs/validation/pv/pvgis/*.csv
+        capacity_kwp: 1.0
+        performance_ratio: 0.86
+        power_column_candidates:
+          - P
+          - pv_power_W
+          - P_W
+        irradiance_column_candidates:
+          - G(i)
+          - G_i
+          - poa_irradiance_W_m2
+          - global_in_plane_W_m2
+      elia:
+        url: "https://opendata.elia.be/api/explore/v2.1/catalog/datasets/ods032/exports/csv?select=datetime,resolutioncode,region,measured,monitoredcapacity,loadfactor&where=resolutioncode%20%3D%20%22PT15M%22%20AND%20datetime%20%3E%3D%20date%272024-01-01T00%3A00%3A00%27%20AND%20datetime%20%3C%20date%272025-01-01T00%3A00%3A00%27&refine=region%3ABelgium&order_by=datetime%20ASC&timezone=Europe%2FBrussels&use_labels=false&delimiter=%3B"
+        local_file: inputs/validation/pv/elia/ods032_belgium_pv_2024_pt15m.csv
+        download_if_missing: false
+        model_capacity_factor_file: null
+      fluvius:
+        enabled: true
+        no_pv_file: inputs/load_profiles/fluvius/P6269_Open_Data_geen_ZP.csv
+        pv_file: inputs/load_profiles/fluvius/P6269_Open_Data_enkel_ZP.csv
+        model_net_load_file: null
+      outputs:
+        report_dir: reports/model_v3/validation/technology/pv
+        figure_dir: figures/model_v3/validation/technology/pv

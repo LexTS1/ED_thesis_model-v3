@@ -10,7 +10,7 @@ from .naming import parse_scenario_leaf_id, validate_realization_id, validate_sc
 def get_experiment_root(repo_root: Path) -> Path:
     """Return the default scenario-tree experiment root for a repository root."""
 
-    return repo_root / "model_v3" / "experiments" / "scenario_tree"
+    return repo_root / "experiments" / "scenario_tree"
 
 
 def get_manifest_dir(experiment_root: Path) -> Path:

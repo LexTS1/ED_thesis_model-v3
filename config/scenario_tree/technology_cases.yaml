@@ -1,0 +1,190 @@
+schema_version: "1.0.0"
+description: >
+  Technology-case metadata for model_v3 scenario enumeration. These identifiers
+  define modelling assumptions and household-level technology assignment
+  probabilities used by stochastic cohort runs. Current/frozen stock values are
+  anchored in Belgian stock evidence where available; future electrification
+  cases remain scenario assumptions and must not be interpreted as forecasts.
+
+baseline_technology_case_id: tech_current_stock
+future_allowed_technology_case_ids:
+  - tech_frozen_stock
+  - tech_moderate_electrification
+  - tech_high_electrification_pv_ev
+
+technology_cases:
+  tech_current_stock:
+    technology_case_id: tech_current_stock
+    label: Current stock
+    description: >
+      Historical reference technology mix representing the current residential
+      stock used for baseline calibration and comparison.
+    applicable_window_types:
+      - baseline
+    modelling_interpretation: >
+      Preserve the current-stock technology representation already used by
+      model_v3 for baseline residential demand.
+    heat_pump_adoption_assumed: false
+    pv_assumed: false
+    ev_adoption_assumed: false
+    building_envelope_improvement_assumed: false
+    allowed_for_baseline: true
+    explicitly_permitted_for_future: false
+    household_assignment:
+      assignment_source: belgian_current_stock_with_documented_proxies
+      heating:
+        mode: belgian_current_stock_carrier_mapping
+        source_path: config/belgian_technology_inputs.yaml
+      dhw:
+        mode: linked_to_space_heating_with_current_stock_overlays
+        technology_probabilities:
+          linked_to_space_heating: 0.84
+          electric_storage: 0.15
+          hpwh: 0.01
+        note: >
+          Belgium-wide DHW stock is incomplete in the evidence file. The current
+          case links most DHW to the sampled space-heating carrier and applies
+          documented electric-storage and HPWH overlay assumptions.
+      pv:
+        household_probability: 0.30
+        source: belgian_capacity_proxy
+        note: >
+          Proxy derived from Belgian PV stock evidence and representative
+          residential system-size assumptions. This is not a directly observed
+          national household penetration rate.
+      ev:
+        household_probability: 0.014
+        source: private_bev_lower_bound_proxy
+        note: >
+          Approximate lower-bound proxy from private BEV stock divided by private
+          households. Company EV household access and home-charging availability
+          are not fully observed in the input data.
+
+  tech_frozen_stock:
+    technology_case_id: tech_frozen_stock
+    label: Frozen stock
+    description: >
+      Counterfactual future case in which the residential technology mix is
+      held fixed relative to the current-stock baseline.
+    applicable_window_types:
+      - future
+    modelling_interpretation: >
+      Apply future climate forcing while preserving the baseline technology
+      stock as a climate-only sensitivity case.
+    heat_pump_adoption_assumed: false
+    pv_assumed: false
+    ev_adoption_assumed: false
+    building_envelope_improvement_assumed: false
+    allowed_for_baseline: false
+    explicitly_permitted_for_future: true
+    household_assignment:
+      assignment_source: frozen_current_stock_with_documented_proxies
+      heating:
+        mode: belgian_current_stock_carrier_mapping
+        source_path: config/belgian_technology_inputs.yaml
+      dhw:
+        mode: linked_to_space_heating_with_current_stock_overlays
+        technology_probabilities:
+          linked_to_space_heating: 0.84
+          electric_storage: 0.15
+          hpwh: 0.01
+      pv:
+        household_probability: 0.30
+        source: frozen_current_stock_proxy
+      ev:
+        household_probability: 0.014
+        source: frozen_private_bev_lower_bound_proxy
+
+  tech_moderate_electrification:
+    technology_case_id: tech_moderate_electrification
+    label: Moderate electrification
+    description: >
+      Future technology case with moderate electrification assumptions for
+      residential heating, DHW, PV, and EV assignment.
+    applicable_window_types:
+      - future
+    modelling_interpretation: >
+      Represent a future residential stock with heat-pump uptake and some
+      building-envelope improvement. Numerical shares are counterfactual
+      scenario assumptions, not observed future adoption rates.
+    heat_pump_adoption_assumed: true
+    pv_assumed: false
+    ev_adoption_assumed: false
+    building_envelope_improvement_assumed: true
+    allowed_for_baseline: false
+    explicitly_permitted_for_future: true
+    household_assignment:
+      assignment_source: scenario_assumption_moderate_electrification
+      heating:
+        mode: explicit_technology_probabilities
+        technology_probabilities:
+          gas_boiler: 0.35
+          hybrid_hp_gas: 0.25
+          air_water: 0.25
+          air_air: 0.05
+          ground_source: 0.03
+          resistive_direct: 0.04
+          biomass_stove: 0.03
+      dhw:
+        mode: explicit_technology_probabilities
+        technology_probabilities:
+          linked_to_space_heating: 0.75
+          hpwh: 0.15
+          electric_storage: 0.10
+      pv:
+        household_probability: 0.35
+        source: scenario_assumption
+      ev:
+        household_probability: 0.20
+        source: scenario_assumption
+      note: >
+        Future moderate electrification shares are scenario assumptions
+        informed by the Belgian technology input ranges, not empirical future
+        observations or forecasts.
+
+  tech_high_electrification_pv_ev:
+    technology_case_id: tech_high_electrification_pv_ev
+    label: High electrification with PV and EV
+    description: >
+      Future technology case combining high residential electrification with
+      photovoltaic generation and electric-vehicle adoption assumptions.
+    applicable_window_types:
+      - future
+    modelling_interpretation: >
+      Represent a strongly electrified future stock including heat pumps, PV,
+      EV charging demand, and building-envelope improvement. Numerical shares
+      are stress-case scenario assumptions, not observed future adoption rates.
+    heat_pump_adoption_assumed: true
+    pv_assumed: true
+    ev_adoption_assumed: true
+    building_envelope_improvement_assumed: true
+    allowed_for_baseline: false
+    explicitly_permitted_for_future: true
+    household_assignment:
+      assignment_source: scenario_assumption_high_electrification_pv_ev
+      heating:
+        mode: explicit_technology_probabilities
+        technology_probabilities:
+          air_water: 0.50
+          air_air: 0.10
+          ground_source: 0.10
+          hybrid_hp_gas: 0.15
+          gas_boiler: 0.05
+          resistive_direct: 0.05
+          biomass_stove: 0.05
+      dhw:
+        mode: explicit_technology_probabilities
+        technology_probabilities:
+          linked_to_space_heating: 0.55
+          hpwh: 0.35
+          electric_storage: 0.10
+      pv:
+        household_probability: 0.60
+        source: scenario_assumption
+      ev:
+        household_probability: 0.45
+        source: scenario_assumption
+      note: >
+        Future high electrification/PV/EV shares are stress-case scenario
+        assumptions, not forecasts. They are intended for counterfactual
+        comparison against frozen stock and baseline cases.

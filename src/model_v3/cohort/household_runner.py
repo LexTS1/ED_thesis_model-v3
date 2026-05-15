@@ -13,6 +13,7 @@ from model_v3.data.data_module import load_all_sources
 from model_v3.interfaces import InputDataset
 from model_v3.simulation.annual_runner import run_annual_simulation_from_input_data
 from model_v3.systems.technology import normalize_technology_type
+from model_v3.utils.energy import integrate_power_series_kwh
 from model_v3.utils.feature_flags import is_module_enabled
 
 
@@ -34,9 +35,13 @@ def _prepare_household_input_dataset(
     setpoints_cfg = household_config.setdefault("setpoints", {})
     systems_cfg = household_config.setdefault("systems", {})
     heating_cfg = systems_cfg.setdefault("heating", {})
+    dhw_system_cfg = systems_cfg.setdefault("dhw", {})
     der_cfg = household_config.setdefault("der", {})
     pv_cfg = der_cfg.setdefault("pv", {})
+    mobility_cfg = household_config.setdefault("mobility", {})
+    ev_cfg = mobility_cfg.setdefault("ev", {})
 
+    building_archetype_id = str(physical.get("building_archetype_id", "")).strip()
     UA_scale_factor = max(float(physical.get("UA_scale_factor", 1.0)), 0.1)
     thermal_mass_scale = max(float(physical.get("thermal_mass_scale", 1.0)), 0.1)
     infiltration_rate = max(float(physical.get("infiltration_rate", 1.0)), 0.1)
@@ -48,7 +53,12 @@ def _prepare_household_input_dataset(
     schedule_variation_seed = int(behaviour.get("schedule_variation_seed", 0))
     heating_capacity_scale = max(float(technology.get("heating_capacity_scale", 1.0)), 0.1)
     technology_type = normalize_technology_type(technology.get("technology_type", "resistive_direct"))
+    dhw_technology_type = normalize_technology_type(technology.get("dhw_technology_type", "linked_to_space_heating"))
 
+    if building_archetype_id:
+        archetype_source_cfg = building_cfg.setdefault("archetype_source", {})
+        archetype_source_cfg["selection"] = "archetype_id"
+        archetype_source_cfg["archetype_id"] = building_archetype_id
     building_cfg["ua_multiplier"] = float(building_cfg.get("ua_multiplier", 1.0)) * UA_scale_factor
     building_cfg["thermal_mass_multiplier"] = float(building_cfg.get("thermal_mass_multiplier", 1.0)) * thermal_mass_scale
     building_cfg["infiltration_rate_multiplier"] = infiltration_rate
@@ -60,15 +70,23 @@ def _prepare_household_input_dataset(
     comfort_cfg["T_max_C"] = float(comfort_cfg.get("T_max_C", 26.0)) + setpoint_shift_C
     heating_cfg["capacity_W"] = float(heating_cfg.get("capacity_W", 8000.0)) * heating_capacity_scale
     heating_cfg["technology_type"] = technology_type
-    if technology_type in {"air_water", "air_air", "ground_source"}:
-        heating_cfg["cop"] = float(technology.get("heating_cop", heating_cfg.get("cop", 3.0))) * cop_scale
+    dhw_system_cfg["technology_type"] = dhw_technology_type
+    if technology.get("emitter_type"):
+        heating_cfg["emitter_type"] = str(technology["emitter_type"])
+    if technology.get("refrigerant"):
+        heating_cfg["refrigerant"] = str(technology["refrigerant"])
+    if technology_type in {"air_water", "air_air", "ground_source", "hybrid_hp_gas"}:
+        heating_cfg["cop_ref"] = float(technology.get("heating_cop", heating_cfg.get("cop_ref", 5.0))) * cop_scale
     elif technology_type in {"resistive_direct", "storage_heater"}:
         heating_cfg["cop"] = 1.0
+    if dhw_technology_type == "hpwh":
+        dhw_system_cfg["cop_ref"] = float(dhw_system_cfg.get("cop_ref", 3.1)) * cop_scale
     if bool(technology.get("has_pv", False)):
         pv_cfg["enabled"] = True
         pv_cfg["system_size_kwp"] = {
             "base": float(technology.get("pv_capacity_kwp", pv_cfg.get("system_size_kwp", {}).get("base", 6.0) if isinstance(pv_cfg.get("system_size_kwp"), dict) else 6.0))
         }
+    ev_cfg["enabled"] = bool(technology.get("has_ev", behaviour.get("has_ev", False)))
 
     cohort_metadata = household_config.setdefault("cohort", {})
     cohort_metadata["schedule_variation_seed"] = schedule_variation_seed
@@ -83,8 +101,23 @@ def _prepare_household_input_dataset(
     cohort_metadata["has_dryer"] = bool(behaviour.get("has_dryer", False))
     cohort_metadata["has_ev"] = bool(behaviour.get("has_ev", False))
     cohort_metadata["has_pv"] = bool(technology.get("has_pv", False))
+    cohort_metadata["heating_technology_type"] = technology_type
+    cohort_metadata["dhw_technology_type"] = dhw_technology_type
+    cohort_metadata["heating_technology_probability"] = float(technology.get("technology_probability", 0.0))
+    cohort_metadata["dhw_technology_probability"] = float(technology.get("dhw_technology_probability", 0.0))
+    cohort_metadata["technology_probability_source"] = str(technology.get("technology_probability_source", ""))
+    cohort_metadata["dhw_technology_probability_source"] = str(technology.get("dhw_technology_probability_source", ""))
+    cohort_metadata["pv_household_probability"] = float(technology.get("pv_household_probability", 0.0))
+    cohort_metadata["ev_household_probability"] = float(technology.get("ev_household_probability", 0.0))
     cohort_metadata["pv_capacity_kwp"] = float(technology.get("pv_capacity_kwp", 0.0))
     cohort_metadata["sampled_params"] = dict(sampled_params)
+    if building_archetype_id:
+        cohort_metadata["building_archetype_id"] = building_archetype_id
+        cohort_metadata["building_archetype_stock_weight"] = float(physical.get("building_archetype_stock_weight", 0.0))
+        cohort_metadata["dwelling_type"] = str(physical.get("dwelling_type", ""))
+        cohort_metadata["renovation_state"] = str(physical.get("renovation_state", ""))
+        cohort_metadata["construction_period_id"] = str(physical.get("construction_period_id", ""))
+        cohort_metadata["u_value_package_id"] = str(physical.get("u_value_package_id", ""))
 
     input_data = load_all_sources(config=household_config)
     if is_module_enabled(household_config, "stochastic"):
@@ -134,6 +167,7 @@ def run_single_household(base_config: Mapping[str, Any], sampled_params: Mapping
 
     stochastic_household = dict(household_input.metadata.get("stochastic_household", {}))
     profile_frame = pd.DataFrame(outputs["profile_frame"]).copy()
+    profile_window_offset = int(dict(sampled_params.get("behaviour", {})).get("load_variation_seed", 0))
     for column_name, metadata_key in (
         ("P_base_W", "base_profile_W"),
         ("P_events_W", "event_profile_W"),
@@ -143,13 +177,45 @@ def run_single_household(base_config: Mapping[str, Any], sampled_params: Mapping
         ("P_el_ev_charging_W", "ev_charging_profile_W"),
     ):
         values = list(stochastic_household.get(metadata_key, ()))
-        if len(values) == len(profile_frame):
-            profile_frame[column_name] = values
+        if len(values) >= len(profile_frame):
+            max_offset = max(len(values) - len(profile_frame), 0)
+            offset = profile_window_offset % (max_offset + 1) if max_offset else 0
+            profile_frame[column_name] = values[offset : offset + len(profile_frame)]
+
+    def _numeric_profile_column(column_name: str) -> pd.Series:
+        if column_name not in profile_frame.columns:
+            return pd.Series(0.0, index=profile_frame.index)
+        return pd.to_numeric(profile_frame[column_name], errors="coerce").fillna(0.0)
+
+    calibrated_appliances = _numeric_profile_column("P_el_appliances_W")
+    calibrated_cooking = _numeric_profile_column("P_el_cooking_W")
+    calibrated_lighting = _numeric_profile_column("P_el_lighting_W")
+    calibrated_nonthermal = calibrated_appliances + calibrated_cooking + calibrated_lighting
+
+    raw_base = _numeric_profile_column("P_base_W")
+    raw_events = _numeric_profile_column("P_events_W")
+    raw_app_cooking = raw_base + raw_events
+    app_cooking_target = calibrated_appliances + calibrated_cooking
+    app_cooking_scale = app_cooking_target / raw_app_cooking.where(raw_app_cooking > 1e-9, 1.0)
+    fallback_base = raw_app_cooking <= 1e-9
+    profile_frame["P_base_W"] = (raw_base * app_cooking_scale).where(~fallback_base, app_cooking_target)
+    profile_frame["P_events_W"] = (raw_events * app_cooking_scale).where(~fallback_base, 0.0)
+    profile_frame["P_lighting_household_W"] = calibrated_lighting
+    profile_frame["P_nonthermal_W"] = calibrated_nonthermal
+
+    space_heating = _numeric_profile_column("P_el_space_heating_W")
+    dhw = _numeric_profile_column("P_el_dhw_W")
+    ev = _numeric_profile_column("P_el_ev_charging_W")
+    profile_frame["P_el_total_W"] = space_heating + dhw + calibrated_nonthermal + ev
     profile_frame["Q_total_thermal_W"] = (
         pd.to_numeric(profile_frame["Q_heating_supplied_W"], errors="coerce").fillna(0.0)
         + pd.to_numeric(profile_frame["Q_dhw_demand_W"], errors="coerce").fillna(0.0)
     )
     outputs["profile_frame"] = profile_frame
+    outputs["annual_energy_kWh"] = integrate_power_series_kwh(
+        profile_frame["P_el_total_W"],
+        timestamps=profile_frame["timestamp"],
+    )
     outputs["household_electricity_calibration"] = dict(outputs.get("electricity_calibration", {}))
     outputs["stochastic_household"] = stochastic_household
     outputs["household_event_summary"] = dict(stochastic_household.get("event_summary", {}))

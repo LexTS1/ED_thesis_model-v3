@@ -13,9 +13,9 @@ import yaml
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_EXPERIMENT_ROOT = REPO_ROOT / "model_v3" / "experiments" / "scenario_tree"
-DEFAULT_COMPARISON_DEFINITIONS = REPO_ROOT / "config" / "model_v3" / "scenario_tree" / "comparison_definitions.yaml"
-DEFAULT_CONFIG_ROOT = REPO_ROOT / "config" / "model_v3" / "scenario_tree"
+DEFAULT_EXPERIMENT_ROOT = REPO_ROOT / "experiments" / "scenario_tree"
+DEFAULT_COMPARISON_DEFINITIONS = REPO_ROOT / "config" / "scenario_tree" / "comparison_definitions.yaml"
+DEFAULT_CONFIG_ROOT = REPO_ROOT / "config" / "scenario_tree"
 
 STAT_COLUMNS = ["count", "mean", "median", "std", "min", "max", "p05", "p10", "p50", "p90", "p95"]
 SPREAD_COLUMNS = STAT_COLUMNS + ["p25", "p75", "iqr", "p90_minus_p10", "coefficient_of_variation"]

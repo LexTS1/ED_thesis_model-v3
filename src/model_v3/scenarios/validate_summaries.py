@@ -22,7 +22,7 @@ from model_v3.scenarios.summarize_outputs import _climate_window_2050_policy
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_EXPERIMENT_ROOT = REPO_ROOT / "model_v3" / "experiments" / "scenario_tree"
+DEFAULT_EXPERIMENT_ROOT = REPO_ROOT / "experiments" / "scenario_tree"
 
 
 class SummaryValidationError(RuntimeError):
@@ -126,7 +126,7 @@ def _write_report(
 ) -> None:
     manifests_dir = experiment_root / "manifests"
     manifests_dir.mkdir(parents=True, exist_ok=True)
-    config_root = REPO_ROOT / "config" / "model_v3" / "scenario_tree"
+    config_root = REPO_ROOT / "config" / "scenario_tree"
     near_includes_2050, mid_includes_2050 = _climate_window_2050_policy(config_root)
     required_missing = sorted(
         {

@@ -34,7 +34,7 @@ from .validate_scenario_tree import (
 
 DEFAULT_EXPERIMENT_ROOT = paths.get_experiment_root(REPO_ROOT)
 DEFAULT_CLIMATE_PROCESSED_ROOT = REPO_ROOT / "inputs" / "climate" / "processed"
-DEFAULT_BELGIAN_TECHNOLOGY_INPUTS = REPO_ROOT / "config" / "model_v3" / "belgian_technology_inputs.yaml"
+DEFAULT_BELGIAN_TECHNOLOGY_INPUTS = REPO_ROOT / "config" / "belgian_technology_inputs.yaml"
 REQUIRED_TOP_LEVEL_SECTIONS = {
     "schema_version",
     "generated_by",

@@ -12,7 +12,7 @@ FROZEN_SCENARIO = "near_future_2030_2049__rcp_2_6__tech_frozen_stock"
 MODERATE_SCENARIO = "near_future_2030_2049__rcp_2_6__tech_moderate_electrification"
 HIGH_SCENARIO = "near_future_2030_2049__rcp_2_6__tech_high_electrification_pv_ev"
 STRESS_SCENARIO = "long_term_2080_2100__rcp_8_5__tech_high_electrification_pv_ev"
-DEFINITIONS_PATH = Path("config/model_v3/scenario_tree/comparison_definitions.yaml")
+DEFINITIONS_PATH = Path("config/scenario_tree/comparison_definitions.yaml")
 
 
 def metric_row(scenario_id: str, realization_id: str, **metric_values: float) -> dict:

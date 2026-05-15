@@ -20,7 +20,7 @@ from model_v3.scenario_tree.technology_resolver import (  # noqa: E402
 from model_v3.scenario_tree.validate_scenario_tree import validate_scenario_tree  # noqa: E402
 
 
-CONFIG_ROOT = REPO_ROOT / "config" / "model_v3" / "scenario_tree"
+CONFIG_ROOT = REPO_ROOT / "config" / "scenario_tree"
 
 
 class TechnologyResolutionTest(unittest.TestCase):

@@ -1,0 +1,372 @@
+# Migration From model_v2
+
+- Timestamp: `2026-05-05T21:32:19+02:00`
+- Source repo path: `/Users/alex/Library/CloudStorage/OneDrive-VrijeUniversiteitBrussel/Documenten/VUB/MA IW/Master Thesis/model_v2`
+- Target repo path: `/Users/alex/Library/CloudStorage/OneDrive-VrijeUniversiteitBrussel/Documenten/VUB/MA IW/Master Thesis/model_v3`
+- Files copied from source: `215`
+- Folders created: `56`
+- Existing target folders merged into: `58`
+- Skipped collisions: `4`
+- Symlinks dereferenced/copied as real files or folders: `6`
+- Files/directories that could not be copied: `0`
+- Excluded source repository metadata: `.git`
+
+Safety statement: Pre-existing model_v3 files were not modified, overwritten, deleted, renamed, reformatted, or moved. Existing folders were only merged by adding missing child paths.
+
+## Existing Folders Merged Into
+
+- `config`
+- `config/model_v2`
+- `inputs`
+- `inputs/model_v2`
+- `inputs/model_v2/building`
+- `inputs/model_v2/end_use`
+- `inputs/model_v2/load_profiles`
+- `inputs/model_v2/load_profiles/fluvius`
+- `inputs/model_v2/load_profiles/kul`
+- `inputs/model_v2/load_profiles/kul/house_1`
+- `inputs/model_v2/load_profiles/kul/house_2`
+- `inputs/model_v2/load_profiles/kul/house_3`
+- `inputs/model_v2/occupancy`
+- `inputs/model_v2/solar`
+- `inputs/model_v2/solar/raw_inputs`
+- `inputs/model_v2/weather`
+- `outputs`
+- `outputs/model_v2`
+- `outputs/model_v2/annual`
+- `outputs/model_v2/climate_uncertainty`
+- `outputs/model_v2/deterministic`
+- `outputs/model_v2/final`
+- `outputs/model_v2/final/annual`
+- `outputs/model_v2/final/climate_uncertainty`
+- `outputs/model_v2/final/stochastic`
+- `outputs/model_v2/stochastic`
+- `outputs/model_v2/validation`
+- `outputs/model_v2/validation/aggregate`
+- `outputs/model_v2/validation/baseline_annual`
+- `outputs/model_v2/validation/fluvius_external`
+- `outputs/model_v2/validation/full_year_parity`
+- `outputs/model_v2/validation/kuleuven_high_freq`
+- `outputs/model_v2/validation/parity`
+- `outputs/model_v2/validation/smart_meter`
+- `outputs/model_v2/validation/synthetic`
+- `reports`
+- `reports/model_v2`
+- `src`
+- `src/model_v2`
+- `src/model_v2/adapters`
+- `src/model_v2/cohort`
+- `src/model_v2/control`
+- `src/model_v2/data`
+- `src/model_v2/output`
+- `src/model_v2/physics`
+- `src/model_v2/simulation`
+- `src/model_v2/stochastic`
+- `src/model_v2/systems`
+- `src/model_v2/utils`
+- `src/model_v2/validation`
+- `src/model_v2/validation/core`
+- `src/model_v2/validation/reports`
+- `src/model_v2/validation/runners`
+- `src/model_v2/validation/utils`
+- `src/model_v2/weather`
+- `src/pipelines`
+- `src/shared`
+- `tests`
+
+## Folders Created
+
+- `config`
+- `config/model_v2`
+- `inputs/model_v2`
+- `inputs/model_v2/building`
+- `inputs/model_v2/end_use`
+- `inputs/model_v2/load_profiles`
+- `inputs/model_v2/load_profiles/fluvius`
+- `inputs/model_v2/load_profiles/kul`
+- `inputs/model_v2/load_profiles/kul/house_1`
+- `inputs/model_v2/load_profiles/kul/house_2`
+- `inputs/model_v2/load_profiles/kul/house_3`
+- `inputs/model_v2/occupancy`
+- `inputs/model_v2/solar`
+- `inputs/model_v2/solar/raw_inputs`
+- `inputs/model_v2/weather`
+- `outputs`
+- `outputs/model_v2`
+- `outputs/model_v2/annual`
+- `outputs/model_v2/climate_uncertainty`
+- `outputs/model_v2/deterministic`
+- `outputs/model_v2/final`
+- `outputs/model_v2/final/annual`
+- `outputs/model_v2/final/climate_uncertainty`
+- `outputs/model_v2/final/stochastic`
+- `outputs/model_v2/stochastic`
+- `outputs/model_v2/validation`
+- `outputs/model_v2/validation/aggregate`
+- `outputs/model_v2/validation/baseline_annual`
+- `outputs/model_v2/validation/fluvius_external`
+- `outputs/model_v2/validation/full_year_parity`
+- `outputs/model_v2/validation/kuleuven_high_freq`
+- `outputs/model_v2/validation/parity`
+- `outputs/model_v2/validation/smart_meter`
+- `outputs/model_v2/validation/synthetic`
+- `reports/model_v2`
+- `reports/model_v3`
+- `src/model_v2`
+- `src/model_v2/adapters`
+- `src/model_v2/cohort`
+- `src/model_v2/control`
+- `src/model_v2/data`
+- `src/model_v2/output`
+- `src/model_v2/physics`
+- `src/model_v2/simulation`
+- `src/model_v2/stochastic`
+- `src/model_v2/systems`
+- `src/model_v2/utils`
+- `src/model_v2/validation`
+- `src/model_v2/validation/core`
+- `src/model_v2/validation/reports`
+- `src/model_v2/validation/runners`
+- `src/model_v2/validation/utils`
+- `src/model_v2/weather`
+- `src/pipelines`
+- `src/shared`
+- `tests`
+
+## Skipped Collisions
+
+- `.DS_Store`: destination path already exists (source: `.DS_Store`)
+- `.gitignore`: destination path already exists (source: `.gitignore`)
+- `inputs/.DS_Store`: destination path already exists (source: `inputs/.DS_Store`)
+- `src/__init__.py`: destination path already exists (source: `src/__init__.py`)
+
+## Symlinks Dereferenced
+
+- `inputs/model_v2/building/archetype_parameters_v1.csv` -> `../../../../model_v1/archetype_parameters_v1.csv` resolved to `/Users/alex/Library/CloudStorage/OneDrive-VrijeUniversiteitBrussel/Documenten/VUB/MA IW/Master Thesis/model_v1/archetype_parameters_v1.csv` and copied to `inputs/model_v2/building/archetype_parameters_v1.csv` as a real file.
+- `inputs/model_v2/end_use/EU27_BE_household_enduse_2019.csv` -> `../../../../model_v1/EU27_BE_household_enduse_2019.csv` resolved to `/Users/alex/Library/CloudStorage/OneDrive-VrijeUniversiteitBrussel/Documenten/VUB/MA IW/Master Thesis/model_v1/EU27_BE_household_enduse_2019.csv` and copied to `inputs/model_v2/end_use/EU27_BE_household_enduse_2019.csv` as a real file.
+- `inputs/model_v2/load_profiles/LCL_2013.csv` -> `../../../../model_v1/LCL_2013.csv` resolved to `/Users/alex/Library/CloudStorage/OneDrive-VrijeUniversiteitBrussel/Documenten/VUB/MA IW/Master Thesis/model_v1/LCL_2013.csv` and copied to `inputs/model_v2/load_profiles/LCL_2013.csv` as a real file.
+- `inputs/model_v2/occupancy/occupancy_model_spec_v1.yaml` -> `../../../../model_v1/occupancy_model_spec_v1.yaml` resolved to `/Users/alex/Library/CloudStorage/OneDrive-VrijeUniversiteitBrussel/Documenten/VUB/MA IW/Master Thesis/model_v1/occupancy_model_spec_v1.yaml` and copied to `inputs/model_v2/occupancy/occupancy_model_spec_v1.yaml` as a real file.
+- `inputs/model_v2/solar/raw_inputs` -> `../../../../model_v1/raw_inputs` resolved to `/Users/alex/Library/CloudStorage/OneDrive-VrijeUniversiteitBrussel/Documenten/VUB/MA IW/Master Thesis/model_v1/raw_inputs` and copied to `inputs/model_v2/solar/raw_inputs` as a real directory.
+- `inputs/model_v2/weather/aws_1hour_Uccle.csv` -> `../../../../model_v1/aws_1hour_Uccle.csv` resolved to `/Users/alex/Library/CloudStorage/OneDrive-VrijeUniversiteitBrussel/Documenten/VUB/MA IW/Master Thesis/model_v1/aws_1hour_Uccle.csv` and copied to `inputs/model_v2/weather/aws_1hour_Uccle.csv` as a real file.
+
+## Files That Could Not Be Copied
+
+- None
+
+## Copied Files
+
+- `README.md` (1988 bytes)
+- `__init__.py` (522 bytes)
+- `config/model_v2/archetypes.yaml` (1069 bytes)
+- `config/model_v2/model_v2.yaml` (6155 bytes)
+- `config/model_v2/model_v2_thesis.yaml` (6156 bytes)
+- `inputs/model_v2/.DS_Store` (12292 bytes)
+- `inputs/model_v2/README.md` (5504 bytes)
+- `inputs/model_v2/building/airflow_archetypes_v2.csv` (4373 bytes)
+- `inputs/model_v2/building/archetype_parameters_merged_v2.csv` (6238 bytes)
+- `inputs/model_v2/building/archetype_parameters_merged_v2.md` (2626 bytes)
+- `inputs/model_v2/building/archetype_parameters_v1.csv` (2315 bytes; dereferenced from `inputs/model_v2/building/archetype_parameters_v1.csv`)
+- `inputs/model_v2/building/internal_gains_archetypes_v2.csv` (3371 bytes)
+- `inputs/model_v2/end_use/EU27_BE_household_enduse_2019.csv` (3932 bytes; dereferenced from `inputs/model_v2/end_use/EU27_BE_household_enduse_2019.csv`)
+- `inputs/model_v2/load_profiles/.DS_Store` (10244 bytes)
+- `inputs/model_v2/load_profiles/LCL_2013.csv` (587690273 bytes; dereferenced from `inputs/model_v2/load_profiles/LCL_2013.csv`)
+- `inputs/model_v2/load_profiles/fluvius/.DS_Store` (14340 bytes)
+- `inputs/model_v2/load_profiles/fluvius/P6269_Open_Data_EV_geen_ZP.csv` (800926499 bytes)
+- `inputs/model_v2/load_profiles/fluvius/P6269_Open_Data_EV_met_ZP.csv` (804175121 bytes)
+- `inputs/model_v2/load_profiles/fluvius/P6269_Open_Data_WP_EV_geen_ZP.csv` (800697761 bytes)
+- `inputs/model_v2/load_profiles/fluvius/P6269_Open_Data_WP_EV_met_ZP.csv` (808132319 bytes)
+- `inputs/model_v2/load_profiles/fluvius/P6269_Open_Data_WP_geen_ZP.csv` (797294675 bytes)
+- `inputs/model_v2/load_profiles/fluvius/P6269_Open_Data_WP_met_ZP.csv` (797786309 bytes)
+- `inputs/model_v2/load_profiles/fluvius/P6269_Open_Data_enkel_ZP.csv` (790497785 bytes)
+- `inputs/model_v2/load_profiles/fluvius/P6269_Open_Data_geen_ZP.csv` (790345181 bytes)
+- `inputs/model_v2/load_profiles/kul/.DS_Store` (8196 bytes)
+- `inputs/model_v2/load_profiles/kul/house_1/house_1-elec.csv` (1527953629 bytes)
+- `inputs/model_v2/load_profiles/kul/house_1/house_1-metadata.md` (1095 bytes)
+- `inputs/model_v2/load_profiles/kul/house_2/house_2-elec.csv` (172410919 bytes)
+- `inputs/model_v2/load_profiles/kul/house_2/house_2-metadata.md` (898 bytes)
+- `inputs/model_v2/load_profiles/kul/house_3/house_3-elec.csv` (489272306 bytes)
+- `inputs/model_v2/load_profiles/kul/house_3/house_3-metadata.md` (689 bytes)
+- `inputs/model_v2/occupancy/occupancy_model_spec_v1.yaml` (1207 bytes; dereferenced from `inputs/model_v2/occupancy/occupancy_model_spec_v1.yaml`)
+- `inputs/model_v2/solar/TimeseriesEAST_50.830_4.350_SA3_90deg_-90deg_2005_2023.csv` (7990098 bytes)
+- `inputs/model_v2/solar/TimeseriesNORTH_50.830_4.350_SA3_90deg_-179deg_2005_2023.csv` (7922081 bytes)
+- `inputs/model_v2/solar/TimeseriesSOUTH_50.830_4.350_SA3_90deg_0deg_2005_2023.csv` (8047323 bytes)
+- `inputs/model_v2/solar/TimeseriesWEST_50.830_4.350_SA3_90deg_90deg_2005_2023.csv` (7991957 bytes)
+- `inputs/model_v2/solar/raw_inputs/ods001.csv` (31373025 bytes; dereferenced from `inputs/model_v2/solar/raw_inputs`)
+- `inputs/model_v2/solar/raw_inputs/solardata_50.847_4.352_SA3_90deg_-179deg_2023_2023.csv` (417598 bytes; dereferenced from `inputs/model_v2/solar/raw_inputs`)
+- `inputs/model_v2/solar/raw_inputs/solardata_50.847_4.352_SA3_90deg_-90deg_2023_2023.csv` (421020 bytes; dereferenced from `inputs/model_v2/solar/raw_inputs`)
+- `inputs/model_v2/solar/raw_inputs/solardata_50.847_4.352_SA3_90deg_0deg_2023_2023.csv` (423617 bytes; dereferenced from `inputs/model_v2/solar/raw_inputs`)
+- `inputs/model_v2/solar/raw_inputs/solardata_50.847_4.352_SA3_90deg_90deg_2023_2023.csv` (420965 bytes; dereferenced from `inputs/model_v2/solar/raw_inputs`)
+- `inputs/model_v2/weather/Timeseries_pvgisWEATHER_50.830_4.350_SA3_0deg_0deg_2005_2023.csv` (7920234 bytes)
+- `inputs/model_v2/weather/aws_1hour_Uccle.csv` (61027623 bytes; dereferenced from `inputs/model_v2/weather/aws_1hour_Uccle.csv`)
+- `outputs/.DS_Store` (8196 bytes)
+- `outputs/model_v2/.DS_Store` (8196 bytes)
+- `outputs/model_v2/annual/annual_demand_profile.png` (68455 bytes)
+- `outputs/model_v2/annual/annual_indoor_temperature.png` (71573 bytes)
+- `outputs/model_v2/annual/annual_profile.csv` (3890548 bytes)
+- `outputs/model_v2/annual/annual_profile.parquet` (1309483 bytes)
+- `outputs/model_v2/annual/annual_summary.json` (493706 bytes)
+- `outputs/model_v2/climate_uncertainty/ensemble_summary.json` (1708 bytes)
+- `outputs/model_v2/climate_uncertainty/member_stats.parquet` (15409 bytes)
+- `outputs/model_v2/deterministic/model_outputs.json` (1233 bytes)
+- `outputs/model_v2/final/annual/annual_demand_profile.png` (68674 bytes)
+- `outputs/model_v2/final/annual/annual_indoor_temperature.png` (72360 bytes)
+- `outputs/model_v2/final/annual/annual_profile.csv` (4812569 bytes)
+- `outputs/model_v2/final/annual/annual_profile.parquet` (1626702 bytes)
+- `outputs/model_v2/final/annual/annual_summary.json` (494758 bytes)
+- `outputs/model_v2/final/annual/run_manifest.json` (2991 bytes)
+- `outputs/model_v2/final/climate_uncertainty/ensemble_summary.json` (1708 bytes)
+- `outputs/model_v2/final/climate_uncertainty/member_stats.parquet` (15409 bytes)
+- `outputs/model_v2/final/climate_uncertainty/run_manifest.json` (3603 bytes)
+- `outputs/model_v2/final/stochastic/aggregate_profile.csv` (1274892 bytes)
+- `outputs/model_v2/final/stochastic/aggregate_profile.png` (32969 bytes)
+- `outputs/model_v2/final/stochastic/cohort_summary.json` (17043 bytes)
+- `outputs/model_v2/final/stochastic/household_annual_energy.csv` (9031 bytes)
+- `outputs/model_v2/final/stochastic/household_calibration_diagnostics.json` (50605 bytes)
+- `outputs/model_v2/final/stochastic/run_manifest.json` (3065 bytes)
+- `outputs/model_v2/stochastic/aggregate_profile.csv` (1278702 bytes)
+- `outputs/model_v2/stochastic/aggregate_profile.png` (34265 bytes)
+- `outputs/model_v2/stochastic/cohort_summary.json` (14706453 bytes)
+- `outputs/model_v2/validation/.DS_Store` (8196 bytes)
+- `outputs/model_v2/validation/aggregate/aligned_normalized_timeseries.csv` (1561 bytes)
+- `outputs/model_v2/validation/aggregate/load_duration_curve.png` (28320 bytes)
+- `outputs/model_v2/validation/aggregate/mean_daily_profile_overlay.png` (41446 bytes)
+- `outputs/model_v2/validation/aggregate/metrics.json` (3518 bytes)
+- `outputs/model_v2/validation/aggregate/uncertainty_bands.png` (31935 bytes)
+- `outputs/model_v2/validation/aggregate/validation_report_v2_aggregate.md` (3420 bytes)
+- `outputs/model_v2/validation/aggregate/variance_by_hour.png` (14179 bytes)
+- `outputs/model_v2/validation/baseline_annual/annual_profile.csv` (13233 bytes)
+- `outputs/model_v2/validation/baseline_annual/baseline_metrics.json` (2710 bytes)
+- `outputs/model_v2/validation/baseline_annual/validation_report_v2_baseline_annual.md` (2973 bytes)
+- `outputs/model_v2/validation/fluvius_external/aligned_absolute_timeseries.csv` (507029 bytes)
+- `outputs/model_v2/validation/fluvius_external/load_duration_curve.png` (25066 bytes)
+- `outputs/model_v2/validation/fluvius_external/mean_daily_profile_overlay.png` (41377 bytes)
+- `outputs/model_v2/validation/fluvius_external/metrics.json` (3512 bytes)
+- `outputs/model_v2/validation/fluvius_external/uncertainty_bands.png` (34894 bytes)
+- `outputs/model_v2/validation/fluvius_external/variance_by_hour.png` (34411 bytes)
+- `outputs/model_v2/validation/full_year_parity/validation_report_v2_full_year_parity.json` (1335 bytes)
+- `outputs/model_v2/validation/full_year_parity/validation_report_v2_full_year_parity.md` (2497 bytes)
+- `outputs/model_v2/validation/kuleuven_high_freq/house_1_24h_segment.png` (24590 bytes)
+- `outputs/model_v2/validation/kuleuven_high_freq/house_1_aligned_timeseries.csv` (10491 bytes)
+- `outputs/model_v2/validation/kuleuven_high_freq/house_1_ramp_histogram.png` (16931 bytes)
+- `outputs/model_v2/validation/kuleuven_high_freq/house_1_spike_comparison.png` (11030 bytes)
+- `outputs/model_v2/validation/kuleuven_high_freq/house_2_24h_segment.png` (32793 bytes)
+- `outputs/model_v2/validation/kuleuven_high_freq/house_2_aligned_timeseries.csv` (38 bytes)
+- `outputs/model_v2/validation/kuleuven_high_freq/house_2_ramp_histogram.png` (14186 bytes)
+- `outputs/model_v2/validation/kuleuven_high_freq/house_2_spike_comparison.png` (12760 bytes)
+- `outputs/model_v2/validation/kuleuven_high_freq/house_3_24h_segment.png` (34104 bytes)
+- `outputs/model_v2/validation/kuleuven_high_freq/house_3_aligned_timeseries.csv` (38 bytes)
+- `outputs/model_v2/validation/kuleuven_high_freq/house_3_ramp_histogram.png` (14198 bytes)
+- `outputs/model_v2/validation/kuleuven_high_freq/house_3_spike_comparison.png` (12768 bytes)
+- `outputs/model_v2/validation/kuleuven_high_freq/metrics.json` (4715 bytes)
+- `outputs/model_v2/validation/parity/validation_report_v2_parity.json` (11116 bytes)
+- `outputs/model_v2/validation/parity/validation_report_v2_parity.md` (2914 bytes)
+- `outputs/model_v2/validation/smart_meter/aligned_timeseries.csv` (33 bytes)
+- `outputs/model_v2/validation/smart_meter/load_duration_curve.png` (14315 bytes)
+- `outputs/model_v2/validation/smart_meter/mean_daily_profile_overlay.png` (16041 bytes)
+- `outputs/model_v2/validation/smart_meter/metrics.json` (3251 bytes)
+- `outputs/model_v2/validation/smart_meter/model_profile.csv` (2443 bytes)
+- `outputs/model_v2/validation/smart_meter/uncertainty_bands.png` (40172 bytes)
+- `outputs/model_v2/validation/smart_meter/validation_report_v2_smart_meter.md` (4681 bytes)
+- `outputs/model_v2/validation/smart_meter/variance_by_hour.png` (14552 bytes)
+- `outputs/model_v2/validation/synthetic/aligned_timeseries.csv` (1557 bytes)
+- `outputs/model_v2/validation/synthetic/load_duration_curve.png` (33506 bytes)
+- `outputs/model_v2/validation/synthetic/mean_daily_profile_overlay.png` (41641 bytes)
+- `outputs/model_v2/validation/synthetic/metrics.json` (3074 bytes)
+- `outputs/model_v2/validation/synthetic/model_bands.csv` (2445 bytes)
+- `outputs/model_v2/validation/synthetic/uncertainty_bands.png` (40664 bytes)
+- `outputs/model_v2/validation/synthetic/validation_report_v2_synthetic.md` (3040 bytes)
+- `outputs/model_v2/validation/synthetic/variance_by_hour.png` (14179 bytes)
+- `outputs/model_v2/validation/validation_report_v2_fluvius_external.md` (4330 bytes)
+- `outputs/model_v2/validation/validation_report_v2_kuleuven_high_freq.md` (4802 bytes)
+- `reports/model_v2/model_v2_global_summary.md` (17797 bytes)
+- `reports/model_v2/model_v2_runtime_contract.md` (7458 bytes)
+- `reports/model_v2/model_v2_skeleton.md` (3812 bytes)
+- `reports/model_v2/model_v2_small_report.md` (4874 bytes)
+- `src/model_v2/__init__.py` (546 bytes)
+- `src/model_v2/adapters/__init__.py` (224 bytes)
+- `src/model_v2/adapters/adapter_module.py` (463 bytes)
+- `src/model_v2/adapters/fluvius_loader.py` (8390 bytes)
+- `src/model_v2/adapters/forcing_builder.py` (23348 bytes)
+- `src/model_v2/adapters/kuleuven_loader.py` (7167 bytes)
+- `src/model_v2/adapters/load_mapping.py` (1541 bytes)
+- `src/model_v2/adapters/pvgis_solar_loader.py` (3750 bytes)
+- `src/model_v2/adapters/pvgis_weather_loader.py` (3373 bytes)
+- `src/model_v2/baseline.py` (2674 bytes)
+- `src/model_v2/cohort/__init__.py` (225 bytes)
+- `src/model_v2/cohort/cohort_engine.py` (25555 bytes)
+- `src/model_v2/cohort/household_runner.py` (7887 bytes)
+- `src/model_v2/cohort/household_simulator.py` (16210 bytes)
+- `src/model_v2/cohort/profile_stochasticity.py` (8048 bytes)
+- `src/model_v2/control/__init__.py` (116 bytes)
+- `src/model_v2/control/control_core.py` (7830 bytes)
+- `src/model_v2/control/control_module.py` (440 bytes)
+- `src/model_v2/control/thermostat.py` (4597 bytes)
+- `src/model_v2/data/__init__.py` (358 bytes)
+- `src/model_v2/data/data_module.py` (12772 bytes)
+- `src/model_v2/data/harmonisation.py` (4348 bytes)
+- `src/model_v2/data/loaders.py` (28590 bytes)
+- `src/model_v2/data/preprocessing.py` (1500 bytes)
+- `src/model_v2/interfaces.py` (9884 bytes)
+- `src/model_v2/output/__init__.py` (123 bytes)
+- `src/model_v2/output/output_core.py` (2242 bytes)
+- `src/model_v2/output/output_module.py` (447 bytes)
+- `src/model_v2/output/persistence.py` (17112 bytes)
+- `src/model_v2/physics/__init__.py` (116 bytes)
+- `src/model_v2/physics/physics_core.py` (8081 bytes)
+- `src/model_v2/physics/physics_module.py` (438 bytes)
+- `src/model_v2/physics/thermal_dynamics.py` (2527 bytes)
+- `src/model_v2/simulation/__init__.py` (51 bytes)
+- `src/model_v2/simulation/annual_runner.py` (17102 bytes)
+- `src/model_v2/stochastic/__init__.py` (238 bytes)
+- `src/model_v2/stochastic/base_load.py` (1284 bytes)
+- `src/model_v2/stochastic/dhw_generator.py` (16433 bytes)
+- `src/model_v2/stochastic/event_generator.py` (15546 bytes)
+- `src/model_v2/stochastic/household_classifier.py` (2894 bytes)
+- `src/model_v2/stochastic/lighting_model.py` (2758 bytes)
+- `src/model_v2/stochastic/sampler.py` (5694 bytes)
+- `src/model_v2/stochastic/shared_driver.py` (937 bytes)
+- `src/model_v2/systems/__init__.py` (115 bytes)
+- `src/model_v2/systems/electricity.py` (1498 bytes)
+- `src/model_v2/systems/heating_system.py` (768 bytes)
+- `src/model_v2/systems/system_core.py` (5707 bytes)
+- `src/model_v2/systems/systems_module.py` (437 bytes)
+- `src/model_v2/utils/__init__.py` (440 bytes)
+- `src/model_v2/utils/config.py` (1376 bytes)
+- `src/model_v2/utils/energy.py` (2335 bytes)
+- `src/model_v2/utils/matplotlib_config.py` (627 bytes)
+- `src/model_v2/validation/__init__.py` (160 bytes)
+- `src/model_v2/validation/acceptance_criteria.py` (3031 bytes)
+- `src/model_v2/validation/core/__init__.py` (44 bytes)
+- `src/model_v2/validation/core/metrics_distribution.py` (1387 bytes)
+- `src/model_v2/validation/core/metrics_end_use.py` (2068 bytes)
+- `src/model_v2/validation/core/metrics_events.py` (2276 bytes)
+- `src/model_v2/validation/core/metrics_mean.py` (902 bytes)
+- `src/model_v2/validation/core/metrics_temporal.py` (3091 bytes)
+- `src/model_v2/validation/core/metrics_variance.py` (1985 bytes)
+- `src/model_v2/validation/reports/README.md` (100 bytes)
+- `src/model_v2/validation/runners/__init__.py` (39 bytes)
+- `src/model_v2/validation/runners/model_runner.py` (2951 bytes)
+- `src/model_v2/validation/runners/runner_utils.py` (7966 bytes)
+- `src/model_v2/validation/runners/validate_against_aggregate.py` (27947 bytes)
+- `src/model_v2/validation/runners/validate_against_model_v1_full_year.py` (19166 bytes)
+- `src/model_v2/validation/runners/validate_against_model_v1_parity.py` (18474 bytes)
+- `src/model_v2/validation/runners/validate_against_synthetic.py` (20299 bytes)
+- `src/model_v2/validation/runners/validate_baseline_annual.py` (11315 bytes)
+- `src/model_v2/validation/runners/validate_high_frequency_kuleuven.py` (19799 bytes)
+- `src/model_v2/validation/utils/__init__.py` (41 bytes)
+- `src/model_v2/validation/utils/alignment.py` (3649 bytes)
+- `src/model_v2/validation/utils/independence.py` (3398 bytes)
+- `src/model_v2/validation/utils/preprocessing.py` (3367 bytes)
+- `src/model_v2/validation/utils/reference_profile.py` (3198 bytes)
+- `src/model_v2/weather/__init__.py` (439 bytes)
+- `src/model_v2/weather/ensemble_generator.py` (3377 bytes)
+- `src/model_v2/weather/forcing_builder.py` (5022 bytes)
+- `src/model_v2/weather/year_splitter.py` (1562 bytes)
+- `src/pipelines/__init__.py` (41 bytes)
+- `src/pipelines/run_model_v2.py` (5059 bytes)
+- `src/pipelines/run_model_v2_annual.py` (1875 bytes)
+- `src/pipelines/run_model_v2_stochastic.py` (21363 bytes)
+- `src/shared/__init__.py` (270 bytes)
+- `src/sitecustomize.py` (569 bytes)
+- `tests/__init__.py` (39 bytes)
+- `tests/test_model_v2_smoke.py` (14903 bytes)

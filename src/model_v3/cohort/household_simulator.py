@@ -124,7 +124,7 @@ def simulate_household_electricity(
     }
     sigma_peak = max(float(behaviour_cfg.get("sigma_peak", 0.3)), 0.0)
     event_blend_scale = max(float(behaviour_cfg.get("event_blend_scale", 1.0)), 0.0)
-    event_rate_scale = max(float(behaviour_cfg.get("event_rate_scale", 0.01)), 1e-6)
+    event_rate_scale = max(float(behaviour_cfg.get("event_rate_scale", 1.0)), 1e-6)
     shared_peak_seed = int(dict(config.get("cohort", {})).get("random_seed", 42))
     daily_peak_driver = sample_daily_peak_driver(
         timestamps=timestamps,

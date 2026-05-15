@@ -19,7 +19,7 @@ def _generate(tmp_path: Path) -> tuple[Path, Path]:
         comparison_root=experiment_root / "summaries" / "comparison_level",
         realization_metrics=experiment_root / "summaries" / "realization_level" / "scenario_leaf_metrics.csv",
         scenario_aggregates=experiment_root / "summaries" / "scenario_level" / "scenario_aggregate_metrics.csv",
-        comparison_definitions=Path("config/model_v3/scenario_tree/comparison_definitions.yaml"),
+        comparison_definitions=Path("config/scenario_tree/comparison_definitions.yaml"),
         formats=["png", "pdf"],
         write_metadata_flag=True,
         write_captions_flag=True,

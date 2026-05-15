@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import csv
+from pathlib import Path
 from typing import Any, Mapping
 
 import numpy as np
@@ -82,15 +84,147 @@ def _legacy_electric_technology_probabilities(technology_cfg: Mapping[str, Any])
     }
 
 
-def _sample_from_probabilities(probabilities: Mapping[str, float], rng: np.random.Generator) -> str:
+def _configured_technology_probabilities(
+    probabilities_cfg: Any,
+) -> dict[str, float]:
+    """Resolve explicit scenario-case technology probabilities."""
+
+    if not isinstance(probabilities_cfg, Mapping):
+        return {}
+    probabilities: dict[str, float] = {}
+    for raw_label, raw_probability in dict(probabilities_cfg).items():
+        try:
+            probability = max(float(raw_probability), 0.0)
+        except (TypeError, ValueError):
+            continue
+        if probability <= 0.0:
+            continue
+        label = normalize_technology_type(raw_label)
+        probabilities[label] = probabilities.get(label, 0.0) + probability
+    total = sum(probabilities.values())
+    if total <= 0.0:
+        return {}
+    return {label: value / total for label, value in sorted(probabilities.items())}
+
+
+def _sample_from_probabilities(
+    probabilities: Mapping[str, float],
+    rng: np.random.Generator,
+    *,
+    default: str = "resistive_direct",
+) -> str:
     """Sample one label from a probability mapping."""
 
     labels = tuple(probabilities.keys())
     weights = np.asarray([max(float(probabilities[label]), 0.0) for label in labels], dtype=float)
     total = float(weights.sum())
     if not labels or total <= 0.0:
-        return "resistive_direct"
+        return default
     return str(rng.choice(labels, p=weights / total))
+
+
+def _heating_probabilities(config: Mapping[str, Any], technology_cfg: Mapping[str, Any]) -> tuple[dict[str, float], str]:
+    explicit = _configured_technology_probabilities(technology_cfg.get("heating_technology_probabilities"))
+    if explicit:
+        return explicit, "scenario_case_assignment"
+    if bool(technology_cfg.get("use_belgian_stock_baseline", False)):
+        return _technology_probabilities_from_belgian_stock(config), "belgian_carrier_stock_mapping"
+    return _legacy_electric_technology_probabilities(technology_cfg), "legacy_heat_pump_resistive_uncertainty"
+
+
+def _dhw_probabilities(technology_cfg: Mapping[str, Any]) -> tuple[dict[str, float], str]:
+    explicit = _configured_technology_probabilities(technology_cfg.get("dhw_technology_probabilities"))
+    if explicit:
+        return explicit, "scenario_case_assignment"
+    return {"linked_to_space_heating": 1.0}, "linked_to_space_heating_default"
+
+
+def _emitter_probabilities(technology_cfg: Mapping[str, Any]) -> dict[str, float]:
+    explicit = _configured_technology_probabilities(technology_cfg.get("emitter_type_probabilities"))
+    return explicit or {"standard_radiators": 1.0}
+
+
+def _default_refrigerant_for_technology(technology_type: str) -> str:
+    tech = normalize_technology_type(technology_type)
+    if tech == "air_air":
+        return "R32"
+    if tech in {"air_water", "hybrid_hp_gas", "ground_source"}:
+        return "R290"
+    if tech == "hpwh":
+        return "R744"
+    return ""
+
+
+def _heating_cop_for_technology(technology_type: str, config: Mapping[str, Any]) -> float:
+    heat_pump_model_cfg = dict(dict(dict(config.get("systems", {})).get("heat_pump_performance", {})).get("types", {}))
+    tech = normalize_technology_type(technology_type)
+    configured = dict(heat_pump_model_cfg.get(tech, {}))
+    if configured.get("cop_ref") is not None:
+        return value_from_range(configured.get("cop_ref"), 5.0)
+    if tech == "ground_source":
+        return 4.2
+    if tech == "air_air":
+        return 5.5
+    if tech == "air_water":
+        return 5.0
+    if tech == "hybrid_hp_gas":
+        return 5.0
+    return 1.0
+
+
+def _resolve_path(path_str: str | None) -> Path | None:
+    if not path_str:
+        return None
+    path = Path(path_str)
+    return path if path.is_absolute() else Path.cwd() / path
+
+
+def _sample_building_archetype(
+    config: Mapping[str, Any],
+    rng: np.random.Generator,
+    physical_cfg: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Sample one building archetype ID from stock weights when configured."""
+
+    building_cfg = dict(config.get("building", {}))
+    archetype_cfg = dict(building_cfg.get("archetype_source", {}))
+    selection_mode = str(archetype_cfg.get("selection", "highest_stock_weight"))
+    enabled = bool(physical_cfg.get("sample_building_archetype_by_stock_weight", False)) or selection_mode == "stock_weight_sample"
+    if not enabled:
+        return {}
+
+    resolved_path = _resolve_path(str(archetype_cfg.get("file_path", "")))
+    if resolved_path is None or not resolved_path.exists():
+        return {}
+
+    rows: list[dict[str, str]] = []
+    with resolved_path.open(newline="", encoding="utf-8") as handle:
+        reader = csv.DictReader(handle)
+        for row in reader:
+            try:
+                stock_weight = float(row.get("stock_weight", 0.0))
+            except (TypeError, ValueError):
+                stock_weight = 0.0
+            if row.get("archetype_id") and stock_weight > 0.0:
+                row["_stock_weight_float"] = str(stock_weight)
+                rows.append(row)
+
+    if not rows:
+        return {}
+
+    weights = np.asarray([float(row["_stock_weight_float"]) for row in rows], dtype=float)
+    selected_index = int(rng.choice(np.arange(len(rows)), p=weights / weights.sum()))
+    selected = rows[selected_index]
+    return {
+        "building_archetype_id": str(selected["archetype_id"]),
+        "building_archetype_stock_weight": float(selected["_stock_weight_float"]),
+        "building_archetype_selection_source": "stock_weight_sample",
+        "building_archetype_table": str(resolved_path),
+        "dwelling_type": str(selected.get("dwelling_type", "")),
+        "renovation_state": str(selected.get("renovation_state", "")),
+        "construction_period_id": str(selected.get("construction_period_id", "")),
+        "u_value_package_id": str(selected.get("u_value_package_id", "")),
+    }
 
 
 def _household_size_probabilities(behaviour_cfg: Mapping[str, Any]) -> dict[int, float]:
@@ -150,9 +284,12 @@ def sample_household_parameters(config: Mapping[str, Any], rng: np.random.Genera
     mobility_ev_cfg = dict(dict(config.get("mobility", {})).get("ev", {}))
     ev_probability = _bounded_probability(
         value_from_range(
-            dict(mobility_ev_cfg.get("ownership", {})).get(
-                "household_probability",
-                behaviour_cfg.get("ev_presence_probability", 0.0),
+            technology_cfg.get(
+                "ev_household_probability",
+                dict(mobility_ev_cfg.get("ownership", {})).get(
+                    "household_probability",
+                    behaviour_cfg.get("ev_presence_probability", 0.0),
+                ),
             ),
             0.0,
         ),
@@ -160,7 +297,13 @@ def sample_household_parameters(config: Mapping[str, Any], rng: np.random.Genera
     )
     der_pv_cfg = dict(dict(config.get("der", {})).get("pv", {}))
     pv_probability = _bounded_probability(
-        value_from_range(dict(der_pv_cfg.get("adoption", {})).get("household_probability", 0.0), 0.0),
+        value_from_range(
+            technology_cfg.get(
+                "pv_household_probability",
+                dict(der_pv_cfg.get("adoption", {})).get("household_probability", 0.0),
+            ),
+            0.0,
+        ),
         0.0,
     )
     household_class = sample_household_class(
@@ -174,11 +317,17 @@ def sample_household_parameters(config: Mapping[str, Any], rng: np.random.Genera
         2.25,
     )
 
-    if bool(technology_cfg.get("use_belgian_stock_baseline", False)):
-        technology_probabilities = _technology_probabilities_from_belgian_stock(config)
-    else:
-        technology_probabilities = _legacy_electric_technology_probabilities(technology_cfg)
+    technology_probabilities, technology_probability_source = _heating_probabilities(config, technology_cfg)
     technology_type = _sample_from_probabilities(technology_probabilities, rng)
+    emitter_probabilities = _emitter_probabilities(technology_cfg)
+    emitter_type = _sample_from_probabilities(emitter_probabilities, rng, default="standard_radiators")
+    dhw_technology_probabilities, dhw_probability_source = _dhw_probabilities(technology_cfg)
+    dhw_technology_type = _sample_from_probabilities(
+        dhw_technology_probabilities,
+        rng,
+        default="linked_to_space_heating",
+    )
+    building_archetype_sample = _sample_building_archetype(config=config, rng=rng, physical_cfg=physical_cfg)
     schedule_variation_seed = int(rng.integers(0, 2**31 - 1))
     load_variation_seed = int(rng.integers(0, 2**31 - 1))
     occupancy_state_biases = {
@@ -186,9 +335,12 @@ def sample_household_parameters(config: Mapping[str, Any], rng: np.random.Genera
         "awake": _clamp(float(rng.lognormal(mean=0.0, sigma=0.20)), 0.5, 2.0),
         "sleep": _clamp(float(rng.lognormal(mean=0.0, sigma=0.20)), 0.5, 2.0),
     }
+    has_ev = bool(rng.random() < ev_probability)
+    has_pv = bool(rng.random() < pv_probability)
 
     return {
         "physical": {
+            **building_archetype_sample,
             "UA_scale_factor": _clamp(
                 float(rng.normal(1.0, ua_sigma)),
                 0.4,
@@ -227,7 +379,7 @@ def sample_household_parameters(config: Mapping[str, Any], rng: np.random.Genera
             "household_size_activity_scale": household_size_activity_scale,
             "household_random_effect_u": float(rng.normal(0.0, sigma_h)),
             "has_dryer": bool(rng.random() < dryer_probability),
-            "has_ev": bool(rng.random() < ev_probability),
+            "has_ev": has_ev,
             "setpoint_shift_C": _clamp(float(rng.normal(0.0, 1.5)), -4.0, 4.0),
             "dhw_intensity_scale": _clamp(
                 float(rng.lognormal(mean=0.0, sigma=dhw_sigma)),
@@ -249,19 +401,24 @@ def sample_household_parameters(config: Mapping[str, Any], rng: np.random.Genera
         "technology": {
             "technology_type": technology_type,
             "technology_probability": float(technology_probabilities.get(technology_type, 0.0)),
-            "technology_probability_source": (
-                "belgian_carrier_stock_mapping"
-                if bool(technology_cfg.get("use_belgian_stock_baseline", False))
-                else "legacy_heat_pump_resistive_uncertainty"
-            ),
-            "heating_cop": value_from_range(dict(dict(config.get("technologies", {})).get("heating", {})).get("performance", {}).get("heat_pump", {}).get("air_water_radiators_spf"), 3.0),
+            "technology_probability_source": technology_probability_source,
+            "dhw_technology_type": dhw_technology_type,
+            "dhw_technology_probability": float(dhw_technology_probabilities.get(dhw_technology_type, 0.0)),
+            "dhw_technology_probability_source": dhw_probability_source,
+            "heating_cop": _heating_cop_for_technology(technology_type, config),
+            "emitter_type": "air_distribution" if technology_type == "air_air" else emitter_type,
+            "emitter_type_probability": float(emitter_probabilities.get(emitter_type, 0.0)),
+            "refrigerant": _default_refrigerant_for_technology(technology_type),
             "heating_capacity_scale": _clamp(float(rng.normal(1.0, 0.2)), 0.3, 2.5),
-            "has_pv": bool(rng.random() < pv_probability),
+            "has_pv": has_pv,
+            "pv_household_probability": pv_probability,
             "pv_capacity_kwp": _clamp(
                 float(rng.normal(value_from_range(der_pv_cfg.get("system_size_kwp"), 6.0), 1.0)),
                 value_from_range(der_pv_cfg.get("system_size_kwp", {}).get("low") if isinstance(der_pv_cfg.get("system_size_kwp"), Mapping) else None, 4.0),
                 value_from_range(der_pv_cfg.get("system_size_kwp", {}).get("high") if isinstance(der_pv_cfg.get("system_size_kwp"), Mapping) else None, 10.0),
             ),
+            "has_ev": has_ev,
+            "ev_household_probability": ev_probability,
             "future_extension_hook": ("hybrid_control", "battery_dispatch"),
         },
     }

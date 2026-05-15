@@ -15,7 +15,7 @@ import yaml
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_CONFIG_ROOT = REPO_ROOT / "config" / "model_v3" / "scenario_tree"
+DEFAULT_CONFIG_ROOT = REPO_ROOT / "config" / "scenario_tree"
 REQUIRED_RCP_PATHWAYS = ("rcp_2_6", "rcp_4_5", "rcp_8_5")
 BASELINE_WINDOW_ID = "baseline_1981_2005"
 BASELINE_PATHWAY_ID = "historical"

@@ -64,6 +64,10 @@ def run_systems(control_state: ControlState) -> SystemState:
             technology_type=heating_technology_type or "",
             technologies_cfg=technologies_cfg,
             systems_cfg=systems_cfg,
+            source_temperature_c=control_state.T_outdoor_C,
+            indoor_setpoint_c=control_state.T_set_C,
+            capacity_w=control_state.Q_heating_max_W,
+            mode="heating",
         )
         p_el_space_heating_w = float(heating_carriers["P_el_space_heating_technology_W"])
     else:
@@ -73,6 +77,10 @@ def run_systems(control_state: ControlState) -> SystemState:
             technology_type="resistive_direct",
             technologies_cfg=technologies_cfg,
             systems_cfg=systems_cfg,
+            source_temperature_c=control_state.T_outdoor_C,
+            indoor_setpoint_c=control_state.T_set_C,
+            capacity_w=control_state.Q_heating_max_W,
+            mode="heating",
         )
         heating_carriers["P_el_space_heating_technology_W"] = heating_result["P_el_space_heating_W"]
         p_el_space_heating_w = heating_result["Q_heating_supplied_W"] * heating_electric_factor
@@ -84,6 +92,10 @@ def run_systems(control_state: ControlState) -> SystemState:
             technology_type=dhw_technology_type or "",
             technologies_cfg=technologies_cfg,
             systems_cfg=systems_cfg,
+            source_temperature_c=control_state.T_outdoor_C,
+            indoor_setpoint_c=control_state.T_set_C,
+            capacity_w=max(control_state.Q_dhw_demand_W, 0.0),
+            mode="heating",
         )
         p_el_dhw_w = float(dhw_carriers["P_el_dhw_technology_W"])
     else:
@@ -93,6 +105,10 @@ def run_systems(control_state: ControlState) -> SystemState:
             technology_type="electric_storage",
             technologies_cfg=technologies_cfg,
             systems_cfg=systems_cfg,
+            source_temperature_c=control_state.T_outdoor_C,
+            indoor_setpoint_c=control_state.T_set_C,
+            capacity_w=max(control_state.Q_dhw_demand_W, 0.0),
+            mode="heating",
         )
         dhw_carriers["P_el_dhw_technology_W"] = max(control_state.Q_dhw_demand_W, 0.0) / max(control_state.dhw_cop, 1e-9)
         p_el_dhw_w = max(control_state.Q_dhw_demand_W, 0.0) * dhw_electric_factor
@@ -205,6 +221,20 @@ def run_systems(control_state: ControlState) -> SystemState:
             "dhw_technology_type": dhw_technology_type or "legacy_representative",
             "heating_energy_carrier": heating_carriers.get("energy_carrier"),
             "dhw_energy_carrier": dhw_carriers.get("energy_carrier"),
+            "heating_heat_pump_cop": heating_carriers.get("heat_pump_cop"),
+            "heating_heat_pump_cop_base": heating_carriers.get("heat_pump_cop_base"),
+            "heating_heat_pump_emitter_type": heating_carriers.get("heat_pump_emitter_type"),
+            "heating_heat_pump_refrigerant": heating_carriers.get("heat_pump_refrigerant"),
+            "heating_heat_pump_source_temperature_C": heating_carriers.get("heat_pump_source_temperature_C"),
+            "heating_heat_pump_sink_temperature_C": heating_carriers.get("heat_pump_sink_temperature_C"),
+            "heating_heat_pump_defrost_factor": heating_carriers.get("heat_pump_defrost_factor"),
+            "heating_heat_pump_part_load_ratio": heating_carriers.get("heat_pump_part_load_ratio"),
+            "heating_heat_pump_part_load_factor": heating_carriers.get("heat_pump_part_load_factor"),
+            "heating_heat_pump_capacity_available_fraction": heating_carriers.get("heat_pump_capacity_available_fraction"),
+            "dhw_heat_pump_cop": dhw_carriers.get("heat_pump_cop"),
+            "dhw_heat_pump_refrigerant": dhw_carriers.get("heat_pump_refrigerant"),
+            "dhw_heat_pump_source_temperature_C": dhw_carriers.get("heat_pump_source_temperature_C"),
+            "dhw_heat_pump_sink_temperature_C": dhw_carriers.get("heat_pump_sink_temperature_C"),
             "technology_sources": dict(control_state.metadata.get("technology_sources", {})),
         },
     )

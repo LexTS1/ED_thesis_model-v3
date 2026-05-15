@@ -1,0 +1,1 @@
+"""Technology-specific validation helpers."""

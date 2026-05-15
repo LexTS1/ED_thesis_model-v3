@@ -12,13 +12,15 @@ import numpy as np
 import pandas as pd
 import yaml
 
+from model_v3.cohort.cohort_engine import run_cohort_simulation
 from model_v3.output.persistence import ensure_dir, write_frame_csv, write_json
-from model_v3.simulation.annual_runner import run_annual_simulation
+from model_v3.systems.distributed_energy import value_from_range
+from model_v3.systems.technology import normalize_technology_type
 from pipelines.run_model_v3 import load_config
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_BASE_MODEL_CONFIG = REPO_ROOT / "config" / "model_v3" / "model_v3.yaml"
+DEFAULT_BASE_MODEL_CONFIG = REPO_ROOT / "config" / "model.yaml"
 
 
 class ModelRunnerAdapterError(RuntimeError):
@@ -79,59 +81,110 @@ def _load_technology_case(run_config: Mapping[str, Any], repo_root: Path) -> dic
     return dict(cases.get(str(technology_cfg.get("case_id", "")), {}))
 
 
+def _bounded_probability(value: Any, default: float = 0.0) -> float:
+    return float(min(max(value_from_range(value, default), 0.0), 1.0))
+
+
+def _normalised_probabilities(
+    values: Mapping[str, Any],
+    *,
+    normalise_labels: bool = True,
+) -> dict[str, float]:
+    probabilities: dict[str, float] = {}
+    for raw_label, raw_probability in dict(values).items():
+        try:
+            probability = max(float(raw_probability), 0.0)
+        except (TypeError, ValueError):
+            continue
+        if probability <= 0.0:
+            continue
+        label = normalize_technology_type(raw_label) if normalise_labels else str(raw_label)
+        probabilities[label] = probabilities.get(label, 0.0) + probability
+
+    total = sum(probabilities.values())
+    if total <= 0.0:
+        return {}
+    return {label: probability / total for label, probability in sorted(probabilities.items())}
+
+
+def _most_likely(probabilities: Mapping[str, float], default: str) -> str:
+    if not probabilities:
+        return default
+    return max(probabilities.items(), key=lambda item: float(item[1]))[0]
+
+
 def _technology_overrides(run_config: Mapping[str, Any], repo_root: Path) -> dict[str, Any]:
     case = _load_technology_case(run_config, repo_root)
     case_id = str(case.get("technology_case_id") or dict(run_config.get("technology", {})).get("case_id", ""))
     heat_pump = bool(case.get("heat_pump_adoption_assumed", False))
-    pv = bool(case.get("pv_assumed", False))
-    ev = bool(case.get("ev_adoption_assumed", False))
+    assignment = dict(case.get("household_assignment", {}))
+    heating_assignment = dict(assignment.get("heating", {}))
+    dhw_assignment = dict(assignment.get("dhw", {}))
+    heating_probabilities = _normalised_probabilities(
+        dict(heating_assignment.get("technology_probabilities", {}))
+    )
+    dhw_probabilities = _normalised_probabilities(
+        dict(dhw_assignment.get("technology_probabilities", {}))
+    )
+    use_belgian_stock = str(heating_assignment.get("mode", "")).strip() == "belgian_current_stock_carrier_mapping"
+    pv_probability = _bounded_probability(dict(assignment.get("pv", {})).get("household_probability"), 1.0 if bool(case.get("pv_assumed", False)) else 0.0)
+    ev_probability = _bounded_probability(dict(assignment.get("ev", {})).get("household_probability"), 1.0 if bool(case.get("ev_adoption_assumed", False)) else 0.0)
+    fallback_heating = "gas_boiler" if use_belgian_stock or case_id in {"tech_current_stock", "tech_frozen_stock"} else "air_water"
+    fallback_heating = _most_likely(heating_probabilities, fallback_heating)
 
     overrides: dict[str, Any] = {
         "scenario_tree": {
             "technology_case": case,
         },
+        "systems": {
+            "heating": {
+                "technology_type": fallback_heating,
+            },
+            "dhw": {
+                "technology_type": _most_likely(dhw_probabilities, "linked_to_space_heating"),
+            },
+        },
         "der": {
             "pv": {
-                "enabled": pv,
+                "enabled": False,
+                "adoption": {
+                    "household_probability": pv_probability,
+                },
             },
         },
         "mobility": {
             "ev": {
-                "enabled": ev,
+                "enabled": False,
+                "ownership": {
+                    "household_probability": ev_probability,
+                },
+            },
+        },
+        "uncertainty": {
+            "technology": {
+                "assignment_case_id": case_id,
+                "assignment_source": assignment.get("assignment_source", "legacy_case_metadata"),
+                "use_belgian_stock_baseline": use_belgian_stock,
+                "pv_household_probability": pv_probability,
+                "ev_household_probability": ev_probability,
             },
         },
     }
+    if heating_probabilities:
+        overrides["uncertainty"]["technology"]["heating_technology_probabilities"] = heating_probabilities
+    if dhw_probabilities:
+        overrides["uncertainty"]["technology"]["dhw_technology_probabilities"] = dhw_probabilities
+
     if heat_pump:
         overrides = _deep_merge(
             overrides,
             {
                 "systems": {
                     "heating": {
-                        "technology_type": "air_water",
-                        "cop": 3.5,
-                    },
-                    "dhw": {
-                        "technology_type": "linked_to_space_heating",
-                    },
-                },
-                "uncertainty": {
-                    "technology": {
-                        "heat_pump_share": 1.0,
-                        "resistive_share": 0.0,
-                    },
-                },
-            },
-        )
-    elif case_id in {"tech_current_stock", "tech_frozen_stock"}:
-        overrides = _deep_merge(
-            overrides,
-            {
-                "systems": {
-                    "heating": {
-                        "technology_type": "gas_boiler",
-                    },
-                    "dhw": {
-                        "technology_type": "linked_to_space_heating",
+                        "technology_type": fallback_heating,
+                        "cop_ref": 5.0,
+                        "emitter_type": "standard_radiators",
+                        "refrigerant": "R290",
                     },
                 },
             },
@@ -199,7 +252,7 @@ def scenario_leaf_to_model_config(
                     "file_path": str(forcing_file),
                     "timestamp_column": "timestamp",
                     "column_mapping": {
-                        "Q_solar_gains_W": "I_solar_W_m2",
+                        "I_global_W_m2": "I_solar_W_m2",
                     },
                     "gain_scale": 1.0,
                     "original_timestep_seconds": resolution_seconds,
@@ -249,7 +302,7 @@ def run_model_from_config(
     random.seed(seed)
     np.random.seed(seed)
 
-    results = run_annual_simulation(config=model_config)
+    results = run_cohort_simulation(config=model_config)
     output_dir = ensure_dir(_resolve_repo_path(str(dict(run_config.get("output", {})).get("outputs_dir", "")), repo_root))
     profile_path = write_frame_csv(output_dir / "annual_profile.csv", results["profile_frame"])
     summary_path = write_json(output_dir / "annual_summary.json", _serialisable_summary(results))
@@ -259,7 +312,7 @@ def run_model_from_config(
         "outputs": [str(profile_path), str(summary_path)],
         "metrics": {
             "n_steps": int(results.get("n_steps", 0)),
-            "annual_energy_kWh": float(results.get("annual_energy_kWh", 0.0)),
+            "annual_energy_kWh": float(results.get("annual_energy_kWh", results.get("annual_energy_summary", {}).get("aggregate_calibrated_electricity_kWh", 0.0))),
         },
-        "message": "Annual scenario-leaf simulation completed.",
+        "message": "Scenario-leaf stochastic cohort simulation completed.",
     }

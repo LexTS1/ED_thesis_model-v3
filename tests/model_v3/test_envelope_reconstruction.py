@@ -11,7 +11,7 @@ from model_v3.building.rebuild_archetype_envelope import (
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-ARCHETYPE_TABLE = REPO_ROOT / "inputs/model_v3/building/archetype_parameters_merged_v2.csv"
+ARCHETYPE_TABLE = REPO_ROOT / "inputs/building/archetype_parameters_merged_v2.csv"
 
 
 def test_reconstructed_envelope_rows_are_positive() -> None:
