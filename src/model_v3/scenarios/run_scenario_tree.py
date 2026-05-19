@@ -259,11 +259,6 @@ def validate_leaf(
     if create_dirs:
         validation.outputs_dir.mkdir(parents=True, exist_ok=True)
         validation.logs_dir.mkdir(parents=True, exist_ok=True)
-    else:
-        if not validation.outputs_dir.exists():
-            validation.errors.append(f"Output directory does not exist: {validation.outputs_dir}")
-        if not validation.logs_dir.exists():
-            validation.errors.append(f"Logs directory does not exist: {validation.logs_dir}")
     return validation
 
 

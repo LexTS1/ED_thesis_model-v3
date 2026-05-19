@@ -157,7 +157,6 @@ def scenario_leaf_to_model_config(
     if not forcing_file.exists():
         raise ModelRunnerAdapterError(f"Missing climate forcing file: {forcing_file}")
     first_ts, _ = _first_two_timestamps(forcing_file)
-    reference_year = int(str(climate_cfg.get("analysis_start", first_ts.year if first_ts is not None else 2023))[:4])
     resolution_seconds = _infer_resolution_seconds(forcing_file)
     output_dir = _resolve_repo_path(str(output_cfg.get("outputs_dir", "")), repo_root)
     seed = int(stochastic_cfg.get("seed_value"))
@@ -165,8 +164,8 @@ def scenario_leaf_to_model_config(
 
     overrides = {
         "simulation": {
-            "start_timestamp": first_ts.isoformat() if first_ts is not None else f"{reference_year}-01-01T00:00:00",
-            "reference_year": reference_year,
+            "start_timestamp": first_ts.isoformat() if first_ts is not None else str(climate_cfg.get("analysis_start", "2023-01-01")),
+            "reference_year": None,
             "max_steps": None,
         },
         "cohort": {
@@ -199,7 +198,10 @@ def scenario_leaf_to_model_config(
                     "file_path": str(forcing_file),
                     "timestamp_column": "timestamp",
                     "column_mapping": {
-                        "Q_solar_gains_W": "I_solar_W_m2",
+                        "I_north": "I_solar_W_m2",
+                        "I_east": "I_solar_W_m2",
+                        "I_south": "I_solar_W_m2",
+                        "I_west": "I_solar_W_m2",
                     },
                     "gain_scale": 1.0,
                     "original_timestep_seconds": resolution_seconds,

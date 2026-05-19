@@ -10,6 +10,28 @@ import pandas as pd
 from model_v3.validation.utils.preprocessing import ensure_timeseries_frame
 
 
+REPO_ROOT = Path(__file__).resolve().parents[4]
+
+
+def _resolve_reference_path(path_text: str | Path) -> Path:
+    path = Path(path_text)
+    candidates = [path]
+    if not path.is_absolute():
+        candidates.extend([Path.cwd() / path, REPO_ROOT / path])
+
+    text = str(path)
+    if "inputs/model_v3/load_profiles" in text:
+        legacy = Path(text.replace("inputs/model_v3/load_profiles", "inputs/load_profiles"))
+        candidates.append(legacy)
+        if not legacy.is_absolute():
+            candidates.extend([Path.cwd() / legacy, REPO_ROOT / legacy])
+
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return path
+
+
 def load_aggregate_reference_profile(
     config: Mapping[str, Any],
     validation_cfg: Mapping[str, Any],
@@ -22,7 +44,9 @@ def load_aggregate_reference_profile(
             "validation.aggregate_path must point to an explicitly configured aggregate reference csv file."
         )
 
-    raw_frame = pd.read_csv(Path(dataset_path))
+    max_steps = dict(config.get("simulation", {})).get("max_steps")
+    nrows = int(max_steps) if max_steps is not None else None
+    raw_frame = pd.read_csv(_resolve_reference_path(dataset_path), nrows=nrows)
     data_sources_cfg = dict(dict(config.get("data", {})).get("sources", {}))
     load_source_cfg = dict(data_sources_cfg.get("load_profiles", {}))
     timestamp_column = str(
@@ -66,4 +90,3 @@ def load_aggregate_reference_profile(
     )
     prepared = ensure_timeseries_frame(prepared, value_column="value", timestamp_column="timestamp")
     return prepared, raw_frame.rename(columns={timestamp_column: "timestamp"}), aggregation_mode
-

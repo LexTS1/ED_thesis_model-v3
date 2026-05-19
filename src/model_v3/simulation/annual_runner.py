@@ -195,6 +195,87 @@ def _annual_energy_by_carrier(frame: pd.DataFrame) -> dict[str, float]:
     }
 
 
+def _annual_energy_rows_by_year(frame: pd.DataFrame) -> list[dict[str, Any]]:
+    """Return one energy-summary row per calendar year in the output frame."""
+
+    rows: list[dict[str, Any]] = []
+    if frame.empty:
+        return rows
+    timestamps = pd.to_datetime(frame["timestamp"])
+    for year in sorted({int(timestamp.year) for timestamp in timestamps}):
+        yearly = frame.loc[timestamps.map(lambda value: int(value.year) == year)].copy()
+        carriers = _annual_energy_by_carrier(yearly)
+        rows.append(
+            {
+                "year": int(year),
+                "n_steps": int(len(yearly)),
+                "period_start": pd.Timestamp(yearly["timestamp"].iloc[0]).isoformat(),
+                "period_end": pd.Timestamp(yearly["timestamp"].iloc[-1]).isoformat(),
+                "annual_energy_kWh": carriers["electricity_legacy_calibrated"],
+                "annual_electricity_gross_kWh": carriers["electricity_gross_actual"],
+                "annual_grid_import_kWh": carriers["electricity_grid_import"],
+                "annual_grid_export_kWh": carriers["electricity_grid_export"],
+                "annual_gas_kWh": carriers["natural_gas"],
+                "annual_space_heating_electric_kWh": _integrate_optional_column(yearly, "P_el_space_heating_W"),
+                "annual_dhw_electric_kWh": _integrate_optional_column(yearly, "P_el_dhw_W"),
+                "annual_useful_heating_kWh": _integrate_optional_column(yearly, "Q_heating_supplied_W"),
+                "annual_dhw_kWh": _integrate_optional_column(yearly, "Q_dhw_demand_W"),
+                "annual_pv_generation_kWh": carriers["pv_generation"],
+                "annual_ev_charging_kWh": carriers["ev_charging"],
+                "annual_energy_by_carrier_kWh": carriers,
+            }
+        )
+    return rows
+
+
+def _mean_annual_value(rows: list[dict[str, Any]], key: str) -> float:
+    values = [float(row[key]) for row in rows if key in row]
+    return float(pd.Series(values, dtype=float).mean()) if values else 0.0
+
+
+def _sum_annual_value(rows: list[dict[str, Any]], key: str) -> float:
+    values = [float(row[key]) for row in rows if key in row]
+    return float(pd.Series(values, dtype=float).sum()) if values else 0.0
+
+
+def _mean_annual_carriers(rows: list[dict[str, Any]]) -> dict[str, float]:
+    carrier_names = sorted(
+        {
+            carrier
+            for row in rows
+            for carrier in dict(row.get("annual_energy_by_carrier_kWh", {}))
+        }
+    )
+    return {
+        carrier: float(
+            pd.Series(
+                [dict(row.get("annual_energy_by_carrier_kWh", {})).get(carrier, 0.0) for row in rows],
+                dtype=float,
+            ).mean()
+        )
+        for carrier in carrier_names
+    }
+
+
+def _sum_annual_carriers(rows: list[dict[str, Any]]) -> dict[str, float]:
+    carrier_names = sorted(
+        {
+            carrier
+            for row in rows
+            for carrier in dict(row.get("annual_energy_by_carrier_kWh", {}))
+        }
+    )
+    return {
+        carrier: float(
+            pd.Series(
+                [dict(row.get("annual_energy_by_carrier_kWh", {})).get(carrier, 0.0) for row in rows],
+                dtype=float,
+            ).sum()
+        )
+        for carrier in carrier_names
+    }
+
+
 def _filter_dataset_to_year(dataset: TimeSeriesData, year: int) -> TimeSeriesData:
     """Return the subset of a timeseries dataset for a selected calendar year."""
 
@@ -479,12 +560,15 @@ def run_annual_simulation_from_input_data(input_data: InputDataset, config: Mapp
         + pd.to_numeric(frame["Q_dhw_demand_W"], errors="coerce").fillna(0.0)
     )
     frame, electricity_calibration = _apply_baseline_electricity_targets(frame=frame, config=config)
-    annual_energy_kwh = integrate_power_series_kwh(frame["P_el_total_W"], timestamps=frame["timestamp"])
-    annual_energy_by_carrier = _annual_energy_by_carrier(frame)
-    space_heating_kwh = integrate_power_series_kwh(frame["P_el_space_heating_W"], timestamps=frame["timestamp"])
-    dhw_electric_kwh = integrate_power_series_kwh(frame["P_el_dhw_W"], timestamps=frame["timestamp"])
-    space_heating_thermal_kwh = integrate_power_series_kwh(frame["Q_heating_supplied_W"], timestamps=frame["timestamp"])
-    dhw_thermal_kwh = integrate_power_series_kwh(frame["Q_dhw_demand_W"], timestamps=frame["timestamp"])
+    annual_energy_rows = _annual_energy_rows_by_year(frame)
+    annual_energy_kwh = _mean_annual_value(annual_energy_rows, "annual_energy_kWh")
+    period_total_energy_kwh = _sum_annual_value(annual_energy_rows, "annual_energy_kWh")
+    annual_energy_by_carrier = _mean_annual_carriers(annual_energy_rows)
+    period_total_energy_by_carrier = _sum_annual_carriers(annual_energy_rows)
+    space_heating_kwh = _mean_annual_value(annual_energy_rows, "annual_space_heating_electric_kWh")
+    dhw_electric_kwh = _mean_annual_value(annual_energy_rows, "annual_dhw_electric_kWh")
+    space_heating_thermal_kwh = _mean_annual_value(annual_energy_rows, "annual_useful_heating_kWh")
+    dhw_thermal_kwh = _mean_annual_value(annual_energy_rows, "annual_dhw_kWh")
     timestep_seconds = _representative_timestep_seconds(frame["timestamp"])
 
     LOGGER.info(
@@ -510,7 +594,12 @@ def run_annual_simulation_from_input_data(input_data: InputDataset, config: Mapp
         "P50_profile": float(frame["P_el_total_W"].quantile(0.50)),
         "P90_profile": float(frame["P_el_total_W"].quantile(0.90)),
         "annual_energy_kWh": annual_energy_kwh,
+        "mean_annual_energy_kWh": annual_energy_kwh,
+        "period_total_energy_kWh": period_total_energy_kwh,
         "annual_energy_by_carrier_kWh": annual_energy_by_carrier,
+        "mean_annual_energy_by_carrier_kWh": annual_energy_by_carrier,
+        "period_total_energy_by_carrier_kWh": period_total_energy_by_carrier,
+        "annual_energy_by_year": annual_energy_rows,
         "annual_grid_import_kWh": annual_energy_by_carrier["electricity_grid_import"],
         "annual_grid_export_kWh": annual_energy_by_carrier["electricity_grid_export"],
         "annual_pv_generation_kWh": annual_energy_by_carrier["pv_generation"],
@@ -518,8 +607,17 @@ def run_annual_simulation_from_input_data(input_data: InputDataset, config: Mapp
         "space_heating_energy_kWh": space_heating_kwh,
         "space_heating_electric_kWh": space_heating_kwh,
         "dhw_electric_kWh": dhw_electric_kwh,
+        "annual_useful_heating_kWh": space_heating_thermal_kwh,
+        "annual_dhw_kWh": dhw_thermal_kwh,
         "space_heating_thermal_kWh": space_heating_thermal_kwh,
+        "mean_annual_space_heating_thermal_kWh": space_heating_thermal_kwh,
         "dhw_thermal_kWh": dhw_thermal_kwh,
+        "mean_annual_dhw_thermal_kWh": dhw_thermal_kwh,
+        "period_total_space_heating_thermal_kWh": _sum_annual_value(annual_energy_rows, "annual_useful_heating_kWh"),
+        "period_total_dhw_thermal_kWh": _sum_annual_value(annual_energy_rows, "annual_dhw_kWh"),
+        "annual_space_heating_thermal_by_year_kWh": {
+            str(row["year"]): float(row["annual_useful_heating_kWh"]) for row in annual_energy_rows
+        },
         "electricity_calibration": electricity_calibration,
         "peak_dhw_thermal_W": float(frame["Q_dhw_demand_W"].max()) if not frame.empty else 0.0,
         "peak_total_thermal_W": float(frame["Q_total_thermal_W"].max()) if not frame.empty else 0.0,

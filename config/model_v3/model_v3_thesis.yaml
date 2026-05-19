@@ -62,7 +62,7 @@ climate:
   occupancy_seed_stride: 1000
   mu_month: {}
   inputs:
-    weather_path: "inputs/model_v3/weather/Timeseries_pvgisWEATHER_50.830_4.350_SA3_0deg_0deg_2005_2023.csv"
+    weather_path: "inputs/weather/Timeseries_pvgisWEATHER_50.830_4.350_SA3_0deg_0deg_2005_2023.csv"
     solar_paths:
       south: "inputs/model_v3/solar/TimeseriesSOUTH_50.830_4.350_SA3_90deg_0deg_2005_2023.csv"
       east: "inputs/model_v3/solar/TimeseriesEAST_50.830_4.350_SA3_90deg_-90deg_2005_2023.csv"
@@ -118,7 +118,7 @@ data:
       spec_path: "inputs/model_v3/occupancy/occupancy_model_spec_v1.yaml"
       data_role: ["input"]
     weather:
-      file_path: "inputs/model_v3/weather/aws_1hour_Uccle.csv"
+      file_path: "inputs/weather/aws_1hour_Uccle.csv"
       data_role: ["input"]
       timestamp_column: "timestamp"
       column_mapping:
@@ -237,7 +237,7 @@ validation:
     minimum_households: 5
   fluvius:
     enabled: true
-    base_path: "inputs/model_v3/load_profiles/fluvius"
+    base_path: "inputs/load_profiles/fluvius"
     households: 30
     profile_weights:
       base: 0.6
@@ -246,7 +246,7 @@ validation:
       ev_hp: 0.05
   kuleuven:
     enabled: true
-    base_path: "inputs/model_v3/load_profiles/kul"
+    base_path: "inputs/load_profiles/kul"
   aggregate_reference_year_mode: "map_to_model_year"
   timestamp_column: "DateTime"
   aggregate_aggregation: "mean_across_columns"

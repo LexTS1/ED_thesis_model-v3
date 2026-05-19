@@ -430,6 +430,7 @@ def compute_standardized_output_metrics(
         raw_outputs,
         (
             ("annual_useful_heating_kWh",),
+            ("mean_annual_space_heating_thermal_kWh",),
             ("space_heating_thermal_kWh",),
         ),
     )
@@ -449,6 +450,7 @@ def compute_standardized_output_metrics(
         raw_outputs,
         (
             ("annual_dhw_kWh",),
+            ("mean_annual_dhw_thermal_kWh",),
             ("dhw_thermal_kWh",),
         ),
     )

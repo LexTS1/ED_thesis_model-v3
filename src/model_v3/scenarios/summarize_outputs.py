@@ -32,6 +32,7 @@ from model_v3.scenarios.summary_contract import (
     SUMMARY_COLUMNS,
     write_schema,
 )
+from model_v3.utils.energy import power_series_to_energy_kwh
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -77,6 +78,26 @@ CLIMATE_YEAR_METADATA_COLUMNS = [
     "year",
 ]
 CLIMATE_YEAR_COLUMNS = CLIMATE_YEAR_METADATA_COLUMNS + CLIMATE_YEAR_METRIC_COLUMNS
+SPACE_HEATING_YEAR_COLUMNS = [
+    "scenario_leaf_id",
+    "scenario_id",
+    "climate_window_id",
+    "climate_pathway_id",
+    "technology_case_id",
+    "realization_id",
+    "seed_index",
+    "seed_value",
+    "cohort_size",
+    "analysis_start",
+    "analysis_end",
+    "source_file_window",
+    "year",
+    "annual_useful_space_heating_kWh",
+    "timestep_count",
+    "profile_start",
+    "profile_end",
+    "raw_outputs_dir",
+]
 
 
 class SummaryError(RuntimeError):
@@ -176,7 +197,7 @@ def _build_leaf_summary_payload(
     *,
     registry_row: Mapping[str, str],
     strict: bool = True,
-) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+) -> tuple[dict[str, Any], list[dict[str, Any]], list[dict[str, Any]]]:
     """Build one standardized summary row and its per-year climate rows."""
 
     row = record.row
@@ -260,7 +281,13 @@ def _build_leaf_summary_payload(
             **annual_metric,
         }
         climate_year_rows.append({column: year_row.get(column, "") for column in CLIMATE_YEAR_COLUMNS})
-    return summary_row, climate_year_rows
+    space_heating_year_rows = _build_space_heating_year_rows(
+        record,
+        run_config=run_config,
+        raw_outputs=raw_outputs,
+        summary_row=summary_row,
+    )
+    return summary_row, climate_year_rows, space_heating_year_rows
 
 
 def build_leaf_summary_row(
@@ -271,7 +298,7 @@ def build_leaf_summary_row(
 ) -> dict[str, Any]:
     """Build one standardized summary row for a successful scenario leaf."""
 
-    row, _ = _build_leaf_summary_payload(record, registry_row=registry_row, strict=strict)
+    row, _, _ = _build_leaf_summary_payload(record, registry_row=registry_row, strict=strict)
     return row
 
 
@@ -289,6 +316,69 @@ def write_per_leaf_climate_year_summary(row: Mapping[str, Any], climate_year_row
     path = outputs_dir / "climate_year_metrics.csv"
     pd.DataFrame(climate_year_rows, columns=CLIMATE_YEAR_COLUMNS).to_csv(path, index=False)
     return path
+
+
+def write_per_leaf_space_heating_year_summary(
+    row: Mapping[str, Any],
+    space_heating_year_rows: list[Mapping[str, Any]],
+) -> Path:
+    outputs_dir = Path(str(row["raw_outputs_dir"]))
+    outputs_dir.mkdir(parents=True, exist_ok=True)
+    path = outputs_dir / "annual_space_heating_demand_by_year.csv"
+    pd.DataFrame(space_heating_year_rows, columns=SPACE_HEATING_YEAR_COLUMNS).to_csv(path, index=False)
+    return path
+
+
+def _first_timeseries_frame(raw_outputs: Mapping[str, Any]) -> pd.DataFrame:
+    for key in ("annual_profile", "timeseries"):
+        value = raw_outputs.get(key)
+        if isinstance(value, pd.DataFrame):
+            return value
+    raise SummaryError("No annual_profile.csv or timeseries.csv available for annual space-heating demand rows.")
+
+
+def _build_space_heating_year_rows(
+    record: ScenarioLeafRecord,
+    *,
+    run_config: Mapping[str, Any],
+    raw_outputs: Mapping[str, Any],
+    summary_row: Mapping[str, Any],
+) -> list[dict[str, Any]]:
+    frame = _first_timeseries_frame(raw_outputs)
+    if "timestamp" not in frame.columns:
+        raise SummaryError("Raw profile has no timestamp column for annual space-heating demand rows.")
+    if "Q_heating_supplied_W" not in frame.columns:
+        raise SummaryError("Raw profile has no Q_heating_supplied_W column for annual space-heating demand rows.")
+
+    timestamps = pd.to_datetime(frame["timestamp"])
+    values = pd.to_numeric(frame["Q_heating_supplied_W"], errors="coerce").fillna(0.0)
+    energy = power_series_to_energy_kwh(pd.Series(values.to_numpy(dtype=float), index=timestamps))
+    stochastic_cfg = dict(run_config.get("stochastic", {}))
+    rows: list[dict[str, Any]] = []
+    for year, group in energy.groupby(energy.index.year):
+        year_timestamps = timestamps[timestamps.map(lambda value: int(value.year) == int(year))]
+        payload = {
+            "scenario_leaf_id": record.scenario_leaf_id,
+            "scenario_id": record.scenario_id,
+            "climate_window_id": record.climate_window_id,
+            "climate_pathway_id": record.climate_pathway_id,
+            "technology_case_id": record.technology_case_id,
+            "realization_id": record.realization_id,
+            "seed_index": stochastic_cfg.get("seed_index", summary_row.get("seed_index", "")),
+            "seed_value": stochastic_cfg.get("seed_value", summary_row.get("seed_value", "")),
+            "cohort_size": stochastic_cfg.get("cohort_size", summary_row.get("cohort_size", "")),
+            "analysis_start": summary_row.get("analysis_start", ""),
+            "analysis_end": summary_row.get("analysis_end", ""),
+            "source_file_window": summary_row.get("source_file_window", ""),
+            "year": int(year),
+            "annual_useful_space_heating_kWh": float(group.sum()),
+            "timestep_count": int(len(group)),
+            "profile_start": pd.Timestamp(year_timestamps.iloc[0]).isoformat() if len(year_timestamps) else "",
+            "profile_end": pd.Timestamp(year_timestamps.iloc[-1]).isoformat() if len(year_timestamps) else "",
+            "raw_outputs_dir": summary_row.get("raw_outputs_dir", ""),
+        }
+        rows.append({column: payload.get(column, "") for column in SPACE_HEATING_YEAR_COLUMNS})
+    return rows
 
 
 def _latest_status_by_leaf(records: list[ScenarioLeafRecord], registry_rows: list[Mapping[str, str]]) -> dict[str, str]:
@@ -438,6 +528,123 @@ def build_baseline_comparison(metrics_df: pd.DataFrame) -> pd.DataFrame:
         row["zero_baseline_delta_pct_metrics"] = _join_values(zero_baseline_metrics)
         output_rows.append(row)
     return pd.DataFrame(output_rows, columns=base_cols + metric_cols)
+
+
+def build_annual_space_heating_demand_comparison(space_heating_df: pd.DataFrame) -> pd.DataFrame:
+    """Compare future annual heating demand against matched baseline realizations."""
+
+    columns = [
+        "future_scenario_leaf_id",
+        "baseline_scenario_id",
+        "future_scenario_id",
+        "realization_id",
+        "climate_window_id",
+        "climate_pathway_id",
+        "technology_case_id",
+        "future_year",
+        "future_annual_useful_space_heating_kWh",
+        "baseline_mean_annual_useful_space_heating_kWh",
+        "baseline_year_count",
+        "baseline_available",
+        "delta_abs_kWh",
+        "delta_pct",
+    ]
+    if space_heating_df.empty:
+        return pd.DataFrame(columns=columns)
+
+    baseline = space_heating_df[space_heating_df["scenario_id"].astype(str) == BASELINE_SCENARIO_ID].copy()
+    baseline_stats = (
+        baseline.groupby("realization_id", as_index=True)["annual_useful_space_heating_kWh"]
+        .agg(["mean", "count"])
+        if not baseline.empty
+        else pd.DataFrame(columns=["mean", "count"])
+    )
+    rows: list[dict[str, Any]] = []
+    future = space_heating_df[space_heating_df["scenario_id"].astype(str) != BASELINE_SCENARIO_ID].copy()
+    for _, row in future.sort_values(["scenario_leaf_id", "year"]).iterrows():
+        realization_id = str(row["realization_id"])
+        baseline_available = realization_id in baseline_stats.index
+        baseline_mean = float(baseline_stats.loc[realization_id, "mean"]) if baseline_available else float("nan")
+        baseline_count = int(baseline_stats.loc[realization_id, "count"]) if baseline_available else 0
+        future_value = pd.to_numeric(pd.Series([row["annual_useful_space_heating_kWh"]]), errors="coerce").iloc[0]
+        if baseline_available and pd.notna(future_value) and abs(baseline_mean) > 1e-12:
+            delta_abs = float(future_value) - baseline_mean
+            delta_pct = 100.0 * delta_abs / baseline_mean
+        elif baseline_available and pd.notna(future_value):
+            delta_abs = float(future_value) - baseline_mean
+            delta_pct = float("nan")
+        else:
+            delta_abs = float("nan")
+            delta_pct = float("nan")
+        rows.append(
+            {
+                "future_scenario_leaf_id": row["scenario_leaf_id"],
+                "baseline_scenario_id": BASELINE_SCENARIO_ID,
+                "future_scenario_id": row["scenario_id"],
+                "realization_id": realization_id,
+                "climate_window_id": row["climate_window_id"],
+                "climate_pathway_id": row["climate_pathway_id"],
+                "technology_case_id": row["technology_case_id"],
+                "future_year": int(row["year"]),
+                "future_annual_useful_space_heating_kWh": float(future_value),
+                "baseline_mean_annual_useful_space_heating_kWh": baseline_mean,
+                "baseline_year_count": baseline_count,
+                "baseline_available": bool(baseline_available),
+                "delta_abs_kWh": delta_abs,
+                "delta_pct": delta_pct,
+            }
+        )
+    return pd.DataFrame(rows, columns=columns)
+
+
+def aggregate_annual_space_heating_demand(space_heating_df: pd.DataFrame, comparison_df: pd.DataFrame) -> pd.DataFrame:
+    """Aggregate annual space-heating demand and baseline deltas by scenario."""
+
+    columns = [
+        "scenario_id",
+        "climate_window_id",
+        "climate_pathway_id",
+        "technology_case_id",
+        "annual_year_count",
+        "annual_useful_space_heating_kWh_mean",
+        "annual_useful_space_heating_kWh_median",
+        "annual_useful_space_heating_kWh_p10",
+        "annual_useful_space_heating_kWh_p90",
+        "annual_useful_space_heating_kWh_min",
+        "annual_useful_space_heating_kWh_max",
+        "delta_abs_kWh_mean",
+        "delta_pct_mean",
+    ]
+    if space_heating_df.empty:
+        return pd.DataFrame(columns=columns)
+    rows: list[dict[str, Any]] = []
+    group_cols = ["scenario_id", "climate_window_id", "climate_pathway_id", "technology_case_id"]
+    comparison_by_scenario = comparison_df.groupby("future_scenario_id") if not comparison_df.empty else {}
+    for group_values, group in space_heating_df.groupby(group_cols, dropna=False):
+        payload = dict(zip(group_cols, group_values))
+        series = pd.to_numeric(group["annual_useful_space_heating_kWh"], errors="coerce").dropna()
+        comparison_group = (
+            comparison_by_scenario.get_group(payload["scenario_id"])
+            if hasattr(comparison_by_scenario, "groups") and payload["scenario_id"] in comparison_by_scenario.groups
+            else pd.DataFrame()
+        )
+        delta_abs = pd.to_numeric(comparison_group.get("delta_abs_kWh", pd.Series(dtype=float)), errors="coerce").dropna()
+        delta_pct = pd.to_numeric(comparison_group.get("delta_pct", pd.Series(dtype=float)), errors="coerce").dropna()
+        rows.append(
+            {
+                **payload,
+                "annual_year_count": int(series.count()),
+                "annual_useful_space_heating_kWh_mean": float(series.mean()) if not series.empty else float("nan"),
+                "annual_useful_space_heating_kWh_median": float(series.median()) if not series.empty else float("nan"),
+                "annual_useful_space_heating_kWh_p10": float(series.quantile(0.10)) if not series.empty else float("nan"),
+                "annual_useful_space_heating_kWh_p90": float(series.quantile(0.90)) if not series.empty else float("nan"),
+                "annual_useful_space_heating_kWh_min": float(series.min()) if not series.empty else float("nan"),
+                "annual_useful_space_heating_kWh_max": float(series.max()) if not series.empty else float("nan"),
+                "delta_abs_kWh_mean": float(delta_abs.mean()) if not delta_abs.empty else float("nan"),
+                "delta_pct_mean": float(delta_pct.mean()) if not delta_pct.empty else float("nan"),
+            }
+        )
+    return pd.DataFrame(rows, columns=columns).sort_values(group_cols).reset_index(drop=True)
 
 
 def _climate_window_2050_policy(config_root: Path) -> tuple[bool, bool]:
@@ -592,6 +799,7 @@ def generate_summaries(
 
     rows: list[dict[str, Any]] = []
     climate_year_rows: list[dict[str, Any]] = []
+    space_heating_year_rows: list[dict[str, Any]] = []
     warnings: list[str] = []
     assumptions = [
         "Energy metrics are standardized from the raw annual model output year written by the Phase 4 runner.",
@@ -608,7 +816,7 @@ def generate_summaries(
         if registry_row is None:
             continue
         try:
-            row, annual_climate_rows = _build_leaf_summary_payload(
+            row, annual_climate_rows, annual_space_heating_rows = _build_leaf_summary_payload(
                 record,
                 registry_row=registry_row,
                 strict=strict,
@@ -619,8 +827,10 @@ def generate_summaries(
             raise SummaryError(f"Failed to summarize {record.scenario_leaf_id}: {exc}") from exc
         write_per_leaf_summary(row)
         write_per_leaf_climate_year_summary(row, annual_climate_rows)
+        write_per_leaf_space_heating_year_summary(row, annual_space_heating_rows)
         rows.append(row)
         climate_year_rows.extend(annual_climate_rows)
+        space_heating_year_rows.extend(annual_space_heating_rows)
 
     summaries_root = experiment_root / "summaries"
     realization_dir = summaries_root / "realization_level"
@@ -639,6 +849,10 @@ def generate_summaries(
     climate_year_path = realization_dir / "scenario_leaf_climate_year_metrics.csv"
     climate_year_df.to_csv(climate_year_path, index=False)
 
+    space_heating_year_df = pd.DataFrame(space_heating_year_rows, columns=SPACE_HEATING_YEAR_COLUMNS)
+    space_heating_year_path = realization_dir / "annual_space_heating_demand_by_year.csv"
+    space_heating_year_df.to_csv(space_heating_year_path, index=False)
+
     leaf_index_df = pd.read_csv(leaf_index)
     aggregate_df = aggregate_scenario_metrics(metrics_df, leaf_index_df=leaf_index_df, status_by_leaf=status_by_leaf)
     aggregate_path = scenario_dir / "scenario_aggregate_metrics.csv"
@@ -651,6 +865,20 @@ def generate_summaries(
     comparison_df = build_baseline_comparison(metrics_df)
     comparison_path = comparison_dir / "baseline_comparison_metrics.csv"
     comparison_df.to_csv(comparison_path, index=False)
+
+    annual_space_heating_comparison_dir = comparison_dir / "annual_space_heating_demand"
+    annual_space_heating_comparison_dir.mkdir(parents=True, exist_ok=True)
+    space_heating_comparison_df = build_annual_space_heating_demand_comparison(space_heating_year_df)
+    space_heating_comparison_path = (
+        annual_space_heating_comparison_dir / "annual_space_heating_demand_delta_vs_baseline.csv"
+    )
+    space_heating_comparison_df.to_csv(space_heating_comparison_path, index=False)
+    space_heating_aggregate_df = aggregate_annual_space_heating_demand(
+        space_heating_year_df,
+        space_heating_comparison_df,
+    )
+    space_heating_aggregate_path = scenario_dir / "annual_space_heating_demand_summary.csv"
+    space_heating_aggregate_df.to_csv(space_heating_aggregate_path, index=False)
 
     report_payload = None
     if write_reports:
@@ -672,12 +900,17 @@ def generate_summaries(
         "aggregate_path": aggregate_path,
         "climate_year_path": climate_year_path,
         "climate_year_aggregate_path": climate_year_aggregate_path,
+        "space_heating_year_path": space_heating_year_path,
+        "space_heating_comparison_path": space_heating_comparison_path,
+        "space_heating_aggregate_path": space_heating_aggregate_path,
         "comparison_path": comparison_path,
         "successful_runs_processed": len(rows),
         "per_leaf_summaries_written": len(rows),
         "climate_year_rows": len(climate_year_df),
+        "space_heating_year_rows": len(space_heating_year_df),
         "scenario_aggregate_rows": len(aggregate_df),
         "baseline_comparison_rows": len(comparison_df),
+        "space_heating_comparison_rows": len(space_heating_comparison_df),
         "missing_required_metrics": int(metrics_df["missing_metric_count"].fillna(0).astype(int).sum()) if not metrics_df.empty else 0,
         "raw_output_columns_used": sorted(
             {
@@ -750,8 +983,10 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Successful runs processed: {result['successful_runs_processed']}")
         print(f"Per-leaf summaries written: {result['per_leaf_summaries_written']}")
         print(f"Per-year climate metric rows: {result['climate_year_rows']}")
+        print(f"Annual space-heating demand rows: {result['space_heating_year_rows']}")
         print(f"Scenario aggregate rows: {result['scenario_aggregate_rows']}")
         print(f"Baseline comparison rows: {result['baseline_comparison_rows']}")
+        print(f"Annual space-heating comparison rows: {result['space_heating_comparison_rows']}")
         print(f"Missing required metrics: {result['missing_required_metrics']}")
         print("Missing climate files: 0")
         print(f"Near-future includes 2050: {'yes' if result['near_future_includes_2050'] else 'no'}")

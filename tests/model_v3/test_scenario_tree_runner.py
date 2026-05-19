@@ -137,6 +137,23 @@ def test_dry_run_plan_is_deterministic_and_does_not_create_outputs(tmp_path: Pat
     assert not any((experiment_root / "runs" / BASELINE_LEAF_ID / "outputs").iterdir())
 
 
+def test_dry_run_allows_missing_output_and_log_directories(tmp_path: Path) -> None:
+    experiment_root, index = _space(tmp_path, [BASELINE_LEAF_ID])
+    (experiment_root / "runs" / BASELINE_LEAF_ID / "outputs").rmdir()
+    (experiment_root / "runs" / BASELINE_LEAF_ID / "logs").rmdir()
+
+    plan = run_scenario_tree.build_run_plan(
+        load_leaf_records(index),
+        experiment_root=experiment_root,
+        registry_rows=[],
+        repo_root=tmp_path,
+    )
+
+    assert plan[0].status == "eligible"
+    assert not (experiment_root / "runs" / BASELINE_LEAF_ID / "outputs").exists()
+    assert not (experiment_root / "runs" / BASELINE_LEAF_ID / "logs").exists()
+
+
 def test_dry_run_detects_missing_config(tmp_path: Path) -> None:
     experiment_root, index = _space(tmp_path, [BASELINE_LEAF_ID])
     (experiment_root / "runs" / BASELINE_LEAF_ID / "run_config.yaml").unlink()
