@@ -1,0 +1,143 @@
+{
+  "run_id": "model-v3-2023-03-15t13-00-00-01-00",
+  "artifact_labels": [
+    "phase-1-contract-correction",
+    "phase-2-modular-architecture",
+    "phase-3-cohort-engine",
+    "phase-4-uncertainty-propagation",
+    "physics-finalization-v1-reference-integration"
+  ],
+  "timestamp": "2023-03-15T13:00:00+01:00",
+  "T_indoor_next_C": 16.88198769904857,
+  "Q_unmet_heating_W": 0.0,
+  "Q_excess_heat_W": 0.0,
+  "comfort_violation_degC": 0.0,
+  "comfort_violation_degree_hours": 0.0,
+  "P_el_space_heating_technology_W": 0.0,
+  "P_el_dhw_technology_W": 342.4657534246575,
+  "P_el_total_W": 383.5962363359624,
+  "P_el_space_heating_W": 0.0,
+  "P_el_dhw_W": 85.44347585443475,
+  "P_el_appliances_W": 235.64411235644116,
+  "P_el_lighting_W": 32.378580323785805,
+  "P_el_cooking_W": 30.130067801300676,
+  "P_el_ev_charging_W": 0.0,
+  "P_pv_generation_W": 0.0,
+  "P_el_gross_actual_W": 640.6185139061853,
+  "P_el_net_grid_W": 640.6185139061853,
+  "P_el_grid_import_W": 640.6185139061853,
+  "P_el_grid_export_W": 0.0,
+  "P_gas_space_heating_W": 0.0,
+  "P_gas_dhw_W": 0.0,
+  "P_oil_space_heating_W": 0.0,
+  "P_oil_dhw_W": 0.0,
+  "P_biomass_space_heating_W": 0.0,
+  "P_biomass_dhw_W": 0.0,
+  "P_propane_space_heating_W": 0.0,
+  "P_propane_dhw_W": 0.0,
+  "P_coal_space_heating_W": 0.0,
+  "P_coal_dhw_W": 0.0,
+  "P_district_heat_space_heating_W": 0.0,
+  "P_district_heat_dhw_W": 0.0,
+  "metadata": {
+    "system_state_id": "model-v3-system",
+    "enabled_modules": [
+      "physics",
+      "control",
+      "systems",
+      "cohort",
+      "stochastic"
+    ],
+    "temperature_clamped": false,
+    "integration_substeps": 1,
+    "heating_technology_type": "legacy_representative",
+    "dhw_technology_type": "legacy_representative",
+    "technology_sources": {
+      "heating_stock_barometer_2024": {
+        "source_name": "Barometre de la precarite energetique 2024",
+        "source_url": "https://media.kbs-frb.be/fr/media/11814/Barom%C3%A8tre%20de%20la%20Pr%C3%A9carit%C3%A9%20Energ%C3%A9tique%202024",
+        "reference_year": 2022,
+        "geography": "Belgium",
+        "suitability": "Strong for household main-heating carrier shares; not appliance-resolved."
+      },
+      "jrc_heat_pump_market_belgium": {
+        "source_name": "JRC Country fiche: Belgium - Status of the Heat Pump Market",
+        "source_url": "https://publications.jrc.ec.europa.eu/repository/bitstream/JRC137131/JRC137131_002.pdf",
+        "reference_year": 2022,
+        "geography": "Belgium",
+        "suitability": "Useful for gas-boiler households and heat-pump installed stock."
+      },
+      "country_report_belgium_rap": {
+        "source_name": "Country Report Belgium",
+        "source_url": "https://www.raponline.org/wp-content/uploads/2024/10/Countryreport_Belgium.pdf",
+        "reference_year": 2020,
+        "geography": "Belgium",
+        "suitability": "Good for DHW caveats, gas DHW share, condensing boiler sales, and district-heating context."
+      },
+      "ku_leuven_hp_performance": {
+        "source_name": "KU Leuven working paper on Belgian residential heat pumps",
+        "source_url": "https://www.mech.kuleuven.be/en/tme/research/energy_environment/pdf/wp-2015-08.pdf",
+        "reference_year": 2015,
+        "geography": "Belgian context",
+        "suitability": "Good for Belgian heat-pump SPF ranges by emitter and renovation state."
+      },
+      "iea_pvps_belgium_2024": {
+        "source_name": "IEA PVPS Belgium 2024 national survey page",
+        "source_url": "https://iea-pvps.org/national_survey/nsr-belgium-2024/",
+        "reference_year": 2024,
+        "geography": "Belgium",
+        "suitability": "Strong for national cumulative PV capacity and residential small-scale market structure."
+      },
+      "brugel_annual_report_2024": {
+        "source_name": "BRUGEL Annual Report 2024",
+        "source_url": "https://brugel.brussels/publication/document/rapports/2025/fr/Rapport-Annuel-2024-BRUGEL.pdf",
+        "reference_year": 2024,
+        "geography": "Brussels-Capital Region",
+        "suitability": "Strong regional PV installation and capacity anchor."
+      },
+      "statbel_electric_vehicle_stock_2025": {
+        "source_name": "Statbel electric boom in Belgium",
+        "source_url": "https://statbel.fgov.be/en/news/electric-boom-belgium-55-cars-one-year",
+        "reference_year": 2025,
+        "geography": "Belgium",
+        "suitability": "Strong for BEV stock and private/company registration split."
+      },
+      "statbel_household_car_ownership_2024": {
+        "source_name": "Statbel vehicles per household",
+        "source_url": "https://statbel.fgov.be/en/themes/mobility/traffic/vehicles-household",
+        "reference_year": 2024,
+        "geography": "Belgium",
+        "suitability": "Strong for household car ownership conditioning."
+      },
+      "federal_carbon_energy_pricing_2025": {
+        "source_name": "Landscape of carbon and energy taxation",
+        "source_url": "https://climat.be/doc/2025-landscape-of-carbon-and-energy-taxation.pdf",
+        "reference_year": 2025,
+        "geography": "Belgium",
+        "suitability": "Official modelling assumptions for EV annual distance and electricity intensity."
+      },
+      "crm_battery_monitoring_2025": {
+        "source_name": "CRM Monitoring Report / Belgian electricity market implementation plan 2025",
+        "source_url": "https://economie.fgov.be/sites/default/files/Files/Energy/CRM-Monitoring-Report-Belgian-electricity-market-Implementation-plan-2025.pdf",
+        "reference_year": "2024-06",
+        "geography": "Flanders",
+        "suitability": "Strong for Flemish home-battery stock and capacity."
+      },
+      "energuide_home_battery": {
+        "source_name": "Energuide home-battery page",
+        "source_url": "https://www.energuide.be/en/questions-answers/is-it-worth-investing-in-a-home-battery/2137/",
+        "reference_year": "current market",
+        "geography": "Belgium",
+        "suitability": "Useful public-information range for household battery sizing and self-consumption effects."
+      }
+    },
+    "pipeline_timings_seconds": {
+      "load_all_sources": 0.07962487500000004,
+      "build_prepared_forcing": 0.003438665999999979,
+      "run_physics": 6.67500000000043e-05,
+      "run_control": 4.8334000000038735e-05,
+      "run_systems": 9.129200000002058e-05,
+      "assemble_outputs": 5.145900000003145e-05
+    }
+  }
+}

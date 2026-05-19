@@ -1,0 +1,91 @@
+{
+  "shape": {
+    "mean_diurnal_correlation": 0.5047647959458833,
+    "mean_diurnal_nmae": 0.39844411128044277,
+    "evening_morning_ratio_model": 1.498868055456531,
+    "evening_morning_ratio_reference": 2.2069074416517585
+  },
+  "temporal": {
+    "Pearson_correlation": 0.31165515573267544,
+    "autocorrelation_difference_mean": 0.08937139260689471,
+    "autocorrelation_difference_max": 0.16254805560698732,
+    "peak_timing_error_hours": 2.0
+  },
+  "variance": {
+    "variance_model": 10173.907476995391,
+    "variance_data": 39082.503873823065,
+    "CV_model": 0.3383023831991499,
+    "CV_data": 0.6630592760794602,
+    "Levene_statistic": 3914.269226657959,
+    "Levene_p_value": 0.0
+  },
+  "distribution": {
+    "Anderson_Darling_statistic": 1131.670102448441,
+    "P10_error": 145.65376569962774,
+    "P50_error": -20.12214944383237,
+    "P90_error": -123.16658056614602
+  },
+  "daily_weekly": {
+    "daily_energy_cv_model": 0.08811578114337014,
+    "daily_energy_cv_reference": 0.09687422024446248,
+    "daily_energy_cv_delta": -0.008758439101092336,
+    "weekly_energy_cv_model": 0.12337769028676482,
+    "weekly_energy_cv_reference": 0.11969167552958951,
+    "weekday_weekend_ratio_model": 1.062192289144401,
+    "weekday_weekend_ratio_reference": 0.9984321064788602,
+    "autocorrelation_lag_24h_model": 0.7715945993927589,
+    "autocorrelation_lag_24h_reference": 0.7324327055337798,
+    "autocorrelation_lag_168h_model": 0.8296462969969208,
+    "autocorrelation_lag_168h_reference": 0.7392143807313175
+  },
+  "peakiness_load_duration": {
+    "p95_p50_model": 2.0403720812039228,
+    "p95_p50_reference": 2.3995266260294676,
+    "p99_p50_model": 2.4229228475814995,
+    "p99_p50_reference": 2.900522285156623,
+    "load_factor_model": 0.35171179498659794,
+    "load_factor_reference": 0.26038125790661304,
+    "top_decile_ldc_nmae": 0.21361358551895057
+  },
+  "component_shape": {
+    "appliances": {
+      "mean_diurnal_correlation": 0.48317450574567256,
+      "mean_diurnal_nmae": 0.37989834794350147,
+      "evening_morning_ratio_model": 1.333822460096761,
+      "evening_morning_ratio_reference": 2.1037090108344443
+    },
+    "lighting": {
+      "mean_diurnal_correlation": 0.5914661501631485,
+      "mean_diurnal_nmae": 0.830101868192551,
+      "evening_morning_ratio_model": 4.022135826194524,
+      "evening_morning_ratio_reference": 3.5090657457434165
+    }
+  },
+  "occupancy": {
+    "Anderson_Darling_statistic": 1279.0339868029137,
+    "P10_error": 0.3332217939896687,
+    "P50_error": 0.02718206876066187,
+    "P90_error": -0.5437441335138894,
+    "temporal_Pearson_correlation": -0.12916530611791915,
+    "temporal_autocorrelation_difference_mean": 0.2605000657273312,
+    "temporal_autocorrelation_difference_max": 0.5390719741981641,
+    "temporal_peak_timing_error_hours": 19.0,
+    "mean_occupancy_model": 0.6954714970352371,
+    "mean_occupancy_reference": 0.7518340943683409,
+    "active_fraction_model": 0.702054794520548,
+    "active_fraction_reference": 0.6708904109589041
+  },
+  "diversity": {
+    "diversity_factor_model": 3.4272779515196445,
+    "diversity_factor_reference": 6.444912670419637,
+    "coincidence_factor_model": 0.29177674356893146,
+    "coincidence_factor_reference": 0.15516114044333337,
+    "pairwise_correlation_mean_model": 0.1880187501338131,
+    "pairwise_correlation_mean_reference": 0.08783953764091303
+  },
+  "alignment": {
+    "aligned_steps": 8760,
+    "model_households": 30,
+    "reference_households": 30
+  }
+}

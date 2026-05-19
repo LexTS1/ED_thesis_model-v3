@@ -1,0 +1,1543 @@
+{
+  "run_metadata": {
+    "n_households": 30,
+    "requested_households": 30,
+    "minimum_households": 30,
+    "random_seed": 42,
+    "reference_year": 2023,
+    "n_steps": 8760,
+    "timestep_seconds": 3600.0,
+    "profile_representation": "per_household"
+  },
+  "annual_calibration_summary": {
+    "available": true,
+    "household_count_with_diagnostics": 30,
+    "target_annual_kWh_by_end_use": {
+      "appliances": {
+        "count": 30.0,
+        "sum": 61927.272727272735,
+        "mean": 2064.2424242424245,
+        "std": 0.0,
+        "min": 2064.2424242424245,
+        "p10": 2064.2424242424245,
+        "p50": 2064.2424242424245,
+        "p90": 2064.2424242424245,
+        "max": 2064.2424242424245
+      },
+      "cooking": {
+        "count": 30.0,
+        "sum": 7918.181818181818,
+        "mean": 263.93939393939394,
+        "std": 0.0,
+        "min": 263.93939393939394,
+        "p10": 263.93939393939394,
+        "p50": 263.93939393939394,
+        "p90": 263.93939393939394,
+        "max": 263.93939393939394
+      },
+      "dhw": {
+        "count": 30.0,
+        "sum": 22454.545454545452,
+        "mean": 748.4848484848484,
+        "std": 1.1368683772161603e-13,
+        "min": 748.4848484848485,
+        "p10": 748.4848484848485,
+        "p50": 748.4848484848485,
+        "p90": 748.4848484848485,
+        "max": 748.4848484848485
+      },
+      "lighting": {
+        "count": 30.0,
+        "sum": 8509.09090909091,
+        "mean": 283.6363636363637,
+        "std": 5.684341886080802e-14,
+        "min": 283.6363636363636,
+        "p10": 283.6363636363636,
+        "p50": 283.6363636363636,
+        "p90": 283.6363636363636,
+        "max": 283.6363636363636
+      },
+      "space_heating": {
+        "count": 30.0,
+        "sum": 16190.909090909094,
+        "mean": 539.6969696969697,
+        "std": 0.0,
+        "min": 539.6969696969697,
+        "p10": 539.6969696969697,
+        "p50": 539.6969696969697,
+        "p90": 539.6969696969697,
+        "max": 539.6969696969697
+      }
+    },
+    "raw_annual_kWh_by_end_use": {
+      "appliances": {
+        "count": 30.0,
+        "sum": 61927.272727261196,
+        "mean": 2064.2424242420398,
+        "std": 4.547473508864641e-13,
+        "min": 2064.24242424204,
+        "p10": 2064.24242424204,
+        "p50": 2064.24242424204,
+        "p90": 2064.24242424204,
+        "max": 2064.24242424204
+      },
+      "cooking": {
+        "count": 30.0,
+        "sum": 7918.181818181819,
+        "mean": 263.93939393939394,
+        "std": 7.038797632127288e-14,
+        "min": 263.9393939393938,
+        "p10": 263.9393939393939,
+        "p50": 263.93939393939394,
+        "p90": 263.939393939394,
+        "max": 263.93939393939417
+      },
+      "dhw": {
+        "count": 30.0,
+        "sum": 22478.66767815515,
+        "mean": 749.2889226051717,
+        "std": 680.2808346275767,
+        "min": 78.17104698274288,
+        "p10": 207.60272437824608,
+        "p50": 562.6442126173879,
+        "p90": 1397.9862805317518,
+        "max": 2808.6476468698515
+      },
+      "lighting": {
+        "count": 30.0,
+        "sum": 8509.090909089713,
+        "mean": 283.6363636363238,
+        "std": 5.684341886080802e-14,
+        "min": 283.6363636363237,
+        "p10": 283.6363636363237,
+        "p50": 283.6363636363237,
+        "p90": 283.6363636363237,
+        "max": 283.6363636363237
+      },
+      "space_heating": {
+        "count": 30.0,
+        "sum": 17835.179966238975,
+        "mean": 594.5059988746325,
+        "std": 193.16759611820325,
+        "min": 269.85280745930663,
+        "p10": 336.11371961141344,
+        "p50": 591.224935162369,
+        "p90": 803.2042882499361,
+        "max": 1015.8054204483014
+      }
+    },
+    "calibrated_annual_kWh_by_end_use": {
+      "appliances": {
+        "count": 30.0,
+        "sum": 61927.27272729387,
+        "mean": 2064.242424243129,
+        "std": 0.0,
+        "min": 2064.242424243129,
+        "p10": 2064.242424243129,
+        "p50": 2064.242424243129,
+        "p90": 2064.242424243129,
+        "max": 2064.242424243129
+      },
+      "cooking": {
+        "count": 30.0,
+        "sum": 7918.181818181818,
+        "mean": 263.93939393939394,
+        "std": 3.8831447629034595e-14,
+        "min": 263.9393939393939,
+        "p10": 263.9393939393939,
+        "p50": 263.93939393939394,
+        "p90": 263.939393939394,
+        "max": 263.93939393939405
+      },
+      "dhw": {
+        "count": 30.0,
+        "sum": 22454.54545454546,
+        "mean": 748.4848484848486,
+        "std": 1.0624297047552458e-12,
+        "min": 748.4848484848463,
+        "p10": 748.4848484848475,
+        "p50": 748.4848484848485,
+        "p90": 748.4848484848501,
+        "max": 748.4848484848505
+      },
+      "lighting": {
+        "count": 30.0,
+        "sum": 8509.090909090679,
+        "mean": 283.63636363635595,
+        "std": 0.0,
+        "min": 283.63636363635595,
+        "p10": 283.63636363635595,
+        "p50": 283.63636363635595,
+        "p90": 283.63636363635595,
+        "max": 283.63636363635595
+      },
+      "space_heating": {
+        "count": 30.0,
+        "sum": 16190.909090909088,
+        "mean": 539.6969696969696,
+        "std": 1.871751733737847e-12,
+        "min": 539.696969696964,
+        "p10": 539.6969696969682,
+        "p50": 539.6969696969693,
+        "p90": 539.6969696969722,
+        "max": 539.6969696969727
+      }
+    },
+    "scale_factor_by_end_use": {
+      "appliances": {
+        "count": 30.0,
+        "sum": 30.000000000005574,
+        "mean": 1.0000000000001859,
+        "std": 2.220446049250313e-16,
+        "min": 1.000000000000186,
+        "p10": 1.000000000000186,
+        "p50": 1.000000000000186,
+        "p90": 1.000000000000186,
+        "max": 1.000000000000186
+      },
+      "cooking": {
+        "count": 30.0,
+        "sum": 30.0,
+        "mean": 1.0,
+        "std": 2.749530325049722e-16,
+        "min": 0.9999999999999991,
+        "p10": 0.9999999999999998,
+        "p50": 1.0,
+        "p90": 1.0000000000000002,
+        "max": 1.0000000000000004
+      },
+      "dhw": {
+        "count": 30.0,
+        "sum": 58.036850804609024,
+        "mean": 1.9345616934869674,
+        "std": 1.770599025881335,
+        "min": 0.2664929683575692,
+        "p10": 0.5495264145775779,
+        "p50": 1.3311877113318913,
+        "p90": 3.6057419677776292,
+        "max": 9.574962564465649
+      },
+      "lighting": {
+        "count": 30.0,
+        "sum": 30.00000000000423,
+        "mean": 1.000000000000141,
+        "std": 2.220446049250313e-16,
+        "min": 1.0000000000001408,
+        "p10": 1.0000000000001408,
+        "p50": 1.0000000000001408,
+        "p90": 1.0000000000001408,
+        "max": 1.0000000000001408
+      },
+      "space_heating": {
+        "count": 30.0,
+        "sum": 30.889112932873463,
+        "mean": 1.0296370977624487,
+        "std": 0.3978802908040675,
+        "min": 0.5312995568174733,
+        "p10": 0.6720236927982257,
+        "p50": 0.9128966023485743,
+        "p90": 1.608100628123695,
+        "max": 1.9999679631954734
+      }
+    },
+    "fallback_counts_by_end_use": {
+      "appliances": 0,
+      "cooking": 0,
+      "dhw": 0,
+      "lighting": 0,
+      "space_heating": 0
+    }
+  },
+  "household_calibration_diagnostics": [
+    {
+      "household_id": "household_000",
+      "technology_type": "heat_pump",
+      "household_class": "peak_heavy_family",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.93939393939394,
+        "dhw": 1305.6201829683791,
+        "space_heating": 660.0996501649306
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848491,
+        "space_heating": 539.6969696969727
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 1.0,
+        "dhw": 0.5732791651421462,
+        "space_heating": 0.8175992360579537
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 4577.538014951067,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.0000000007003
+    },
+    {
+      "household_id": "household_001",
+      "technology_type": "resistive",
+      "household_class": "daytime_home",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.939393939394,
+        "dhw": 893.3037343418496,
+        "space_heating": 794.8850818784152
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.9393939393939,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969687
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 0.9999999999999998,
+        "dhw": 0.8378839354525952,
+        "space_heating": 0.6789622575650768
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 4300.006998038023,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.0000000006958
+    },
+    {
+      "household_id": "household_002",
+      "technology_type": "heat_pump",
+      "household_class": "workday_absent",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.93939393939394,
+        "dhw": 386.4118349298136,
+        "space_heating": 595.6521922505613
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848479,
+        "space_heating": 539.6969696969696
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 1.0,
+        "dhw": 1.937013261047764,
+        "space_heating": 0.9060605781669752
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 3593.882208998133,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.000000000696
+    },
+    {
+      "household_id": "household_003",
+      "technology_type": "heat_pump",
+      "household_class": "low_flat",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.939393939394,
+        "dhw": 293.26393762430007,
+        "space_heating": 424.37583434313234
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848488,
+        "space_heating": 539.6969696969683
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 0.9999999999999998,
+        "dhw": 2.5522566959587483,
+        "space_heating": 1.2717429363817017
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 3329.4579537851905,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.0000000006958
+    },
+    {
+      "household_id": "household_004",
+      "technology_type": "resistive",
+      "household_class": "low_flat",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.9393939393939,
+        "dhw": 209.59170293333617,
+        "space_heating": 285.46527838788745
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.939393939394,
+        "dhw": 748.4848484848487,
+        "space_heating": 539.6969696969688
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 1.0000000000000002,
+        "dhw": 3.571156863604069,
+        "space_heating": 1.8905870890666947
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 3106.875163138982,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.0000000006967
+    },
+    {
+      "household_id": "household_005",
+      "technology_type": "heat_pump",
+      "household_class": "workday_absent",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.9393939393938,
+        "dhw": 380.15270249027617,
+        "space_heating": 666.2412250477543
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.93939393939405,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969693
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 1.0000000000000004,
+        "dhw": 1.9689057675553254,
+        "space_heating": 0.8100624059375579
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 3658.2121093557885,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.0000000006967
+    },
+    {
+      "household_id": "household_006",
+      "technology_type": "heat_pump",
+      "household_class": "workday_absent",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.93939393939394,
+        "dhw": 201.37063400149452,
+        "space_heating": 766.9940148570762
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848487,
+        "space_heating": 539.6969696969717
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 1.0,
+        "dhw": 3.716951342961424,
+        "space_heating": 0.703652126669513
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 3580.182830676329,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.0000000006994
+    },
+    {
+      "household_id": "household_007",
+      "technology_type": "resistive",
+      "household_class": "workday_absent",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.93939393939394,
+        "dhw": 529.3569068663087,
+        "space_heating": 425.80383550008304
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848487,
+        "space_heating": 539.6969696969722
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 1.0,
+        "dhw": 1.4139512279451214,
+        "space_heating": 1.2674779433659293
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 3566.97892418415,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.0000000007
+    },
+    {
+      "household_id": "household_008",
+      "technology_type": "resistive",
+      "household_class": "daytime_home",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.93939393939417,
+        "dhw": 2808.6476468698515,
+        "space_heating": 799.9909274193174
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.9393939393939,
+        "dhw": 748.4848484848484,
+        "space_heating": 539.6969696969703
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 0.9999999999999991,
+        "dhw": 0.2664929683575692,
+        "space_heating": 0.674628862902199
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 6220.456756106927,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.0000000006976
+    },
+    {
+      "household_id": "household_009",
+      "technology_type": "heat_pump",
+      "household_class": "daytime_home",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.93939393939394,
+        "dhw": 208.29517886455181,
+        "space_heating": 784.3265611169452
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848503,
+        "space_heating": 539.6969696969704
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 1.0,
+        "dhw": 3.593385370534985,
+        "space_heating": 0.6881023752764373
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 3604.439921799255,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.0000000006994
+    },
+    {
+      "household_id": "household_010",
+      "technology_type": "heat_pump",
+      "household_class": "daytime_home",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.9393939393939,
+        "dhw": 200.88627248227343,
+        "space_heating": 396.80096272184295
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.939393939394,
+        "dhw": 748.4848484848486,
+        "space_heating": 539.6969696969722
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 1.0000000000000002,
+        "dhw": 3.725913369968554,
+        "space_heating": 1.3601201115918076
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 3209.5054170218746,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.0000000006994
+    },
+    {
+      "household_id": "household_011",
+      "technology_type": "resistive",
+      "household_class": "daytime_home",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.9393939393941,
+        "dhw": 2229.2811586020925,
+        "space_heating": 299.0915635026528
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.9393939393939,
+        "dhw": 748.4848484848505,
+        "space_heating": 539.6969696969684
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 0.9999999999999993,
+        "dhw": 0.3357516594964622,
+        "space_heating": 1.804454005243725
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 5140.190903922504,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.0000000006976
+    },
+    {
+      "household_id": "household_012",
+      "technology_type": "heat_pump",
+      "household_class": "low_flat",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.9393939393939,
+        "dhw": 900.8449230130852,
+        "space_heating": 785.428901536824
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.939393939394,
+        "dhw": 748.4848484848499,
+        "space_heating": 539.6969696969691
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 1.0000000000000002,
+        "dhw": 0.8308698082921608,
+        "space_heating": 0.6871366315155474
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 4298.092006367668,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.0000000006976
+    },
+    {
+      "household_id": "household_013",
+      "technology_type": "resistive",
+      "household_class": "low_flat",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.93939393939394,
+        "dhw": 748.7843102838006,
+        "space_heating": 556.8224002234975
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848501,
+        "space_heating": 539.6969696969701
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 1.0,
+        "dhw": 0.9996000693459528,
+        "space_heating": 0.9692443577707112
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 3917.424892325056,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.0000000006985
+    },
+    {
+      "household_id": "household_014",
+      "technology_type": "heat_pump",
+      "household_class": "workday_absent",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.939393939394,
+        "dhw": 577.1845623858796,
+        "space_heating": 832.1245357255048
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848475,
+        "space_heating": 539.6969696969663
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 0.9999999999999998,
+        "dhw": 1.2967859801912809,
+        "space_heating": 0.6485771618624656
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 4021.127279929143,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.0000000006926
+    },
+    {
+      "household_id": "household_015",
+      "technology_type": "resistive",
+      "household_class": "low_flat",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.939393939394,
+        "dhw": 784.4281397029796,
+        "space_heating": 743.238794978654
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848492,
+        "space_heating": 539.696969696967
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 0.9999999999999998,
+        "dhw": 0.9541789879800323,
+        "space_heating": 0.7261420869620644
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 4139.485116499392,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.000000000695
+    },
+    {
+      "household_id": "household_016",
+      "technology_type": "heat_pump",
+      "household_class": "daytime_home",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.9393939393938,
+        "dhw": 1190.446866625522,
+        "space_heating": 577.114439450701
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.939393939394,
+        "dhw": 748.4848484848478,
+        "space_heating": 539.6969696969712
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 1.0000000000000004,
+        "dhw": 0.6287427599406659,
+        "space_heating": 0.9351645580218972
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 4379.379487893981,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.000000000698
+    },
+    {
+      "household_id": "household_017",
+      "technology_type": "heat_pump",
+      "household_class": "peak_heavy_family",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.93939393939394,
+        "dhw": 548.103862848896,
+        "space_heating": 549.9058345840285
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848478,
+        "space_heating": 539.6969696969692
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 1.0,
+        "dhw": 1.3655894424725017,
+        "space_heating": 0.9814352490098942
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 3709.8278792506826,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.0000000006958
+    },
+    {
+      "household_id": "household_018",
+      "technology_type": "resistive",
+      "household_class": "daytime_home",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.9393939393939,
+        "dhw": 251.59679137931658,
+        "space_heating": 677.866669874874
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848482,
+        "space_heating": 539.696969696964
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 1.0000000000000002,
+        "dhw": 2.974937972704132,
+        "space_heating": 0.7961697981058595
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 3541.2816430719486,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.0000000006908
+    },
+    {
+      "household_id": "household_019",
+      "technology_type": "resistive",
+      "household_class": "low_flat",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.93939393939394,
+        "dhw": 389.3357776810739,
+        "space_heating": 586.7976780741767
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848476,
+        "space_heating": 539.6969696969702
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 1.0,
+        "dhw": 1.9224661369240335,
+        "space_heating": 0.9197326265301735
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 3587.951637573009,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.0000000006967
+    },
+    {
+      "household_id": "household_020",
+      "technology_type": "heat_pump",
+      "household_class": "low_flat",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.93939393939394,
+        "dhw": 2610.794844652835,
+        "space_heating": 639.9750211871021
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848478,
+        "space_heating": 539.6969696969725
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 1.0,
+        "dhw": 0.2866884964239221,
+        "space_heating": 0.8433094290084562
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 5862.588047657696,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.0000000006994
+    },
+    {
+      "household_id": "household_021",
+      "technology_type": "heat_pump",
+      "household_class": "workday_absent",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.93939393939394,
+        "dhw": 645.0005383097085,
+        "space_heating": 340.22729251238684
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969694
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 1.0,
+        "dhw": 1.1604406570672505,
+        "space_heating": 1.586283586221469
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 3597.046012639854,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.0000000006967
+    },
+    {
+      "household_id": "household_022",
+      "technology_type": "heat_pump",
+      "household_class": "peak_heavy_family",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.93939393939394,
+        "dhw": 1169.1771498324792,
+        "space_heating": 480.0598396833777
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848478,
+        "space_heating": 539.6969696969693
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 1.0,
+        "dhw": 0.6401808730114954,
+        "space_heating": 1.1242285337863829
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 4261.055171333615,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.0000000006958
+    },
+    {
+      "household_id": "household_023",
+      "technology_type": "resistive",
+      "household_class": "peak_heavy_family",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.9393939393939,
+        "dhw": 787.8354738159543,
+        "space_heating": 269.85280745930663
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848469,
+        "space_heating": 539.6969696969692
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 1.0000000000000002,
+        "dhw": 0.9500522296355769,
+        "space_heating": 1.9999679631954734
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 3669.506463093019,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.000000000695
+    },
+    {
+      "household_id": "household_024",
+      "technology_type": "resistive",
+      "household_class": "workday_absent",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.939393939394,
+        "dhw": 78.17104698274288,
+        "space_heating": 885.7886138710479
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.93939393939394,
+        "dhw": 748.484848484848,
+        "space_heating": 539.6969696969699
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 0.9999999999999998,
+        "dhw": 9.574962564465649,
+        "space_heating": 0.6092841579193501
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 3575.777842671549,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.0000000006967
+    },
+    {
+      "household_id": "household_025",
+      "technology_type": "resistive",
+      "household_class": "peak_heavy_family",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.93939393939394,
+        "dhw": 581.6949435937031,
+        "space_heating": 677.0371950374675
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848467,
+        "space_heating": 539.6969696969686
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 1.0,
+        "dhw": 1.286730883133898,
+        "space_heating": 0.7971452287301626
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 3870.5503204489287,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.000000000694
+    },
+    {
+      "household_id": "household_026",
+      "technology_type": "heat_pump",
+      "household_class": "workday_absent",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.9393939393939,
+        "dhw": 290.0512740035259,
+        "space_heating": 379.7165899055779
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.939393939394,
+        "dhw": 748.4848484848505,
+        "space_heating": 539.6969696969724
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 1.0000000000000002,
+        "dhw": 2.5805259813330443,
+        "space_heating": 1.4213152231014539
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 3281.5860457268623,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.0000000007017
+    },
+    {
+      "household_id": "household_027",
+      "technology_type": "heat_pump",
+      "household_class": "workday_absent",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.9393939393939,
+        "dhw": 269.347510152253,
+        "space_heating": 1015.8054204483014
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.939393939394,
+        "dhw": 748.4848484848484,
+        "space_heating": 539.6969696969695
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 1.0000000000000002,
+        "dhw": 2.7788816316206355,
+        "space_heating": 0.5312995568174733
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 3896.9711124183127,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.0000000006967
+    },
+    {
+      "household_id": "household_028",
+      "technology_type": "heat_pump",
+      "household_class": "workday_absent",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.93939393939394,
+        "dhw": 668.2608780262221,
+        "space_heating": 357.73738971724475
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848463,
+        "space_heating": 539.6969696969688
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 1.0,
+        "dhw": 1.12004888075384,
+        "space_heating": 1.5086400952484884
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 3637.816449561225,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.000000000694
+    },
+    {
+      "household_id": "household_029",
+      "technology_type": "resistive",
+      "household_class": "workday_absent",
+      "target_annual_kWh_by_end_use": {
+        "appliances": 2064.2424242424245,
+        "lighting": 283.6363636363636,
+        "cooking": 263.93939393939394,
+        "dhw": 748.4848484848485,
+        "space_heating": 539.6969696969697
+      },
+      "raw_annual_kWh_by_end_use": {
+        "appliances": 2064.24242424204,
+        "lighting": 283.6363636363237,
+        "cooking": 263.939393939394,
+        "dhw": 341.42689189064924,
+        "space_heating": 579.9534147783041
+      },
+      "calibrated_annual_kWh_by_end_use": {
+        "appliances": 2064.242424243129,
+        "lighting": 283.63636363635595,
+        "cooking": 263.9393939393939,
+        "dhw": 748.4848484848497,
+        "space_heating": 539.696969696969
+      },
+      "scale_factor_by_end_use": {
+        "appliances": 1.000000000000186,
+        "lighting": 1.0000000000001408,
+        "cooking": 0.9999999999999998,
+        "dhw": 2.192225821288178,
+        "space_heating": 0.9305867608405702
+      },
+      "fallback_used_by_end_use": {
+        "appliances": false,
+        "lighting": false,
+        "cooking": false,
+        "dhw": false,
+        "space_heating": false
+      },
+      "raw_annual_energy_kWh": 3533.1984884867115,
+      "target_annual_energy_kWh": 3900.0,
+      "calibrated_annual_energy_from_end_uses_kWh": 3900.0000000006976
+    }
+  ]
+}

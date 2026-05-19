@@ -1,0 +1,54 @@
+generation_timestamp_utc: '2026-05-14T06:54:09.694667+00:00'
+successful_runs_found: 5
+per_leaf_summaries_generated: 5
+missing_per_leaf_summaries: 0
+scenario_level_aggregate_rows: 2
+baseline_comparison_rows: 1
+future_leaves_with_valid_baseline_comparison: 1
+future_leaves_missing_baseline_comparison: 0
+required_metrics:
+- annual_electricity_gross_kWh
+- annual_grid_import_kWh
+- annual_grid_export_kWh
+- annual_gas_kWh
+- annual_useful_heating_kWh
+- annual_dhw_kWh
+- peak_grid_import_W
+- winter_peak_grid_import_W
+- summer_peak_grid_import_W
+- pv_generation_kWh
+- pv_self_consumption_kWh
+- pv_export_fraction
+- ev_charging_kWh
+- mean_T_out_C
+- winter_mean_T_out_C
+- summer_mean_T_out_C
+- HDD_15
+- HDD_18
+- CDD_22
+- mean_solar_W_m2
+missing_metrics: []
+raw_output_columns_used:
+- annual_dhw_kWh=dhw_thermal_kWh
+- annual_electricity_gross_kWh=annual_energy_by_carrier_kWh.electricity_gross_actual
+- annual_gas_kWh=annual_energy_by_carrier_kWh.natural_gas
+- annual_grid_export_kWh=annual_grid_export_kWh
+- annual_grid_import_kWh=annual_grid_import_kWh
+- annual_useful_heating_kWh=space_heating_thermal_kWh
+- ev_charging_kWh=annual_ev_charging_kWh
+- peak_grid_import_W=P_el_grid_import_W
+- pv_generation_kWh=annual_pv_generation_kWh
+- summer_peak_grid_import_W=P_el_grid_import_W
+- winter_peak_grid_import_W=P_el_grid_import_W
+climate_columns_used:
+- I_solar_W_m2
+- T_out_C
+near_future_includes_2050: false
+mid_century_includes_2050: true
+simulations_run: 0
+errors: []
+warnings: []
+assumptions:
+- Baseline comparison rows omit baseline leaves.
+- Future leaves are matched to baseline leaves by realization_id.
+- Validation reads only summary artifacts, manifests, and registry state.

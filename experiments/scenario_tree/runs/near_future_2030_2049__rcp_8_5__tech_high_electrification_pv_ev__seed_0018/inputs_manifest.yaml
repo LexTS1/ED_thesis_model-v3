@@ -1,0 +1,25 @@
+schema_version: model_v3.inputs_manifest.v1
+status: configured_not_run
+scenario_leaf_id: near_future_2030_2049__rcp_8_5__tech_high_electrification_pv_ev__seed_0018
+scenario_id: near_future_2030_2049__rcp_8_5__tech_high_electrification_pv_ev
+climate_forcing:
+  file: inputs/climate/processed/near_future/weather_near_future_rcp_8_5_cnrm_cerfacs_cm5_cnrm_aladin63_r1i1p1.csv
+  exists: true
+  climate_window_id: near_future_2030_2049
+  climate_pathway_id: rcp_8_5
+  source_file_window: 2030-2050
+  analysis_start: '2030-01-01'
+  analysis_end: '2049-12-31'
+technology:
+  case_id: tech_high_electrification_pv_ev
+  metadata_file: config/scenario_tree/technology_cases.yaml
+  belgian_technology_inputs: config/belgian_technology_inputs.yaml
+  belgian_technology_inputs_exists: true
+stochastic:
+  realization_id: seed_0018
+  seed_index: 18
+  seed_value: 18
+  cohort_size: 100
+validation:
+  config_complete: true
+  missing_required_inputs: []

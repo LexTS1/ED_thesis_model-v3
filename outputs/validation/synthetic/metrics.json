@@ -1,0 +1,107 @@
+{
+  "metrics": {
+    "mean": {
+      "MBE": -4452.855533656384,
+      "MAE": 5720.856115219201,
+      "RMSE": 6495.541785323455,
+      "CVRMSE": 5.276878829860443
+    },
+    "variance": {
+      "variance_model": 48503221.00299893,
+      "variance_data": 12849559.768013537,
+      "CV_model": 0.05870141046597174,
+      "CV_data": 0.029120971902592795,
+      "Levene_statistic": 11.344577714673168,
+      "Levene_p_value": 0.0015380156103558785
+    },
+    "distribution": {
+      "Anderson_Darling_statistic": 4.132008328718179,
+      "P10_error": -8356.735894307247,
+      "P50_error": -4873.941493401915,
+      "P90_error": 1771.1345152930444
+    },
+    "temporal": {
+      "Pearson_correlation": 0.7613954509449159,
+      "autocorrelation_difference_mean": 0.4930192075113423,
+      "autocorrelation_difference_max": 1.0699567513780892,
+      "peak_timing_error_hours": 1.0,
+      "diversity_factor_model": 1.0002428527116438
+    },
+    "events": {
+      "peak_day_error": 2276.3506073890167,
+      "peak_MAE_kW": 2.2763506073890167,
+      "extreme_condition_error": 2277.5613796020916,
+      "coldest_day_count": 1.0,
+      "peak_day_count": 1.0
+    }
+  },
+  "acceptance_metrics": {
+    "MBE_monthly": -0.036174317515853226,
+    "CVRMSE_monthly": 0.036174317515853226,
+    "MBE_hourly": -0.03617431751585325,
+    "CVRMSE_hourly": 0.05276878829860444,
+    "peak_MAE_kW": 2.2763506073890167,
+    "P10_error_kW": 8.356735894307247,
+    "P90_error_kW": 1.7711345152930444
+  },
+  "acceptance": {
+    "checks": {
+      "monthly_MBE_ok": true,
+      "monthly_CVRMSE_ok": true,
+      "hourly_MBE_ok": true,
+      "hourly_CVRMSE_ok": true,
+      "peak_MAE_ok": false,
+      "quantile_ok": false,
+      "overall": false
+    },
+    "good_checks": {
+      "hourly_MBE_good": true,
+      "hourly_CVRMSE_good": true,
+      "peak_MAE_good": false,
+      "quantile_good": false
+    },
+    "acceptable_thresholds": {
+      "monthly_MBE_max": 0.05,
+      "monthly_CVRMSE_max": 0.15,
+      "hourly_MBE_max": 0.1,
+      "hourly_CVRMSE_max": 0.3,
+      "peak_MAE_kW_max": 0.2,
+      "quantile_error_kW_max": 0.2
+    },
+    "good_thresholds": {
+      "hourly_MBE_max": 0.05,
+      "hourly_CVRMSE_max": 0.2,
+      "peak_MAE_kW_max": 0.1,
+      "quantile_error_kW_max": 0.1
+    }
+  },
+  "independence": {
+    "dataset_independent": false,
+    "partial_overlap": true,
+    "validation_independence": "weak",
+    "validation_dataset_family": "synthetic",
+    "validation_data_role": [
+      "validation"
+    ],
+    "input_dataset_paths": [],
+    "implications": "Synthetic validation is useful for framework checks but not for external realism."
+  },
+  "alignment": {
+    "model_resolution_seconds": 3600,
+    "data_resolution_seconds": 3600,
+    "target_resolution_seconds": 3600,
+    "model_resampled": false,
+    "data_resampled": false,
+    "matched_timestamps": 24,
+    "dropped_model_rows": 0,
+    "dropped_data_rows": 0
+  },
+  "quick_mode": {
+    "enabled": false,
+    "max_steps": null,
+    "cohort_households": null,
+    "minimum_households": null,
+    "overrides": [],
+    "debug_only": false
+  }
+}

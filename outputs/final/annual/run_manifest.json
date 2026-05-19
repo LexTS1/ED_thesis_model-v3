@@ -1,0 +1,79 @@
+{
+  "manifest_schema": "model_v3 run manifest v1",
+  "model": {
+    "name": "model_v3",
+    "version": null
+  },
+  "run_mode": "annual",
+  "timestamp_utc": "2026-04-29T09:41:18.133678+00:00",
+  "created_at_utc": "2026-04-29T09:41:18.133678+00:00",
+  "config": {
+    "path": "config/thesis.yaml",
+    "name": "model_v3_thesis.yaml"
+  },
+  "reference_year": 2023,
+  "cohort_size": null,
+  "random_seed": 42,
+  "seeds": {
+    "cohort_random_seed": 42,
+    "climate_seed": 42,
+    "climate_occupancy_seed": 42
+  },
+  "climate": {
+    "enabled": false,
+    "mode": "climate_only",
+    "n_members": 50
+  },
+  "key_input_paths": {
+    "data.sources.end_use_shares": {
+      "file_path": "inputs/end_use/EU27_BE_household_enduse_2019.csv"
+    },
+    "data.sources.load_profiles": {
+      "file_path": "inputs/load_profiles/LCL_2013.csv"
+    },
+    "data.sources.occupancy": {
+      "spec_path": "inputs/occupancy/occupancy_model_spec_v1.yaml"
+    },
+    "data.sources.solar": {
+      "raw_dir": "inputs/solar/raw_inputs"
+    },
+    "data.sources.weather": {
+      "file_path": "inputs/weather/aws_1hour_Uccle.csv"
+    },
+    "building": {
+      "tabula_archetypes_path": "config/archetypes.yaml",
+      "internal_gains_reference_csv": "inputs/building/internal_gains_archetypes_v2.csv",
+      "airflow_reference_csv": "inputs/building/airflow_archetypes_v2.csv",
+      "archetype_source.file_path": "inputs/building/archetype_parameters_merged_v2.csv"
+    },
+    "climate.inputs": {
+      "weather_path": "inputs/weather/Timeseries_pvgisWEATHER_50.830_4.350_SA3_0deg_0deg_2005_2023.csv",
+      "solar_paths": {
+        "south": "inputs/solar/TimeseriesSOUTH_50.830_4.350_SA3_90deg_0deg_2005_2023.csv",
+        "east": "inputs/solar/TimeseriesEAST_50.830_4.350_SA3_90deg_-90deg_2005_2023.csv",
+        "west": "inputs/solar/TimeseriesWEST_50.830_4.350_SA3_90deg_90deg_2005_2023.csv",
+        "north": "inputs/solar/TimeseriesNORTH_50.830_4.350_SA3_90deg_-179deg_2005_2023.csv"
+      }
+    },
+    "validation": {
+      "fluvius.base_path": "inputs/load_profiles/fluvius",
+      "kuleuven.base_path": "inputs/load_profiles/kul"
+    }
+  },
+  "output_artifact_paths": {
+    "csv": "outputs/final/annual/annual_profile.csv",
+    "parquet": "outputs/final/annual/annual_profile.parquet",
+    "json": "outputs/final/annual/annual_summary.json",
+    "demand_plot": "outputs/final/annual/annual_demand_profile.png",
+    "temperature_plot": "outputs/final/annual/annual_indoor_temperature.png"
+  },
+  "git": {
+    "commit": null,
+    "available": false
+  },
+  "artifact_hygiene": {
+    "canonical_output_dir": "outputs/final/annual",
+    "legacy_outputs_retained": true,
+    "note": "Older outputs under outputs/* are not deleted and may come from mixed configs or partial runs."
+  }
+}

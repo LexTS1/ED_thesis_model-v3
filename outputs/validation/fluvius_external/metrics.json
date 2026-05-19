@@ -1,0 +1,110 @@
+{
+  "metrics": {
+    "mean": {
+      "MBE": 804.1537907541201,
+      "MAE": 5489.103102369372,
+      "RMSE": 8437.168345526796,
+      "CVRMSE": 67.21444455267077
+    },
+    "variance": {
+      "variance_model": 50253881.982930444,
+      "variance_data": 27567664.538285304,
+      "CV_model": 0.530742054469374,
+      "CV_data": 0.41827883248274933,
+      "Levene_statistic": 19.74393401613753,
+      "Levene_p_value": 8.908530344918294e-06
+    },
+    "distribution": {
+      "Anderson_Darling_statistic": 386.8227586029298,
+      "P10_error": 1382.699751969716,
+      "P50_error": 60.89769246564174,
+      "P90_error": -754.4265837546664
+    },
+    "temporal": {
+      "Pearson_correlation": 0.09771900744162677,
+      "autocorrelation_difference_mean": 0.6007610767793453,
+      "autocorrelation_difference_max": 0.8278529021731794,
+      "peak_timing_error_hours": 16.0
+    },
+    "events": {
+      "peak_error_pct": 546.6110797321098,
+      "annual_energy_error_pct": 6.38803766525934,
+      "CVRMSE_absolute_pct": 67.21444455267077,
+      "load_duration_curve_mae_kW": 1.2842247148767774
+    }
+  },
+  "alignment": {
+    "model_resolution_seconds": 3600,
+    "data_resolution_seconds": 900,
+    "target_resolution_seconds": 3600,
+    "model_resampled": false,
+    "data_resampled": true,
+    "matched_timestamps": 8757,
+    "dropped_model_rows": 3,
+    "dropped_data_rows": 0
+  },
+  "independence": {
+    "dataset_independent": true,
+    "partial_overlap": false,
+    "validation_independence": "strong",
+    "validation_dataset_family": "fluvius",
+    "validation_data_role": [
+      "validation"
+    ],
+    "input_dataset_paths": [
+      "inputs/load_profiles/LCL_2013.csv"
+    ],
+    "implications": "Validation dataset appears independent from configured inputs."
+  },
+  "quick_mode": {
+    "enabled": false,
+    "max_steps": null,
+    "cohort_households": null,
+    "minimum_households": null,
+    "overrides": [],
+    "debug_only": false
+  },
+  "fluvius_details": {
+    "category_components": {
+      "base": {
+        "weight": 0.6,
+        "profiles": [
+          "base_no_pv",
+          "base_with_pv"
+        ]
+      },
+      "ev": {
+        "weight": 0.2,
+        "profiles": [
+          "ev_no_pv",
+          "ev_with_pv"
+        ]
+      },
+      "hp": {
+        "weight": 0.15,
+        "profiles": [
+          "hp_no_pv",
+          "hp_with_pv"
+        ]
+      },
+      "ev_hp": {
+        "weight": 0.05,
+        "profiles": [
+          "ev_hp_no_pv",
+          "ev_hp_with_pv"
+        ]
+      }
+    },
+    "warnings": [
+      "base: multiple PV variants present (base_no_pv, base_with_pv); using an unweighted within-category mean because no finer-grained PV split is configured",
+      "ev: multiple PV variants present (ev_no_pv, ev_with_pv); using an unweighted within-category mean because no finer-grained PV split is configured",
+      "hp: multiple PV variants present (hp_no_pv, hp_with_pv); using an unweighted within-category mean because no finer-grained PV split is configured",
+      "ev_hp: multiple PV variants present (ev_hp_no_pv, ev_hp_with_pv); using an unweighted within-category mean because no finer-grained PV split is configured",
+      "fluvius_weighted_profile: irregular sampling detected (modal timestep 900s)",
+      "fluvius_weighted_profile: missing timestamps detected (4)",
+      "dropped 96 timestamps that cannot be mapped into reference year 2023",
+      "collapsed 8 duplicate timestamps after reference-year mapping"
+    ]
+  },
+  "households": 30
+}

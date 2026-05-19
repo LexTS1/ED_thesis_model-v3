@@ -1,0 +1,10 @@
+schema_version: model_v3.scenario_seed_config.v1
+status: configured_not_run
+scenario_id: near_future_2030_2049__rcp_8_5__tech_frozen_stock
+scenario_leaf_id: near_future_2030_2049__rcp_8_5__tech_frozen_stock__seed_0072
+realization_id: seed_0072
+seed_index: 72
+seed_value: 72
+run_config: experiments/scenario_tree/runs/near_future_2030_2049__rcp_8_5__tech_frozen_stock__seed_0072/run_config.yaml
+inputs_manifest: experiments/scenario_tree/runs/near_future_2030_2049__rcp_8_5__tech_frozen_stock__seed_0072/inputs_manifest.yaml
+output_dir: experiments/scenario_tree/runs/near_future_2030_2049__rcp_8_5__tech_frozen_stock__seed_0072/outputs

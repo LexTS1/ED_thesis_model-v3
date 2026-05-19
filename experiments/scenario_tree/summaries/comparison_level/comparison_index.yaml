@@ -1,0 +1,142 @@
+generated_at_utc: '2026-05-11T17:21:41.188672+00:00'
+outputs:
+- comparison_name: climate_only
+  comparison_type: absolute
+  output_file: experiments/scenario_tree/summaries/comparison_level/climate_only/climate_only_absolute_metrics.csv
+  row_count: 0
+  metric_set: all_major_metrics
+  reference_policy: historical baseline matched by realization_id
+  baseline_or_reference_scenario: baseline_1981_2005__historical__tech_current_stock
+  generated_at_utc: '2026-05-11T17:21:41.188672+00:00'
+  status: written
+  warnings_count: 9
+- comparison_name: climate_only
+  comparison_type: delta
+  output_file: experiments/scenario_tree/summaries/comparison_level/climate_only/climate_only_delta_vs_baseline.csv
+  row_count: 0
+  metric_set: all_major_metrics
+  reference_policy: historical baseline matched by realization_id
+  baseline_or_reference_scenario: baseline_1981_2005__historical__tech_current_stock
+  generated_at_utc: '2026-05-11T17:21:41.188672+00:00'
+  status: written
+  warnings_count: 9
+- comparison_name: climate_only
+  comparison_type: percentage
+  output_file: experiments/scenario_tree/summaries/comparison_level/climate_only/climate_only_percentage_change_vs_baseline.csv
+  row_count: 0
+  metric_set: all_major_metrics
+  reference_policy: historical baseline matched by realization_id
+  baseline_or_reference_scenario: baseline_1981_2005__historical__tech_current_stock
+  generated_at_utc: '2026-05-11T17:21:41.188672+00:00'
+  status: written
+  warnings_count: 9
+- comparison_name: climate_only
+  comparison_type: uncertainty
+  output_file: experiments/scenario_tree/summaries/comparison_level/climate_only/climate_only_uncertainty_bands.csv
+  row_count: 0
+  metric_set: all_major_metrics
+  reference_policy: historical baseline matched by realization_id
+  baseline_or_reference_scenario: baseline_1981_2005__historical__tech_current_stock
+  generated_at_utc: '2026-05-11T17:21:41.188672+00:00'
+  status: written
+  warnings_count: 9
+- comparison_name: technology_only
+  comparison_type: absolute
+  output_file: experiments/scenario_tree/summaries/comparison_level/technology_only/technology_only_absolute_metrics.csv
+  row_count: 1
+  metric_set: all_major_metrics
+  reference_policy: tech_frozen_stock matched by realization_id within climate pathway
+  baseline_or_reference_scenario: tech_frozen_stock
+  generated_at_utc: '2026-05-11T17:21:41.188672+00:00'
+  status: written
+  warnings_count: 26
+- comparison_name: technology_only
+  comparison_type: delta
+  output_file: experiments/scenario_tree/summaries/comparison_level/technology_only/technology_only_delta_vs_frozen_stock.csv
+  row_count: 1
+  metric_set: all_major_metrics
+  reference_policy: tech_frozen_stock matched by realization_id within climate pathway
+  baseline_or_reference_scenario: tech_frozen_stock
+  generated_at_utc: '2026-05-11T17:21:41.188672+00:00'
+  status: written
+  warnings_count: 26
+- comparison_name: technology_only
+  comparison_type: percentage
+  output_file: experiments/scenario_tree/summaries/comparison_level/technology_only/technology_only_percentage_change_vs_frozen_stock.csv
+  row_count: 1
+  metric_set: all_major_metrics
+  reference_policy: tech_frozen_stock matched by realization_id within climate pathway
+  baseline_or_reference_scenario: tech_frozen_stock
+  generated_at_utc: '2026-05-11T17:21:41.188672+00:00'
+  status: written
+  warnings_count: 26
+- comparison_name: technology_only
+  comparison_type: uncertainty
+  output_file: experiments/scenario_tree/summaries/comparison_level/technology_only/technology_only_uncertainty_bands.csv
+  row_count: 0
+  metric_set: all_major_metrics
+  reference_policy: tech_frozen_stock matched by realization_id within climate pathway
+  baseline_or_reference_scenario: tech_frozen_stock
+  generated_at_utc: '2026-05-11T17:21:41.188672+00:00'
+  status: written
+  warnings_count: 26
+- comparison_name: combined_stress_case
+  comparison_type: absolute
+  output_file: experiments/scenario_tree/summaries/comparison_level/combined_stress_case/combined_stress_case_absolute_metrics.csv
+  row_count: 0
+  metric_set: all_major_metrics
+  reference_policy: historical baseline matched by realization_id
+  baseline_or_reference_scenario: baseline_1981_2005__historical__tech_current_stock
+  generated_at_utc: '2026-05-11T17:21:41.188672+00:00'
+  status: written
+  warnings_count: 1
+- comparison_name: combined_stress_case
+  comparison_type: delta
+  output_file: experiments/scenario_tree/summaries/comparison_level/combined_stress_case/combined_stress_case_delta_vs_baseline.csv
+  row_count: 0
+  metric_set: all_major_metrics
+  reference_policy: historical baseline matched by realization_id
+  baseline_or_reference_scenario: baseline_1981_2005__historical__tech_current_stock
+  generated_at_utc: '2026-05-11T17:21:41.188672+00:00'
+  status: written
+  warnings_count: 1
+- comparison_name: combined_stress_case
+  comparison_type: percentage
+  output_file: experiments/scenario_tree/summaries/comparison_level/combined_stress_case/combined_stress_case_percentage_change_vs_baseline.csv
+  row_count: 0
+  metric_set: all_major_metrics
+  reference_policy: historical baseline matched by realization_id
+  baseline_or_reference_scenario: baseline_1981_2005__historical__tech_current_stock
+  generated_at_utc: '2026-05-11T17:21:41.188672+00:00'
+  status: written
+  warnings_count: 1
+- comparison_name: combined_stress_case
+  comparison_type: uncertainty
+  output_file: experiments/scenario_tree/summaries/comparison_level/combined_stress_case/combined_stress_case_uncertainty_bands.csv
+  row_count: 0
+  metric_set: all_major_metrics
+  reference_policy: historical baseline matched by realization_id
+  baseline_or_reference_scenario: baseline_1981_2005__historical__tech_current_stock
+  generated_at_utc: '2026-05-11T17:21:41.188672+00:00'
+  status: written
+  warnings_count: 1
+- comparison_name: stochastic_robustness
+  comparison_type: uncertainty
+  output_file: experiments/scenario_tree/summaries/comparison_level/stochastic_robustness/stochastic_uncertainty_bands.csv
+  row_count: 40
+  metric_set: all_major_metrics
+  reference_policy: within-scenario stochastic spread
+  baseline_or_reference_scenario: none
+  generated_at_utc: '2026-05-11T17:21:41.188672+00:00'
+  status: written
+  warnings_count: 0
+- comparison_name: stochastic_robustness
+  comparison_type: spread
+  output_file: experiments/scenario_tree/summaries/comparison_level/stochastic_robustness/stochastic_spread_metrics.csv
+  row_count: 40
+  metric_set: all_major_metrics
+  reference_policy: within-scenario stochastic spread
+  baseline_or_reference_scenario: none
+  generated_at_utc: '2026-05-11T17:21:41.188672+00:00'
+  status: written
+  warnings_count: 0

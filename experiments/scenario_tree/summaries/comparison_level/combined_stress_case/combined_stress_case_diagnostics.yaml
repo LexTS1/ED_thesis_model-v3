@@ -1,0 +1,11 @@
+comparison_name: combined_stress_case
+baseline_scenario: baseline_1981_2005__historical__tech_current_stock
+stress_scenario: long_term_2080_2100__rcp_8_5__tech_high_electrification_pv_ev
+missing_groups:
+- scenario_id: long_term_2080_2100__rcp_8_5__tech_high_electrification_pv_ev
+  exists_in_leaf_index: true
+  successful_realizations: 0
+  reason: no_successful_runs_in_metrics_table
+valid_pairs: 0
+missing_baseline_matches: 0
+pct_change_division_by_zero_rows: 0

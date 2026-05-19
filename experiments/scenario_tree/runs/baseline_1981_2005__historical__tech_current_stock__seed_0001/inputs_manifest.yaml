@@ -1,0 +1,25 @@
+schema_version: model_v3.inputs_manifest.v1
+status: configured_not_run
+scenario_leaf_id: baseline_1981_2005__historical__tech_current_stock__seed_0001
+scenario_id: baseline_1981_2005__historical__tech_current_stock
+climate_forcing:
+  file: inputs/climate/processed/baseline/weather_baseline_historical_cnrm_cerfacs_cm5_cnrm_aladin63_r1i1p1.csv
+  exists: true
+  climate_window_id: baseline_1981_2005
+  climate_pathway_id: historical
+  source_file_window: 1981-2005
+  analysis_start: '1981-01-01'
+  analysis_end: '2005-12-31'
+technology:
+  case_id: tech_current_stock
+  metadata_file: config/scenario_tree/technology_cases.yaml
+  belgian_technology_inputs: config/belgian_technology_inputs.yaml
+  belgian_technology_inputs_exists: true
+stochastic:
+  realization_id: seed_0001
+  seed_index: 1
+  seed_value: 1
+  cohort_size: 100
+validation:
+  config_complete: true
+  missing_required_inputs: []

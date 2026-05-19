@@ -1,0 +1,12 @@
+{
+  "generator": "richardsonpy",
+  "n_households": 30,
+  "timestep_seconds": 3600,
+  "seed": 42,
+  "initial_day": 6,
+  "n_days": 365,
+  "simulation_days": 365,
+  "slice_start_step": 8759,
+  "shape_normalized_to_model_annualized_energy": true,
+  "limitations": "Richardsonpy is a synthetic UK-origin stochastic reference. It validates non-thermal profile structure, not Belgian measured demand or thermal/PV/EV behaviour."
+}

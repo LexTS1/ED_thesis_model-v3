@@ -1,0 +1,55 @@
+schema_version: model_v3.scenario_leaf_config.v1
+generated_by: Phase 3 - scenario leaf config generator
+status: configured_not_run
+scenario_leaf:
+  id: mid_century_2050_2070__rcp_4_5__tech_moderate_electrification__seed_0075
+  scenario_id: mid_century_2050_2070__rcp_4_5__tech_moderate_electrification
+  climate_window_id: mid_century_2050_2070
+  climate_pathway_id: rcp_4_5
+  technology_case_id: tech_moderate_electrification
+  realization_id: seed_0075
+climate:
+  window_id: mid_century_2050_2070
+  window_label: mid-century 2050-2070
+  pathway_id: rcp_4_5
+  forcing_file: inputs/climate/processed/mid_century/weather_mid_century_rcp_4_5_cnrm_cerfacs_cm5_cnrm_aladin63_r1i1p1.csv
+  source_file_window: 2050-2070
+  analysis_start: '2050-01-01'
+  analysis_end: '2070-12-31'
+  inclusive_dates: true
+  temporal_policy:
+    raw_processed_files_may_overlap: true
+    canonical_analysis_windows_must_overlap: false
+    year_2050_assignment: mid_century_2050_2070
+technology:
+  case_id: tech_moderate_electrification
+  metadata_file: config/scenario_tree/technology_cases.yaml
+  belgian_technology_inputs: config/belgian_technology_inputs.yaml
+stochastic:
+  realization_id: seed_0075
+  seed_index: 75
+  seed_value: 75
+  cohort_size: 100
+  cohort_generation: deferred_to_simulation_phase
+model_options:
+  run_mode: scenario_leaf
+  execute_simulation: false
+  use_stochastic_cohort: true
+  use_climate_forcing: true
+  use_technology_case: true
+  write_outputs: true
+output:
+  run_dir: experiments/scenario_tree/runs/mid_century_2050_2070__rcp_4_5__tech_moderate_electrification__seed_0075
+  outputs_dir: experiments/scenario_tree/runs/mid_century_2050_2070__rcp_4_5__tech_moderate_electrification__seed_0075/outputs
+  logs_dir: experiments/scenario_tree/runs/mid_century_2050_2070__rcp_4_5__tech_moderate_electrification__seed_0075/logs
+validation:
+  config_complete: true
+  missing_required_inputs: []
+provenance:
+  phase: 3
+  scenario_tree_schema: config/scenario_tree/scenario_tree_schema.yaml
+  climate_windows: config/scenario_tree/climate_windows.yaml
+  technology_cases: config/scenario_tree/technology_cases.yaml
+  realization_policy: config/scenario_tree/realization_policy.yaml
+  scenario_leaf_index: experiments/scenario_tree/manifests/scenario_leaf_index.csv
+  generated_at_utc: '2026-05-08T22:27:16+00:00'

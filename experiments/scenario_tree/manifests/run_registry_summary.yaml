@@ -1,0 +1,12 @@
+registry_rows: 14
+status_counts:
+  failed: 0
+  planned: 0
+  running: 0
+  skipped: 2
+  success: 12
+latest_actual_status_counts:
+  not_run: 0
+  running: 0
+  success: 5
+  failed: 0
