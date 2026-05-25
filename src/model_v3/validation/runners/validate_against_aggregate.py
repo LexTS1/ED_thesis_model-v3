@@ -378,8 +378,12 @@ def _validate_against_fluvius_external(config: Mapping[str, Any], quick_mode: bo
     )
     model_results, model_frame = run_validation_model(config=prepared_config, validation_cfg=validation_cfg)
 
-    raw_reference_year = dict(prepared_config.get("simulation", {}).get("reference_year"))
     model_series_w = pd.Series(model_frame["value"].to_numpy(dtype=float), index=pd.to_datetime(model_frame["timestamp"]))
+    raw_reference_year = dict(prepared_config.get("simulation", {})).get("reference_year")
+    if raw_reference_year is None:
+        reference_year = int(pd.Series(pd.DatetimeIndex(model_series_w.index).year).mode().iloc[0])
+    else:
+        reference_year = int(raw_reference_year)
     households = max(int(fluvius_cfg.get("households", model_results.get("household_count", 1)) or 1), 1)
     model_total_w = model_series_w * households
 
