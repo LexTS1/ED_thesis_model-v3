@@ -47,6 +47,86 @@ def _hour_in_window(hour: int, start_hour: int, end_hour: int) -> bool:
     return hour >= start or hour < end
 
 
+def _hour_float_in_window(hour: float, start_hour: float, end_hour: float) -> bool:
+    """Return whether a fractional hour falls inside a possibly wrap-around window."""
+
+    hour = float(hour) % 24.0
+    start = float(start_hour) % 24.0
+    end = float(end_hour) % 24.0
+    if abs(start - end) < 1e-9:
+        return True
+    if start < end:
+        return start <= hour < end
+    return hour >= start or hour < end
+
+
+def _circular_hour_distance(hour: float, target_hour: float) -> float:
+    """Return shortest absolute distance between two clock hours."""
+
+    raw = abs((float(hour) % 24.0) - (float(target_hour) % 24.0))
+    return min(raw, 24.0 - raw)
+
+
+def _ev_charging_window(charging_cfg: Mapping[str, Any]) -> tuple[float, float]:
+    """Resolve the EV charging window with backward-compatible defaults."""
+
+    if "charging_window" in charging_cfg:
+        window_cfg = dict(charging_cfg.get("charging_window", {}))
+    else:
+        window_cfg = dict(charging_cfg.get("uncontrolled_arrival_window", {}))
+    strategy = str(charging_cfg.get("charging_strategy", "")).strip().lower()
+    default_start = 22 if strategy in {"delayed_overnight", "delayed_overnight_home"} else 17
+    default_end = 6 if strategy in {"delayed_overnight", "delayed_overnight_home"} else 22
+    return (
+        float(window_cfg.get("start_hour", default_start)),
+        float(window_cfg.get("end_hour", default_end)),
+    )
+
+
+def _ev_charging_peak_hour(charging_cfg: Mapping[str, Any], start_hour: float, end_hour: float) -> float:
+    """Resolve the nominal EV charging peak hour."""
+
+    if charging_cfg.get("peak_hour") is not None:
+        return float(charging_cfg["peak_hour"]) % 24.0
+    strategy = str(charging_cfg.get("charging_strategy", "")).strip().lower()
+    if strategy in {"delayed_overnight", "delayed_overnight_home"}:
+        return 1.0
+    if start_hour == end_hour:
+        return 0.0
+    if start_hour < end_hour:
+        return ((start_hour + end_hour) / 2.0) % 24.0
+    return ((start_hour + ((24.0 - start_hour + end_hour) / 2.0)) % 24.0)
+
+
+def _ev_hour_weight(hour: float, charging_cfg: Mapping[str, Any], *, peak_jitter_hours: float = 0.0) -> float:
+    """Return the unnormalised EV charging weight for a clock hour."""
+
+    start_hour, end_hour = _ev_charging_window(charging_cfg)
+    peak_hour = (_ev_charging_peak_hour(charging_cfg, start_hour, end_hour) + float(peak_jitter_hours)) % 24.0
+    shifted_start = (start_hour + float(peak_jitter_hours)) % 24.0
+    shifted_end = (end_hour + float(peak_jitter_hours)) % 24.0
+    if not _hour_float_in_window(hour, shifted_start, shifted_end):
+        return 0.0
+
+    shape = str(charging_cfg.get("charging_shape", "")).strip().lower()
+    if shape in {"", "flat", "block"}:
+        return 1.0
+
+    spread = max(value_from_range(charging_cfg.get("profile_spread_hours"), 1.5), 0.25)
+    distance = _circular_hour_distance(hour, peak_hour)
+    return float(np.exp(-0.5 * (distance / spread) ** 2))
+
+
+def _ev_daily_weight_sum(charging_cfg: Mapping[str, Any], *, peak_jitter_hours: float = 0.0) -> float:
+    """Return the hourly daily weight sum for snapshot EV calculations."""
+
+    weights = [
+        _ev_hour_weight(float(hour), charging_cfg, peak_jitter_hours=peak_jitter_hours)
+        for hour in range(24)
+    ]
+    return max(float(sum(weights)), 1e-9)
+
+
 def annual_ev_home_charging_kwh(ev_cfg: Mapping[str, Any]) -> float:
     """Return annual home-charged EV electricity for one active EV household."""
 
@@ -66,23 +146,23 @@ def ev_charging_power_for_timestamp(
     ev_cfg: Mapping[str, Any],
     *,
     has_ev: bool,
+    peak_jitter_hours: float = 0.0,
 ) -> float:
-    """Return a simple uncontrolled home-charging load for one timestamp."""
+    """Return a simple home-charging load for one timestamp."""
 
     if not bool(has_ev):
         return 0.0
 
     charging_cfg = dict(ev_cfg.get("charging", {}))
-    window_cfg = dict(charging_cfg.get("uncontrolled_arrival_window", {}))
-    start_hour = int(window_cfg.get("start_hour", 17))
-    end_hour = int(window_cfg.get("end_hour", 22))
     current = pd.Timestamp(timestamp)
-    if not _hour_in_window(int(current.hour), start_hour, end_hour):
+    hour = float(current.hour) + float(current.minute) / 60.0 + float(current.second) / 3600.0
+    weight = _ev_hour_weight(hour, charging_cfg, peak_jitter_hours=peak_jitter_hours)
+    if weight <= 0.0:
         return 0.0
 
     annual_kwh = annual_ev_home_charging_kwh(ev_cfg)
-    active_hours_per_year = _window_hours(start_hour, end_hour) * 365.0
-    unconstrained_w = annual_kwh * 1000.0 / max(active_hours_per_year, 1.0)
+    daily_weight_sum = _ev_daily_weight_sum(charging_cfg, peak_jitter_hours=peak_jitter_hours)
+    unconstrained_w = (annual_kwh / 365.0) * 1000.0 * weight / daily_weight_sum
     charger_limit_w = value_from_range(charging_cfg.get("charger_power_kw"), 7.4) * 1000.0
     return float(min(max(unconstrained_w, 0.0), max(charger_limit_w, 0.0)))
 
@@ -92,13 +172,44 @@ def build_ev_charging_profile(
     ev_cfg: Mapping[str, Any],
     *,
     has_ev: bool,
+    random_seed: int | None = None,
 ) -> tuple[float, ...]:
-    """Build an hourly EV charging profile for a household."""
+    """Build an EV charging profile for a household."""
 
-    return tuple(
-        ev_charging_power_for_timestamp(timestamp, ev_cfg, has_ev=has_ev)
-        for timestamp in timestamps
-    )
+    if not bool(has_ev):
+        return tuple(0.0 for _ in timestamps)
+    if len(timestamps) == 0:
+        return ()
+
+    charging_cfg = dict(ev_cfg.get("charging", {}))
+    jitter_sigma = max(value_from_range(charging_cfg.get("peak_jitter_sigma_hours"), 0.0), 0.0)
+    peak_jitter_hours = 0.0
+    if random_seed is not None and jitter_sigma > 0.0:
+        max_jitter = max(value_from_range(charging_cfg.get("peak_jitter_max_hours"), 3.0), 0.0)
+        rng = np.random.default_rng(int(random_seed))
+        peak_jitter_hours = float(np.clip(rng.normal(0.0, jitter_sigma), -max_jitter, max_jitter))
+
+    weights = []
+    for timestamp in timestamps:
+        current = pd.Timestamp(timestamp)
+        hour = float(current.hour) + float(current.minute) / 60.0 + float(current.second) / 3600.0
+        weights.append(_ev_hour_weight(hour, charging_cfg, peak_jitter_hours=peak_jitter_hours))
+    weights_array = np.asarray(weights, dtype=float)
+    if not np.any(weights_array > 0.0):
+        return tuple(0.0 for _ in timestamps)
+
+    index = pd.DatetimeIndex(pd.to_datetime(list(timestamps)))
+    if len(index) >= 2:
+        deltas = index.to_series().sort_values().diff().dropna().dt.total_seconds() / 3600.0
+        timestep_hours = float(deltas.median()) if not deltas.empty else 1.0
+    else:
+        timestep_hours = 1.0
+
+    annual_kwh = annual_ev_home_charging_kwh(ev_cfg)
+    raw_energy_weight = float(np.sum(weights_array * timestep_hours))
+    unconstrained_w = weights_array * (annual_kwh * 1000.0 / max(raw_energy_weight, 1e-9))
+    charger_limit_w = value_from_range(charging_cfg.get("charger_power_kw"), 7.4) * 1000.0
+    return tuple(float(value) for value in np.clip(unconstrained_w, 0.0, max(charger_limit_w, 0.0)).tolist())
 
 
 def pv_generation_from_irradiance(

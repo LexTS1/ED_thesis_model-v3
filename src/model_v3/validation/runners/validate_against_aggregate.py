@@ -33,6 +33,7 @@ from model_v3.validation.runners.runner_utils import (
     build_runner_cli,
     configure_runner_logging,
     format_elapsed_summary,
+    quick_external_row_cap,
     runtime_context_lines,
     validation_type_lines,
 )
@@ -166,6 +167,68 @@ def _fluvius_absolute_metrics(model_series_w: pd.Series, data_series_w: pd.Serie
     }
 
 
+def _pearson_or_nan(left: pd.Series, right: pd.Series) -> float:
+    aligned = pd.concat([left, right], axis=1, join="inner").dropna()
+    if len(aligned) < 2:
+        return float("nan")
+    return float(aligned.iloc[:, 0].corr(aligned.iloc[:, 1]))
+
+
+def _clock_profile(series_w: pd.Series) -> pd.Series:
+    local = series_w.copy().sort_index()
+    if local.index.tz is None:
+        local.index = pd.DatetimeIndex(local.index).tz_localize(_BELGIUM_TZ)
+    else:
+        local.index = pd.DatetimeIndex(local.index).tz_convert(_BELGIUM_TZ)
+    minutes = local.index.hour * 60 + local.index.minute
+    return pd.Series(local.to_numpy(dtype=float), index=minutes, dtype=float).groupby(level=0).mean().sort_index()
+
+
+def _best_lag_diagnostic(model_series_w: pd.Series, data_series_w: pd.Series, *, max_lag_hours: int = 24) -> dict[str, float]:
+    aligned = pd.concat([model_series_w, data_series_w], axis=1, join="inner").dropna()
+    if len(aligned) < 3:
+        return {"best_lag_steps": 0.0, "best_lag_hours": 0.0, "best_lag_correlation": float("nan")}
+    median_step_hours = float(aligned.index.to_series().diff().dt.total_seconds().dropna().median() / 3600.0)
+    if not np.isfinite(median_step_hours) or median_step_hours <= 0.0:
+        median_step_hours = 1.0
+    max_lag_steps = max(int(round(float(max_lag_hours) / median_step_hours)), 1)
+    best_lag = 0
+    best_corr = float("-inf")
+    for lag_steps in range(-max_lag_steps, max_lag_steps + 1):
+        shifted_model = aligned.iloc[:, 0].shift(lag_steps)
+        corr = _pearson_or_nan(shifted_model, aligned.iloc[:, 1])
+        if np.isfinite(corr) and corr > best_corr:
+            best_lag = lag_steps
+            best_corr = corr
+    return {
+        "best_lag_steps": float(best_lag),
+        "best_lag_hours": float(best_lag * median_step_hours),
+        "best_lag_correlation": best_corr if np.isfinite(best_corr) else float("nan"),
+    }
+
+
+def _fluvius_diagnostics(model_series_w: pd.Series, data_series_w: pd.Series) -> dict[str, float]:
+    """Return scale and timing diagnostics before changing any acceptance threshold."""
+
+    model_clock = _clock_profile(model_series_w)
+    data_clock = _clock_profile(data_series_w)
+    model_month = model_series_w.resample("ME").mean()
+    data_month = data_series_w.resample("ME").mean()
+    lag = _best_lag_diagnostic(model_series_w, data_series_w)
+    model_mean = float(model_series_w.mean())
+    data_mean = float(data_series_w.mean())
+    return {
+        "model_mean_W": model_mean,
+        "reference_mean_W": data_mean,
+        "reference_to_model_mean_scale": data_mean / max(model_mean, 1e-9),
+        "model_peak_clock_hour": float(model_clock.idxmax() / 60.0) if not model_clock.empty else float("nan"),
+        "reference_peak_clock_hour": float(data_clock.idxmax() / 60.0) if not data_clock.empty else float("nan"),
+        "mean_daily_clock_correlation": _pearson_or_nan(model_clock, data_clock),
+        "monthly_mean_correlation": _pearson_or_nan(model_month, data_month),
+        **lag,
+    }
+
+
 def _write_fluvius_report(
     report_path: Path,
     *,
@@ -276,6 +339,10 @@ def _write_fluvius_report(
     lines.extend(["", "## External Aggregate Metrics", ""])
     for key, value in metrics["events"].items():
         lines.append(f"- {key}: {value:.6f}")
+    if metrics.get("diagnostics"):
+        lines.extend(["", "## Temporal / Scaling Diagnostics", ""])
+        for key, value in metrics["diagnostics"].items():
+            lines.append(f"- {key}: {float(value):.6f}")
     lines.extend(
         [
             "",
@@ -309,17 +376,24 @@ def _validate_against_fluvius_external(config: Mapping[str, Any], quick_mode: bo
         quick_metadata["enabled"],
         validation_cfg.get("model_source", "cohort"),
     )
-    model_results, model_frame = _run_validation_model(config=prepared_config, validation_cfg=validation_cfg)
+    model_results, model_frame = run_validation_model(config=prepared_config, validation_cfg=validation_cfg)
 
-    reference_year = int(dict(prepared_config.get("simulation", {})).get("reference_year", 2013))
+    raw_reference_year = dict(prepared_config.get("simulation", {}).get("reference_year"))
     model_series_w = pd.Series(model_frame["value"].to_numpy(dtype=float), index=pd.to_datetime(model_frame["timestamp"]))
     households = max(int(fluvius_cfg.get("households", model_results.get("household_count", 1)) or 1), 1)
     model_total_w = model_series_w * households
 
-    fluvius_profiles = load_fluvius_profiles(fluvius_cfg.get("base_path", "inputs/load_profiles/fluvius"))
+    LOGGER.info("aggregate_validation.fluvius_external.reference_load start")
+    fluvius_profiles = load_fluvius_profiles(
+        fluvius_cfg.get("base_path", "inputs/load_profiles/fluvius"),
+        max_rows_per_file=quick_external_row_cap(quick_metadata, rows_per_step=4),
+        pv_variant_policy=str(fluvius_cfg.get("pv_variant_policy", "all")),
+    )
+    LOGGER.info("aggregate_validation.fluvius_external.reference_load complete profiles=%s", len(fluvius_profiles))
     weighted_profile_kw, fluvius_details = aggregate_fluvius_profiles(
         profiles=fluvius_profiles,
         profile_weights=dict(fluvius_cfg.get("profile_weights", {})),
+        pv_variant_policy=str(fluvius_cfg.get("pv_variant_policy", "all")),
     )
     weighted_profile_kw, mapping_warnings = _normalise_to_reference_year(weighted_profile_kw, reference_year)
     fluvius_details = dict(fluvius_details)
@@ -350,6 +424,7 @@ def _validate_against_fluvius_external(config: Mapping[str, Any], quick_mode: bo
     aligned_model = pd.Series(aligned["value_model"].to_numpy(dtype=float), index=pd.to_datetime(aligned["timestamp"]))
     aligned_data = pd.Series(aligned["value_data"].to_numpy(dtype=float), index=pd.to_datetime(aligned["timestamp"]))
     metrics = _fluvius_absolute_metrics(aligned_model, aligned_data)
+    metrics["diagnostics"] = _fluvius_diagnostics(aligned_model, aligned_data)
 
     report_dir = validation_output_dir(config=prepared_config, dataset_name="fluvius_external")
     plot_paths = _generate_plots(
@@ -444,7 +519,11 @@ def validate_against_aggregate(config: Mapping[str, Any], quick_mode: bool | Non
     aggregate_validation_cfg = dict(validation_cfg)
     LOGGER.info("aggregate_validation.reference_load start")
     aggregate_frame, _, aggregation_mode = load_aggregate_reference_profile(config=prepared_config, validation_cfg=aggregate_validation_cfg)
-    reference_year = int(dict(prepared_config.get("simulation", {})).get("reference_year", 2013))
+    raw_reference_year = dict(prepared_config.get("simulation", {})).get("reference_year")
+    if raw_reference_year is None:
+        reference_year = int(pd.to_datetime(model_frame["timestamp"]).dt.year.mode().iloc[0])
+    else:
+        reference_year = int(raw_reference_year)
     aggregate_frame, mapping_warnings, aggregate_reference_year_mode = _map_aggregate_reference_year(
         aggregate_frame,
         validation_cfg=validation_cfg,

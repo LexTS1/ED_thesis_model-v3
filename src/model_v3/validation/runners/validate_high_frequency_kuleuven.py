@@ -28,6 +28,7 @@ from model_v3.validation.runners.runner_utils import (
     build_runner_cli,
     configure_runner_logging,
     format_elapsed_summary,
+    quick_external_row_cap,
     runtime_context_lines,
 )
 from model_v3.validation.runners.model_runner import run_validation_model
@@ -36,6 +37,72 @@ from model_v3.validation.utils.alignment import align_timeseries
 
 LOGGER = logging.getLogger(__name__)
 _BELGIUM_TZ = "Europe/Brussels"
+
+
+def _resolve_base_path(base_path: str | Path) -> Path:
+    candidate = Path(base_path)
+    return candidate if candidate.is_absolute() else Path.cwd() / candidate
+
+
+def _resolve_cache_dir(kuleuven_cfg: Mapping[str, Any]) -> Path | None:
+    raw_cache_dir = kuleuven_cfg.get("cache_dir")
+    if not raw_cache_dir:
+        return None
+    candidate = Path(str(raw_cache_dir))
+    return candidate if candidate.is_absolute() else Path.cwd() / candidate
+
+
+def _load_cached_profiles(cache_dir: Path | None) -> dict[str, pd.Series]:
+    if cache_dir is None or not cache_dir.exists():
+        return {}
+    profiles: dict[str, pd.Series] = {}
+    for path in sorted(cache_dir.glob("*.csv")):
+        frame = pd.read_csv(path)
+        if "timestamp" not in frame.columns or "power_kW" not in frame.columns:
+            continue
+        timestamps = pd.to_datetime(frame["timestamp"], utc=True, errors="coerce").dt.tz_convert(_BELGIUM_TZ)
+        values = pd.to_numeric(frame["power_kW"], errors="coerce")
+        series = pd.Series(values.to_numpy(dtype=float), index=pd.DatetimeIndex(timestamps), dtype=float)
+        series = series.loc[~series.index.isna()].dropna().sort_index()
+        if series.index.has_duplicates:
+            series = series.groupby(level=0).mean().sort_index()
+        profiles[path.stem] = series
+    return profiles
+
+
+def _write_cached_profiles(cache_dir: Path, profiles: Mapping[str, pd.Series]) -> None:
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    for house_id, series in profiles.items():
+        pd.DataFrame(
+            {
+                "timestamp": pd.DatetimeIndex(series.index).astype(str),
+                "power_kW": series.to_numpy(dtype=float),
+            }
+        ).to_csv(cache_dir / f"{house_id}.csv", index=False)
+
+
+def _quick_reference_skip_reason(kuleuven_cfg: Mapping[str, Any], quick_metadata: Mapping[str, Any]) -> str | None:
+    """Return a skip reason when quick mode would touch oversized KUL raw files."""
+
+    if not bool(quick_metadata.get("enabled", False)):
+        return None
+    max_file_mb = float(kuleuven_cfg.get("quick_max_file_mb", 100.0))
+    root = _resolve_base_path(kuleuven_cfg.get("base_path", "inputs/load_profiles/kul"))
+    house_files = sorted(root.glob("house_*/*-elec.csv"))
+    if not house_files:
+        return None
+    oversized = [
+        path
+        for path in house_files
+        if path.exists() and path.stat().st_size > max_file_mb * 1024.0 * 1024.0
+    ]
+    if not oversized:
+        return None
+    names = ", ".join(f"{path.name} ({path.stat().st_size / (1024.0 * 1024.0):.1f} MB)" for path in oversized[:3])
+    return (
+        f"Quick mode skipped KU Leuven raw reference loading because file(s) exceed "
+        f"validation.kuleuven.quick_max_file_mb={max_file_mb:.1f}: {names}."
+    )
 
 
 def _normalise_to_reference_year(series: pd.Series, reference_year: int) -> tuple[pd.Series, list[str]]:
@@ -263,6 +330,12 @@ def _write_case_study_report(
             extra="The monitored households are case studies; use this report for event-realism diagnostics only.",
         ),
         "",
+        "## Resolution Limit",
+        "",
+        "- status: diagnostic_case_study_not_acceptance_failure",
+        "- reason: model output is hourly and cohort-averaged, while the KU Leuven references contain household-level high-frequency appliance events.",
+        "- thesis use: cite these metrics as evidence of sub-hourly spike limits, not as statistical rejection of annual or hourly validation.",
+        "",
         "## Setup",
         "",
         f"- model reference year: {reference_year}",
@@ -331,7 +404,6 @@ def _write_case_study_report(
 def validate_high_frequency_kuleuven(config: Mapping[str, Any], quick_mode: bool | None = None) -> dict[str, Any]:
     """Run a KU Leuven high-frequency case-study validation."""
 
-    runner_started = perf_counter()
     prepared_config, quick_metadata = apply_quick_validation_mode(config=config, quick_mode=quick_mode)
     validation_cfg = dict(prepared_config.get("validation", {}))
     kuleuven_cfg = dict(validation_cfg.get("kuleuven", {}))
@@ -345,6 +417,81 @@ def validate_high_frequency_kuleuven(config: Mapping[str, Any], quick_mode: bool
         validation_cfg.get("model_source", "cohort"),
         reference_year,
     )
+    return _validate_high_frequency_kuleuven(config=prepared_config, quick_metadata=quick_metadata, rebuild_cache=False, rebuild_cache_if_missing=False)
+
+
+def _validate_high_frequency_kuleuven(
+    *,
+    config: Mapping[str, Any],
+    quick_metadata: Mapping[str, Any],
+    rebuild_cache: bool = False,
+    rebuild_cache_if_missing: bool = False,
+) -> dict[str, Any]:
+    """Run a KU Leuven high-frequency validation with optional cache management."""
+
+    runner_started = perf_counter()
+    prepared_config = dict(config)
+    validation_cfg = dict(prepared_config.get("validation", {}))
+    kuleuven_cfg = dict(validation_cfg.get("kuleuven", {}))
+    reference_year = int(dict(prepared_config.get("simulation", {})).get("reference_year", 2013))
+    cache_dir = _resolve_cache_dir(kuleuven_cfg)
+    cached_houses = _load_cached_profiles(cache_dir)
+    quick_skip_reason = None if cached_houses else _quick_reference_skip_reason(kuleuven_cfg, quick_metadata)
+    if quick_skip_reason:
+        LOGGER.warning("kuleuven_validation.quick_skip %s", quick_skip_reason)
+        report_dir = ensure_dir(output_root(prepared_config) / "validation" / "kuleuven_high_freq")
+        report_root = ensure_dir(output_root(prepared_config) / "validation")
+        report_path = report_root / "validation_report_v3_kuleuven_high_freq.md"
+        metrics_path = report_dir / "metrics.json"
+        lines = [
+            "# Validation Report — KU Leuven High-Frequency Case Study",
+            "",
+            "## Status",
+            "",
+            "- status: skipped in quick mode",
+            f"- reason: {quick_skip_reason}",
+            "",
+            *runtime_context_lines(prepared_config, quick_metadata=quick_metadata, n_steps=0),
+            "",
+            *artifact_interpretation_lines(
+                prepared_config,
+                quick_metadata=quick_metadata,
+                n_steps=0,
+                extra="Run this validation in full mode after making the KU Leuven raw CSVs locally available.",
+            ),
+            "",
+        ]
+        report_path.write_text("\n".join(lines), encoding="utf-8")
+        write_json(
+            metrics_path,
+            {
+                "status": "skipped_quick_external_reference_too_large",
+                "reason": quick_skip_reason,
+                "quick_mode": quick_metadata,
+                "reference_year": reference_year,
+            },
+        )
+        elapsed_seconds = perf_counter() - runner_started
+        return {
+            "report_path": str(report_path),
+            "metrics_path": str(metrics_path),
+            "houses": {},
+            "key_metrics": {},
+            "runner_timing": {
+                "elapsed_seconds": elapsed_seconds,
+                "quick_mode": quick_metadata["enabled"],
+                "n_steps": 0,
+            },
+            "quick_mode": quick_metadata,
+            "status": "skipped",
+            "reason": quick_skip_reason,
+        }
+    if not cached_houses and not (rebuild_cache or rebuild_cache_if_missing):
+        cache_hint = str(cache_dir) if cache_dir is not None else "validation.kuleuven.cache_dir"
+        raise ValueError(
+            "KU Leuven compact cache is missing. Run this runner with --rebuild-cache-if-missing "
+            f"or --rebuild-cache after making the raw CSVs local. Expected cache: {cache_hint}"
+        )
     model_results, model_frame = run_validation_model(config=prepared_config, validation_cfg=validation_cfg)
     model_series_w = pd.Series(model_frame["value"].to_numpy(dtype=float), index=pd.to_datetime(model_frame["timestamp"])).sort_index()
     if model_series_w.index.tz is None:
@@ -352,7 +499,19 @@ def validate_high_frequency_kuleuven(config: Mapping[str, Any], quick_mode: bool
     else:
         model_series_w.index = pd.DatetimeIndex(model_series_w.index).tz_convert(_BELGIUM_TZ)
 
-    houses = load_kuleuven_profiles(kuleuven_cfg.get("base_path", "inputs/load_profiles/kul"))
+    LOGGER.info("kuleuven_validation.reference_load start")
+    if cached_houses and not rebuild_cache:
+        houses = cached_houses
+        LOGGER.info("kuleuven_validation.reference_load using_cache houses=%s cache_dir=%s", len(houses), cache_dir)
+    else:
+        houses = load_kuleuven_profiles(
+            kuleuven_cfg.get("base_path", "inputs/load_profiles/kul"),
+            max_rows_per_file=quick_external_row_cap(quick_metadata, rows_per_step=4),
+        )
+        if cache_dir is not None:
+            _write_cached_profiles(cache_dir, houses)
+            LOGGER.info("kuleuven_validation.cache_written houses=%s cache_dir=%s", len(houses), cache_dir)
+    LOGGER.info("kuleuven_validation.reference_load complete houses=%s", len(houses))
     report_dir = ensure_dir(output_root(prepared_config) / "validation" / "kuleuven_high_freq")
     report_root = ensure_dir(output_root(prepared_config) / "validation")
 
@@ -399,6 +558,11 @@ def validate_high_frequency_kuleuven(config: Mapping[str, Any], quick_mode: bool
             "houses": all_metrics,
             "quick_mode": quick_metadata,
             "reference_year": reference_year,
+            "interpretation_status": "diagnostic_case_study_not_acceptance_failure",
+            "resolution_limit": (
+                "Hourly cohort output cannot reproduce household-level 15-minute appliance spikes without a dedicated "
+                "sub-hourly event layer."
+            ),
         },
     )
 
@@ -430,7 +594,15 @@ def validate_high_frequency_kuleuven(config: Mapping[str, Any], quick_mode: bool
 if __name__ == "__main__":
     from pipelines.run_model_v3 import load_config
 
-    args = build_runner_cli("Run KU Leuven high-frequency case-study validation for model_v3.").parse_args()
+    parser = build_runner_cli("Run KU Leuven high-frequency case-study validation for model_v3.")
+    parser.add_argument("--rebuild-cache", action="store_true", help="Rebuild compact KU Leuven validation cache from raw CSV files.")
+    parser.add_argument(
+        "--rebuild-cache-if-missing",
+        action="store_true",
+        help="Build compact KU Leuven validation cache from raw CSV files only when it is missing.",
+    )
+    args = parser.parse_args()
+    args_parser_config = load_config(args.config)
     configure_runner_logging(
         (
             __name__,
@@ -439,6 +611,12 @@ if __name__ == "__main__":
             "model_v3.adapters.kuleuven_loader",
         )
     )
-    result = validate_high_frequency_kuleuven(load_config(args.config), quick_mode=args.quick)
+    prepared_config, quick_metadata = apply_quick_validation_mode(config=args_parser_config, quick_mode=args.quick)
+    result = _validate_high_frequency_kuleuven(
+        config=prepared_config,
+        quick_metadata=quick_metadata,
+        rebuild_cache=bool(args.rebuild_cache),
+        rebuild_cache_if_missing=bool(args.rebuild_cache_if_missing),
+    )
     print(result)
     print(format_elapsed_summary("kuleuven_high_freq", result))

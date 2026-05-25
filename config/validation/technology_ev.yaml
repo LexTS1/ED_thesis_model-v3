@@ -1,0 +1,50 @@
+runner:
+  name: technology_ev
+  description: Minimum EV validation against Fluvius EV/no-EV residential load-profile signatures.
+  timeout_seconds: 300
+  command:
+    - "{python}"
+    - "-m"
+    - "model_v3.validation.technology.ev.run_ev_validation"
+    - "--repo-root"
+    - "{repo_root}"
+    - "--config"
+    - "config/validation/technology_ev.yaml"
+    - "--generate-model-profiles"
+    - "--print-summary"
+  quick_args:
+    - "--cohort-size"
+    - "5"
+    - "--report-dir"
+    - "outputs/validation/debug/technology_ev/reports"
+    - "--figure-dir"
+    - "outputs/validation/debug/technology_ev/figures"
+  full_args: []
+  quick_expected_artifacts:
+    - "outputs/validation/debug/technology_ev/reports/technology_ev_validation_report.md"
+    - "outputs/validation/debug/technology_ev/reports/technology_ev_validation_metrics.json"
+  full_expected_artifacts:
+    - "reports/model_v3/validation/technology/ev/technology_ev_validation_report.md"
+    - "reports/model_v3/validation/technology/ev/technology_ev_validation_metrics.json"
+
+validation:
+  technology:
+    ev:
+      fluvius:
+        base_no_pv_file: inputs/load_profiles/fluvius/P6269_Open_Data_geen_ZP.csv
+        ev_no_pv_file: inputs/load_profiles/fluvius/P6269_Open_Data_EV_geen_ZP.csv
+        base_with_pv_file: inputs/load_profiles/fluvius/P6269_Open_Data_enkel_ZP.csv
+        ev_with_pv_file: inputs/load_profiles/fluvius/P6269_Open_Data_EV_met_ZP.csv
+      model:
+        technology_inputs_file: config/belgian_technology_inputs.yaml
+        model_config_file: config/thesis.yaml
+        ev_profile_file: reports/model_v3/validation/technology/ev/model_ev_charging_profile_2024.csv
+        cohort_size: 100
+        seed: 42
+        reference_year: 2024
+        target_resolution_seconds: 3600
+        periods: 8760
+        jitter_households: true
+      outputs:
+        report_dir: reports/model_v3/validation/technology/ev
+        figure_dir: figures/model_v3/validation/technology/ev

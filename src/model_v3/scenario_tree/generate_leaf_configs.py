@@ -417,8 +417,9 @@ def run_config_payload(
         },
         "model_options": {
             "run_mode": "scenario_leaf",
+            "runner_mode": "annual_demand",
             "execute_simulation": False,
-            "use_stochastic_cohort": True,
+            "use_stochastic_cohort": False,
             "use_climate_forcing": True,
             "use_technology_case": True,
             "write_outputs": True,

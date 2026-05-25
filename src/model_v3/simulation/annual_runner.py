@@ -296,12 +296,54 @@ def _filter_weather_to_reference_year(
     return filtered
 
 
+def _filter_dataset_to_analysis_window(
+    dataset: TimeSeriesData,
+    *,
+    analysis_start: str | None,
+    analysis_end: str | None,
+    source_name: str,
+) -> TimeSeriesData:
+    """Return rows inside the configured inclusive calendar-date window."""
+
+    if not analysis_start and not analysis_end:
+        return dataset
+
+    start_date = pd.Timestamp(analysis_start).date() if analysis_start else None
+    end_date = pd.Timestamp(analysis_end).date() if analysis_end else None
+    filtered_indices: list[int] = []
+    for index, timestamp in enumerate(dataset.timestamps):
+        current_date = pd.Timestamp(timestamp).date()
+        if start_date is not None and current_date < start_date:
+            continue
+        if end_date is not None and current_date > end_date:
+            continue
+        filtered_indices.append(index)
+
+    if not filtered_indices:
+        source_path = dataset.metadata.get("input_file_path") or dataset.metadata.get("source_name") or source_name
+        raise ValueError(
+            "Analysis window selected no rows: "
+            f"source={source_path}, analysis_start={analysis_start}, analysis_end={analysis_end}."
+        )
+
+    return TimeSeriesData(
+        timestamps=tuple(dataset.timestamps[index] for index in filtered_indices),
+        columns={
+            column_name: tuple(values[index] for index in filtered_indices)
+            for column_name, values in dataset.columns.items()
+        },
+        metadata=dict(dataset.metadata),
+    )
+
+
 def _prepare_reference_year_input(input_dataset: InputDataset, config: Mapping[str, Any]) -> InputDataset:
     """Prepare an input bundle for sequential simulation over a coherent reference year."""
 
     simulation_cfg = dict(config.get("simulation", {}))
     data_cfg = dict(config.get("data", {}))
     reference_year = simulation_cfg.get("reference_year")
+    analysis_start = simulation_cfg.get("analysis_start")
+    analysis_end = simulation_cfg.get("analysis_end")
     max_steps = simulation_cfg.get("max_steps")
     source_data = dict(input_dataset.source_data)
     target_resolution_seconds = int(data_cfg.get("target_resolution_seconds", input_dataset.target_resolution_seconds or 3600))
@@ -315,6 +357,14 @@ def _prepare_reference_year_input(input_dataset: InputDataset, config: Mapping[s
             )
         if "load_profiles" in source_data:
             source_data["load_profiles"] = _filter_dataset_to_year(source_data["load_profiles"], int(reference_year))
+
+    if "weather" in source_data:
+        source_data["weather"] = _filter_dataset_to_analysis_window(
+            source_data["weather"],
+            analysis_start=analysis_start,
+            analysis_end=analysis_end,
+            source_name="weather",
+        )
 
     weather_timestamps = tuple(source_data.get("weather", TimeSeriesData()).timestamps)
     if not weather_timestamps:
@@ -335,6 +385,9 @@ def _prepare_reference_year_input(input_dataset: InputDataset, config: Mapping[s
     prepared_metadata = dict(input_dataset.metadata)
     prepared_metadata["simulation"] = {
         "reference_year": reference_year,
+        "schedule_reference_year": simulation_cfg.get("schedule_reference_year"),
+        "analysis_start": analysis_start,
+        "analysis_end": analysis_end,
         "selected_timestamps": len(weather_timestamps),
     }
     return replace(
@@ -463,6 +516,13 @@ def run_annual_simulation_from_input_data(input_data: InputDataset, config: Mapp
                 "P_district_heat_dhw_W": system_state.P_district_heat_dhw_W,
                 "heating_technology_type": system_state.metadata.get("heating_technology_type", "legacy_representative"),
                 "dhw_technology_type": system_state.metadata.get("dhw_technology_type", "legacy_representative"),
+                "heating_heat_pump_cop": system_state.metadata.get("heating_heat_pump_cop"),
+                "heating_heat_pump_source_temperature_C": system_state.metadata.get("heating_heat_pump_source_temperature_C"),
+                "heating_heat_pump_sink_temperature_C": system_state.metadata.get("heating_heat_pump_sink_temperature_C"),
+                "hybrid_hp_useful_heat_W": system_state.metadata.get("hybrid_hp_useful_heat_W"),
+                "hybrid_gas_useful_heat_W": system_state.metadata.get("hybrid_gas_useful_heat_W"),
+                "hybrid_hp_available_capacity_W": system_state.metadata.get("hybrid_hp_available_capacity_W"),
+                "hybrid_dispatch_mode": system_state.metadata.get("hybrid_dispatch_mode"),
                 "heating_on": control_state.heating_on,
                 "integration_substeps": int(system_state.metadata.get("integration_substeps", 1)),
             }

@@ -34,6 +34,23 @@ def _normalise_timestamp(value: str) -> pd.Timestamp:
     return timestamp.tz_convert("Europe/Brussels")
 
 
+def _schedule_timestamp(target_timestamp: pd.Timestamp, metadata: Mapping[str, Any]) -> pd.Timestamp:
+    """Return the timestamp used for calendar-dependent occupancy schedules."""
+
+    simulation_cfg = dict(metadata.get("simulation", {}))
+    reference_year = simulation_cfg.get("schedule_reference_year")
+    if reference_year in {None, ""}:
+        return target_timestamp
+
+    year = int(reference_year)
+    try:
+        return target_timestamp.replace(year=year)
+    except ValueError:
+        if int(target_timestamp.month) == 2 and int(target_timestamp.day) == 29:
+            return target_timestamp.replace(year=year, day=28)
+        raise
+
+
 def _value_at(dataset: TimeSeriesData, column_name: str, index: int = 0, default: float = 0.0) -> float:
     """Read a scalar value from a source dataset with safe fallback."""
 
@@ -446,8 +463,9 @@ def build_prepared_forcing(input_dataset: InputDataset, include_preview: bool = 
     der_cfg = dict(input_dataset.metadata.get("der", {}))
     mobility_cfg = dict(input_dataset.metadata.get("mobility", {}))
     schedule_variation_seed = int(cohort_cfg.get("schedule_variation_seed", 0))
+    schedule_timestamp = _schedule_timestamp(target_timestamp, input_dataset.metadata)
     occupancy = _occupancy_snapshot(
-        target_timestamp=target_timestamp,
+        target_timestamp=schedule_timestamp,
         occupancy_spec=occupancy_spec,
         occupants_per_dwelling=input_dataset.occupants_per_dwelling,
         occupant_gains={
@@ -469,7 +487,7 @@ def build_prepared_forcing(input_dataset: InputDataset, include_preview: bool = 
     }.get(str(occupancy["schedule_state"]), float(input_dataset.T_set_C))
     control_schedule = dict(input_dataset.metadata.get("control_schedule", {}))
     T_set_C = resolve_time_of_day_setpoint(
-        timestamp=target_timestamp,
+        timestamp=schedule_timestamp,
         fallback_setpoint_c=fallback_t_set_c,
         control_schedule_cfg=control_schedule,
     )

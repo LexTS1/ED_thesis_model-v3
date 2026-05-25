@@ -10,6 +10,12 @@ from typing import Any, Mapping, Sequence
 CANONICAL_THESIS_CONFIG = "config/thesis.yaml"
 CANONICAL_REFERENCE_YEAR = 2023
 CANONICAL_COHORT_HOUSEHOLDS = 30
+DEFAULT_PROGRESS_LOGGERS = (
+    "model_v3.data.data_module",
+    "model_v3.data.loaders",
+    "model_v3.adapters.fluvius_loader",
+    "model_v3.adapters.kuleuven_loader",
+)
 
 
 def build_runner_cli(description: str, *, include_quick: bool = True) -> argparse.ArgumentParser:
@@ -34,8 +40,24 @@ def configure_runner_logging(logger_names: Sequence[str]) -> None:
         format="%(asctime)s %(levelname)s %(name)s %(message)s",
         datefmt="%H:%M:%S",
     )
-    for logger_name in logger_names:
+    for logger_name in (*DEFAULT_PROGRESS_LOGGERS, *logger_names):
         logging.getLogger(logger_name).setLevel(logging.INFO)
+
+
+def quick_external_row_cap(
+    quick_metadata: Mapping[str, Any],
+    *,
+    rows_per_step: int,
+    safety_steps: int = 8,
+) -> int | None:
+    """Return a row cap for large external validation CSVs in quick mode."""
+
+    if not bool(quick_metadata.get("enabled", False)):
+        return None
+    max_steps = quick_metadata.get("max_steps")
+    if max_steps in {None, ""}:
+        return None
+    return (max(int(max_steps), 1) + max(int(safety_steps), 1)) * max(int(rows_per_step), 1)
 
 
 def apply_quick_validation_mode(

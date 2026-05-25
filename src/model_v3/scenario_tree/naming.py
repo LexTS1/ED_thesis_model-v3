@@ -88,18 +88,26 @@ def validate_scenario_id(value: str) -> None:
 
 
 def validate_scenario_leaf_id(value: str) -> None:
-    """Validate a canonical four-dimension scenario leaf ID."""
+    """Validate a canonical scenario leaf ID.
+
+    Standard scenario-tree leaves have four dimensions:
+    climate window, climate pathway, technology case, and realization.
+    Output-specific design-year pilots may insert one design-year dimension
+    before the realization, for example ``...__cold_design_year__seed_0000``.
+    """
 
     _reject_basic_policy_violations(value, "scenario_leaf_id")
     parts = value.split(DIMENSION_SEPARATOR)
-    if len(parts) != 4:
+    if len(parts) not in {4, 5}:
         raise ScenarioTreeNamingError(
-            f"scenario_leaf_id={value!r} must contain exactly 4 dimensions separated by "
+            f"scenario_leaf_id={value!r} must contain 4 or 5 dimensions separated by "
             f"{DIMENSION_SEPARATOR!r}."
         )
     scenario_id = DIMENSION_SEPARATOR.join(parts[:3])
     validate_scenario_id(scenario_id)
-    validate_realization_id(parts[3])
+    if len(parts) == 5:
+        validate_dimension_id(parts[3])
+    validate_realization_id(parts[-1])
 
 
 def make_scenario_id(climate_window_id: str, climate_pathway_id: str, technology_case_id: str) -> str:
@@ -136,11 +144,11 @@ def parse_scenario_leaf_id(scenario_leaf_id: str) -> dict[str, str]:
     """Parse a scenario leaf ID into named dimensions after validation."""
 
     validate_scenario_leaf_id(scenario_leaf_id)
-    climate_window_id, climate_pathway_id, technology_case_id, realization_id = scenario_leaf_id.split(
-        DIMENSION_SEPARATOR
-    )
+    parts = scenario_leaf_id.split(DIMENSION_SEPARATOR)
+    climate_window_id, climate_pathway_id, technology_case_id = parts[:3]
+    realization_id = parts[-1]
     scenario_id = DIMENSION_SEPARATOR.join((climate_window_id, climate_pathway_id, technology_case_id))
-    return {
+    parsed = {
         "scenario_leaf_id": scenario_leaf_id,
         "scenario_id": scenario_id,
         "climate_window_id": climate_window_id,
@@ -148,6 +156,9 @@ def parse_scenario_leaf_id(scenario_leaf_id: str) -> dict[str, str]:
         "technology_case_id": technology_case_id,
         "realization_id": realization_id,
     }
+    if len(parts) == 5:
+        parsed["design_year_id"] = parts[3]
+    return parsed
 
 
 def is_valid_name(value: str) -> bool:

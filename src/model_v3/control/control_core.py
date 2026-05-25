@@ -75,11 +75,7 @@ def run_control(physics_state: PhysicsState) -> ControlState:
         delta_c=deadband_c,
         previous_heating_on=previous_heating_on,
     )
-    q_heating_requested_w = (
-        max(0.0, float(physics_state.heat_loss_coefficient_W_per_C) * (float(physics_state.T_set_C) - float(physics_state.T_indoor_prev_C)))
-        if heating_on
-        else 0.0
-    )
+    q_heating_requested_w = float(physics_state.Q_heating_demand_W) if heating_on else 0.0
 
     occupied = physics_state.occupied_probability >= float(model_cfg.get("occupancy_threshold", 0.5))
     window_event = _compute_window_event(

@@ -377,9 +377,12 @@ def validate_against_synthetic(config: Mapping[str, Any], quick_mode: bool | Non
         "events": event_metrics,
     }
     acceptance_metrics = build_acceptance_metrics(aligned_model_series, aligned_data_series, metrics)
+    validation_cfg = dict(config.get("validation", {}))
+    synthetic_cfg = dict(validation_cfg.get("synthetic", {}))
+    acceptance_thresholds = dict(synthetic_cfg.get("acceptance", validation_cfg.get("acceptance", {})))
     acceptance = check_acceptance(
         acceptance_metrics,
-        thresholds=dict(dict(config.get("validation", {})).get("acceptance", {})),
+        thresholds=acceptance_thresholds,
     )
     independence = assess_validation_independence(
         input_sources=(),
@@ -423,6 +426,7 @@ def validate_against_synthetic(config: Mapping[str, Any], quick_mode: bool | Non
             "metrics": metrics,
             "acceptance_metrics": acceptance_metrics,
             "acceptance": acceptance,
+            "acceptance_threshold_source": "validation.synthetic.acceptance" if synthetic_cfg.get("acceptance") else "validation.acceptance",
             "independence": independence,
             "alignment": alignment_info,
             "quick_mode": quick_metadata,

@@ -20,12 +20,17 @@ from model_v3.stochastic.sampler import sample_household_parameters  # noqa: E40
 
 
 def _write_daily_climate(path: Path, year: int) -> None:
+    _write_daily_climate_window(path, [year])
+
+
+def _write_daily_climate_window(path: Path, years: list[int]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    start = datetime(year, 1, 1, 12)
     rows = ["timestamp,T_out_C,I_solar_W_m2"]
-    for offset in range(365):
-        timestamp = start + timedelta(days=offset)
-        rows.append(f"{timestamp.isoformat()},2.0,200.0")
+    for year in years:
+        start = datetime(year, 1, 1, 12)
+        for offset in range(365):
+            timestamp = start + timedelta(days=offset)
+            rows.append(f"{timestamp.isoformat()},-5.0,50.0")
     path.write_text("\n".join(rows) + "\n", encoding="utf-8")
 
 
@@ -81,6 +86,31 @@ def test_current_stock_scenario_maps_to_gas_outputs(tmp_path: Path) -> None:
     assert results["annual_energy_by_carrier_kWh"]["natural_gas"] > 0.0
     assert results["profile_frame"]["P_gas_space_heating_W"].max() > 0.0
     assert results["profile_frame"]["P_gas_dhw_W"].max() > 0.0
+
+
+def test_scenario_adapter_runs_all_climate_window_years_inside_analysis_window(tmp_path: Path) -> None:
+    run_config = _run_config(
+        tmp_path,
+        leaf_id="near_future_2030_2049__rcp_2_6__tech_frozen_stock__seed_0000",
+        technology_case_id="tech_frozen_stock",
+        year=2030,
+    )
+    climate_path = Path(run_config["climate"]["forcing_file"])
+    _write_daily_climate_window(climate_path, [2030, 2031, 2032])
+    run_config["climate"]["analysis_end"] = "2031-12-31"
+
+    model_config = scenario_leaf_to_model_config(run_config)
+
+    assert model_config["simulation"]["reference_year"] is None
+    assert model_config["simulation"]["schedule_reference_year"] == 2001
+    assert model_config["simulation"]["analysis_start"] == "2030-01-01"
+    assert model_config["simulation"]["analysis_end"] == "2031-12-31"
+
+    results = run_annual_simulation(config=model_config)
+    years = set(results["profile_frame"]["timestamp"].dt.year)
+
+    assert results["n_steps"] == 730
+    assert years == {2030, 2031}
 
 
 def test_high_electrification_pv_ev_scenario_maps_to_sampling_probabilities(tmp_path: Path) -> None:

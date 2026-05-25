@@ -24,6 +24,7 @@ class ScenarioLeafRecord:
     technology_case_id: str
     realization_id: str
     row: dict[str, str]
+    design_year_id: str = ""
 
 
 def load_leaf_records(leaf_index_path: Path) -> list[ScenarioLeafRecord]:
@@ -101,4 +102,3 @@ def select_leaf_records(
             raise ScenarioSelectionError("--limit must be non-negative.")
         selected = selected[:limit]
     return selected
-

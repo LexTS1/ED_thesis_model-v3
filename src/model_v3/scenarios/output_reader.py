@@ -243,6 +243,35 @@ def _integrate_power_column(
     return integrate_power_series_kwh(values, timestamps=_timestamp_values(frame))
 
 
+def _percentile_power_column(
+    frame: pd.DataFrame,
+    base_candidates: Iterable[str],
+    metric_name: str,
+    columns_used: dict[str, str],
+    q: float,
+) -> float | None:
+    """Return the time-weighted q-th percentile (0–100) of a power column."""
+    match = _find_power_column(frame, base_candidates)
+    if match is None:
+        return None
+    column, multiplier = match
+    values = pd.to_numeric(frame[column], errors="coerce").fillna(0.0) * multiplier
+    columns_used[metric_name] = column
+    if values.empty:
+        return None
+    timestamps = _timestamp_values(frame)
+    durations = infer_step_durations_seconds(timestamps)
+    weights = pd.Series([max(d, 0.0) for d in durations], index=values.index, dtype=float)
+    total_weight = float(weights.sum())
+    if total_weight <= 0.0:
+        return float(values.quantile(q / 100.0))
+    order = values.argsort()
+    sorted_values = values.iloc[order].values
+    sorted_weights = weights.iloc[order].values
+    cumulative = sorted_weights.cumsum() / total_weight
+    return float(pd.Series(sorted_values).iloc[int((cumulative < q / 100.0).sum())])
+
+
 def _peak_power_column(
     frame: pd.DataFrame,
     base_candidates: Iterable[str],
@@ -336,6 +365,9 @@ def compute_peak_metrics(raw_outputs: Mapping[str, Any], run_config: Mapping[str
         "peak_grid_import_W": result.metrics["peak_grid_import_W"],
         "winter_peak_grid_import_W": result.metrics["winter_peak_grid_import_W"],
         "summer_peak_grid_import_W": result.metrics["summer_peak_grid_import_W"],
+        "p95_grid_import_W": result.metrics["p95_grid_import_W"],
+        "p99_grid_import_W": result.metrics["p99_grid_import_W"],
+        "grid_import_load_factor": result.metrics["grid_import_load_factor"],
     }
 
 
@@ -502,6 +534,44 @@ def compute_standardized_output_metrics(
             months={6, 7, 8},
         ),
     )
+    _set_metric(
+        metrics,
+        missing,
+        "p95_grid_import_W",
+        _percentile_power_column(
+            frame,
+            ("P_el_grid_import_W", "P_grid_import_W", "grid_import_W"),
+            "p95_grid_import_W",
+            columns_used,
+            q=95.0,
+        ),
+    )
+    _set_metric(
+        metrics,
+        missing,
+        "p99_grid_import_W",
+        _percentile_power_column(
+            frame,
+            ("P_el_grid_import_W", "P_grid_import_W", "grid_import_W"),
+            "p99_grid_import_W",
+            columns_used,
+            q=99.0,
+        ),
+    )
+    peak_w = metrics.get("peak_grid_import_W", float("nan"))
+    mean_import_w = _summary_value(
+        raw_outputs, (("mean_grid_import_W",),)
+    )
+    if mean_import_w is None:
+        match = _find_power_column(frame, ("P_el_grid_import_W", "P_grid_import_W", "grid_import_W"))
+        if match is not None:
+            col, mul = match
+            mean_import_w = float(pd.to_numeric(frame[col], errors="coerce").fillna(0.0).mean() * mul)
+    if mean_import_w is not None and math.isfinite(peak_w) and peak_w > 0.0:
+        load_factor: float | None = float(mean_import_w) / float(peak_w)
+    else:
+        load_factor = None
+    _set_metric(metrics, missing, "grid_import_load_factor", load_factor)
 
     pv_generation, pv_source = _summary_value_with_source(
         raw_outputs,

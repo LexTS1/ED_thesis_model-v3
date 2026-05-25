@@ -1,0 +1,16 @@
+runner:
+  name: synthetic
+  description: Synthetic benchmark for validation-pipeline mechanics.
+  timeout_seconds: 900
+  command:
+    - "{python}"
+    - "-m"
+    - "model_v3.validation.runners.validate_against_synthetic"
+    - "--config"
+    - "config/thesis.yaml"
+  quick_args:
+    - "--quick"
+  full_args: []
+  expected_artifacts:
+    - "outputs/validation/synthetic/validation_report_v3_synthetic.md"
+    - "outputs/validation/synthetic/metrics.json"

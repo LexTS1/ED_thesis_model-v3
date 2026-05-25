@@ -30,6 +30,46 @@ from model_v3.validation.runners.runner_utils import build_runner_cli
 from pipelines import run_model_v3
 
 
+def _load_model_config_for_short_smoke() -> dict:
+    """Load the synthetic smoke config without asking it to represent a full year."""
+
+    config_path = Path(__file__).resolve().parents[1] / "config" / "model.yaml"
+    config = run_model_v3.load_config(config_path=config_path)
+    config.setdefault("simulation", {})
+    config["simulation"]["max_steps"] = 24
+    config["simulation"]["reference_year"] = None
+    timestamps = [f"2023-01-01T{hour:02d}:00:00+01:00" for hour in range(24)]
+    daytime_solar = [0.0] * 7 + [80.0, 180.0, 320.0, 450.0, 550.0, 600.0, 520.0, 390.0, 230.0, 90.0] + [0.0] * 7
+    appliance_shape = [180.0] * 6 + [260.0, 340.0, 300.0, 240.0, 220.0, 230.0, 250.0, 260.0, 280.0, 330.0, 420.0, 520.0, 610.0, 560.0, 460.0, 360.0, 280.0, 220.0]
+    lighting_shape = [120.0] * 7 + [70.0, 40.0, 20.0, 15.0, 15.0, 15.0, 20.0, 30.0, 55.0, 90.0, 130.0, 160.0, 170.0, 150.0, 130.0, 120.0, 120.0]
+    cooking_shape = [20.0] * 7 + [180.0, 80.0, 20.0, 20.0, 60.0, 120.0, 60.0, 20.0, 20.0, 80.0, 260.0, 360.0, 220.0, 70.0, 30.0, 20.0, 20.0]
+
+    sources = config.setdefault("data", {}).setdefault("sources", {})
+    sources.setdefault("weather", {})["timestamps"] = timestamps
+    sources["weather"]["data"] = {"T_outdoor_C": [5.0 + (hour % 6) * 0.2 for hour in range(24)]}
+    sources.setdefault("load_profiles", {})["timestamps"] = timestamps
+    sources["load_profiles"]["original_timestep_seconds"] = 3600
+    sources["load_profiles"]["units"] = "W"
+    sources["load_profiles"]["data"] = {
+        "appliances": appliance_shape,
+        "lighting": lighting_shape,
+        "cooking": cooking_shape,
+    }
+    sources.setdefault("internal_gains", {})["timestamps"] = timestamps
+    sources["internal_gains"]["data"] = {"Q_internal_gains_W": [140.0 + (hour % 5) * 15.0 for hour in range(24)]}
+    sources.setdefault("solar", {})["timestamps"] = timestamps
+    sources["solar"]["data"] = {"Q_solar_gains_W": daytime_solar}
+    return config
+
+
+def _load_thesis_config_for_full_year() -> dict:
+    config_path = Path(__file__).resolve().parents[1] / "config" / "thesis.yaml"
+    config = run_model_v3.load_config(config_path=config_path)
+    config.setdefault("simulation", {})
+    config["simulation"]["max_steps"] = None
+    return config
+
+
 class ModelV3SmokeTest(unittest.TestCase):
     """Verify that the model_v3 scaffold imports and runs."""
 
@@ -64,13 +104,10 @@ class ModelV3SmokeTest(unittest.TestCase):
             self.assertIsNotNone(getattr(outputs, field_name))
 
     def test_cohort_smoke(self) -> None:
-        config_path = Path(__file__).resolve().parents[1] / "config" / "model.yaml"
-        config = run_model_v3.load_config(config_path=config_path)
+        config = _load_model_config_for_short_smoke()
         config.setdefault("cohort", {})
-        config.setdefault("simulation", {})
         config["cohort"]["n_households"] = 10
         config["cohort"]["minimum_households"] = 10
-        config["simulation"]["max_steps"] = 24
         results = run_cohort_simulation(config=config)
 
         self.assertIn("mean_profile", results)
@@ -115,12 +152,9 @@ class ModelV3SmokeTest(unittest.TestCase):
             self.assertNotIn("aggregate_profile", summary)
 
     def test_validation_smoke(self) -> None:
-        config_path = Path(__file__).resolve().parents[1] / "config" / "model.yaml"
-        config = run_model_v3.load_config(config_path=config_path)
+        config = _load_model_config_for_short_smoke()
         config.setdefault("cohort", {})
-        config.setdefault("simulation", {})
         config["cohort"]["n_households"] = 10
-        config["simulation"]["max_steps"] = 24
         validation_results = validate_against_synthetic(config=config)
         metrics = validation_results["metrics"]
         report_path = Path(validation_results["report_path"])
@@ -142,10 +176,7 @@ class ModelV3SmokeTest(unittest.TestCase):
         self.assertLessEqual(metrics["temporal"]["Pearson_correlation"], 1.0)
 
     def test_annual_simulation_smoke(self) -> None:
-        config_path = Path(__file__).resolve().parents[1] / "config" / "model.yaml"
-        config = run_model_v3.load_config(config_path=config_path)
-        config.setdefault("simulation", {})
-        config["simulation"]["max_steps"] = 24
+        config = _load_model_config_for_short_smoke()
 
         annual_results = run_annual_simulation(config=config)
 
@@ -182,7 +213,9 @@ class ModelV3SmokeTest(unittest.TestCase):
             for end_use in MODELLED_END_USE_KEYS:
                 self.assertIn(end_use, calibration[diagnostic_key])
         for end_use in MODELLED_END_USE_KEYS:
-            expected_kwh = target_electricity_kwh(config, end_use=end_use)
+            expected_kwh = calibration["target_annual_kWh_by_end_use"][end_use]
+            if end_use == "space_heating":
+                expected_kwh *= annual_results["n_steps"] / 8760.0
             self.assertAlmostEqual(
                 calibration["calibrated_annual_kWh_by_end_use"][end_use],
                 expected_kwh,
@@ -190,10 +223,7 @@ class ModelV3SmokeTest(unittest.TestCase):
             )
 
     def test_systems_module_flag_disables_equipment_outputs(self) -> None:
-        config_path = Path(__file__).resolve().parents[1] / "config" / "model.yaml"
-        config = run_model_v3.load_config(config_path=config_path)
-        config.setdefault("simulation", {})
-        config["simulation"]["max_steps"] = 24
+        config = _load_model_config_for_short_smoke()
         config.setdefault("modules", {})
         config["modules"]["systems"] = False
 
@@ -211,12 +241,9 @@ class ModelV3SmokeTest(unittest.TestCase):
         self.assertEqual(annual_results["annual_energy_by_carrier_kWh"]["natural_gas"], 0.0)
 
     def test_cohort_module_flag_disables_cohort_runner(self) -> None:
-        config_path = Path(__file__).resolve().parents[1] / "config" / "model.yaml"
-        config = run_model_v3.load_config(config_path=config_path)
+        config = _load_model_config_for_short_smoke()
         config.setdefault("modules", {})
         config["modules"]["cohort"] = False
-        config.setdefault("simulation", {})
-        config["simulation"]["max_steps"] = 24
 
         with self.assertRaisesRegex(RuntimeError, "modules.cohort=true.*modules.cohort=false"):
             run_cohort_simulation(config=config)
@@ -238,10 +265,7 @@ class ModelV3SmokeTest(unittest.TestCase):
         self.assertTrue(config["uncertainty"]["technology"]["use_belgian_stock_baseline"])
 
     def test_carrier_aware_heating_pv_and_ev_outputs(self) -> None:
-        config_path = Path(__file__).resolve().parents[1] / "config" / "model.yaml"
-        config = run_model_v3.load_config(config_path=config_path)
-        config.setdefault("simulation", {})
-        config["simulation"]["max_steps"] = 24
+        config = _load_model_config_for_short_smoke()
         config.setdefault("systems", {}).setdefault("heating", {})["technology_type"] = "gas_boiler"
         config.setdefault("systems", {}).setdefault("dhw", {})["technology_type"] = "linked_to_space_heating"
         config.setdefault("der", {}).setdefault("pv", {})["enabled"] = True
@@ -267,15 +291,26 @@ class ModelV3SmokeTest(unittest.TestCase):
         self.assertTrue((frame["P_el_grid_export_W"] >= 0.0).all())
 
     def test_aggregate_validation_smoke(self) -> None:
-        config_path = Path(__file__).resolve().parents[1] / "config" / "model.yaml"
-        config = run_model_v3.load_config(config_path=config_path)
-        config.setdefault("simulation", {})
-        config["simulation"]["max_steps"] = 24
+        config = _load_model_config_for_short_smoke()
         config.setdefault("validation", {})
         config["validation"]["aggregate_mode"] = "normalized_internal"
-        config["validation"]["aggregate_path"] = config["data"]["sources"]["load_profiles"]["file_path"]
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            reference_path = Path(tmp_dir) / "aggregate_reference.csv"
+            reference_path.write_text(
+                "timestamp,value\n"
+                + "\n".join(
+                    f"2023-01-01T{hour:02d}:00:00+01:00,{400 + 50 * (hour % 6)}"
+                    for hour in range(24)
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            config["validation"]["aggregate_path"] = str(reference_path)
+            config["validation"]["timestamp_column"] = "timestamp"
+            config["validation"]["value_column"] = "value"
+            config["validation"]["aggregate_units"] = "W"
 
-        validation_results = validate_against_aggregate(config=config)
+            validation_results = validate_against_aggregate(config=config)
         self.assertIn("metrics", validation_results)
         self.assertIn("independence", validation_results)
         self.assertIn("shape", validation_results["metrics"])
@@ -284,10 +319,7 @@ class ModelV3SmokeTest(unittest.TestCase):
         self.assertIn("validation_independence", validation_results["independence"])
 
     def test_baseline_annual_validation_smoke(self) -> None:
-        config_path = Path(__file__).resolve().parents[1] / "config" / "model.yaml"
-        config = run_model_v3.load_config(config_path=config_path)
-        config.setdefault("simulation", {})
-        config["simulation"]["max_steps"] = 24
+        config = _load_model_config_for_short_smoke()
 
         results = validate_baseline_annual(config=config)
         self.assertIn("annual_summary", results)
@@ -298,16 +330,12 @@ class ModelV3SmokeTest(unittest.TestCase):
         self.assertIn("electricity_calibration", results)
 
     def test_full_year_thermal_scaling_sanity(self) -> None:
-        config_path = Path(__file__).resolve().parents[1] / "config" / "model.yaml"
-
         for household_count in (1, 10):
             with self.subTest(household_count=household_count):
-                config = run_model_v3.load_config(config_path=config_path)
+                config = _load_thesis_config_for_full_year()
                 config.setdefault("cohort", {})
                 config["cohort"]["n_households"] = household_count
                 config["cohort"]["minimum_households"] = household_count
-                config.setdefault("simulation", {})
-                config["simulation"]["max_steps"] = None
 
                 annual_results = run_annual_simulation(config=config)
 
@@ -315,11 +343,8 @@ class ModelV3SmokeTest(unittest.TestCase):
                 self.assertGreater(annual_results["dhw_thermal_kWh"], 1000.0)
 
     def test_full_year_stochastic_variance_and_peak_sanity(self) -> None:
-        config_path = Path(__file__).resolve().parents[1] / "config" / "model.yaml"
-        config = run_model_v3.load_config(config_path=config_path)
-        config.setdefault("simulation", {})
+        config = _load_thesis_config_for_full_year()
         config.setdefault("cohort", {})
-        config["simulation"]["max_steps"] = None
         config["cohort"]["n_households"] = 10
         config["cohort"]["minimum_households"] = 10
 

@@ -1,0 +1,86 @@
+metadata:
+  output_id: output5_energy_bill_impact
+  currency: EUR
+  price_basis: illustrative_scenario_assumptions
+  interpretation_note: >
+    Prices are scenario assumptions for bill sensitivity analysis, not forecasts
+    of future Belgian household bills. The V-test and European Commission
+    energy-price reporting are used as contextual references for volatility
+    and current-contract comparison, not as immutable constants.
+  source_notes:
+    - name: Flemish V-test
+      url: https://www.vlaamsenutsregulator.be/elektriciteit-en-aardgas/energiecontracten-en-leveranciers/doe-de-v-testr
+      note: Independent price comparison for electricity and gas contracts offered in Flanders; estimates current annual contract costs.
+    - name: European Commission energy prices and costs
+      url: https://energy.ec.europa.eu/data-and-analysis/energy-prices-and-costs-europe_en
+      note: Energy prices and bills vary with wholesale prices, network charges, taxes, levies, and consumption.
+  capacity_tariff_note: >
+    Capacity cost is represented as an hourly-model approximation based on
+    monthly peak grid import. It is suitable for scenario comparison, not
+    exact tariff settlement.
+  non_gas_fuel_note: >
+    Headline bill values price electricity import, natural gas, PV/grid export,
+    fixed costs, and capacity costs. Non-gas combustible fuels are reported
+    separately as unpriced kWh to avoid hiding scope limitations.
+defaults:
+  fixed_annual_eur_per_household: 250.0
+  capacity_eur_per_kw_year: 45.0
+  monthly_peak_floor_kw: 2.5
+  timezone: Europe/Brussels
+tariff_scenarios:
+  - tariff_scenario_id: low_electricity_high_gas
+    label: Low electricity / high gas
+    purpose: Favours heat pumps and electrified heating.
+    electricity_import_eur_per_kwh: 0.22
+    gas_eur_per_kwh: 0.14
+    pv_export_eur_per_kwh: 0.05
+    fixed_annual_eur_per_household: 250.0
+    capacity_eur_per_kw_year: 45.0
+    monthly_peak_floor_kw: 2.5
+    dynamic: false
+  - tariff_scenario_id: high_electricity_low_gas
+    label: High electricity / low gas
+    purpose: Stress-tests electrification and heat-pump cases.
+    electricity_import_eur_per_kwh: 0.42
+    gas_eur_per_kwh: 0.07
+    pv_export_eur_per_kwh: 0.05
+    fixed_annual_eur_per_household: 250.0
+    capacity_eur_per_kw_year: 45.0
+    monthly_peak_floor_kw: 2.5
+    dynamic: false
+  - tariff_scenario_id: dynamic_electricity
+    label: Dynamic electricity tariff
+    purpose: Tests exposure to time-varying electricity prices and PV/load timing.
+    electricity_import_eur_per_kwh: 0.30
+    gas_eur_per_kwh: 0.10
+    pv_export_eur_per_kwh: 0.04
+    fixed_annual_eur_per_household: 250.0
+    capacity_eur_per_kw_year: 45.0
+    monthly_peak_floor_kw: 2.5
+    dynamic: true
+    dynamic_profile:
+      low_eur_per_kwh: 0.18
+      shoulder_eur_per_kwh: 0.30
+      high_eur_per_kwh: 0.45
+      low_hours: [0, 1, 2, 3, 4, 5]
+      high_hours: [17, 18, 19, 20]
+  - tariff_scenario_id: high_export_value
+    label: High export value
+    purpose: Favours PV/grid export revenue.
+    electricity_import_eur_per_kwh: 0.32
+    gas_eur_per_kwh: 0.10
+    pv_export_eur_per_kwh: 0.14
+    fixed_annual_eur_per_household: 250.0
+    capacity_eur_per_kw_year: 45.0
+    monthly_peak_floor_kw: 2.5
+    dynamic: false
+  - tariff_scenario_id: low_zero_export_value
+    label: Low/zero export value
+    purpose: Tests dependence on PV self-consumption rather than export credit.
+    electricity_import_eur_per_kwh: 0.32
+    gas_eur_per_kwh: 0.10
+    pv_export_eur_per_kwh: 0.00
+    fixed_annual_eur_per_household: 250.0
+    capacity_eur_per_kw_year: 45.0
+    monthly_peak_floor_kw: 2.5
+    dynamic: false

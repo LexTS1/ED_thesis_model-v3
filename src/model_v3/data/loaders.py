@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from functools import lru_cache
 from datetime import datetime
+from functools import lru_cache
+import logging
 from pathlib import Path
 import re
 from typing import Any, Mapping
@@ -14,6 +15,7 @@ import yaml
 from model_v3.interfaces import TimeSeriesData
 
 
+LOGGER = logging.getLogger(__name__)
 ORIENTATION_COLUMN_MAP = {
     "south": "I_south",
     "east": "I_east",
@@ -111,6 +113,67 @@ def _read_csv_cached(path: str) -> pd.DataFrame:
     return pd.read_csv(path)
 
 
+def _read_csv(path: str | Path, *, max_rows: int | None = None) -> pd.DataFrame:
+    """Read a CSV, bypassing the full-file cache when quick mode limits rows."""
+
+    resolved_path = str(path)
+    if max_rows is None:
+        LOGGER.info("loader.csv_read.start path=%s mode=full", resolved_path)
+        frame = _read_csv_cached(resolved_path)
+    else:
+        row_cap = max(int(max_rows), 1)
+        LOGGER.info("loader.csv_read.start path=%s mode=limited nrows=%s", resolved_path, row_cap)
+        frame = pd.read_csv(resolved_path, nrows=row_cap)
+    LOGGER.info("loader.csv_read.complete path=%s rows=%s columns=%s", resolved_path, len(frame), len(frame.columns))
+    return frame
+
+
+def _read_csv_reference_year(
+    path: str | Path,
+    *,
+    timestamp_column: str,
+    reference_year: int,
+    max_rows: int | None = None,
+    require_full_year: bool = False,
+) -> pd.DataFrame:
+    """Read only rows from a selected calendar year, using chunks for quick runs."""
+
+    resolved_path = str(path)
+    LOGGER.info(
+        "loader.csv_read.start path=%s mode=reference_year year=%s max_rows=%s require_full_year=%s",
+        resolved_path,
+        reference_year,
+        max_rows if max_rows is not None else "all",
+        require_full_year,
+    )
+    frames: list[pd.DataFrame] = []
+    rows_selected = 0
+    seen_reference_year = False
+    for chunk in pd.read_csv(resolved_path, chunksize=100_000, low_memory=False):
+        if timestamp_column not in chunk.columns:
+            raise ValueError(f"Input is missing timestamp column: {timestamp_column}")
+        timestamps = pd.to_datetime(chunk[timestamp_column], errors="coerce")
+        selected = chunk.loc[timestamps.dt.year == int(reference_year)].copy()
+        if not selected.empty:
+            seen_reference_year = True
+            frames.append(selected)
+            rows_selected += len(selected)
+        elif seen_reference_year:
+            chunk_years = timestamps.dropna().dt.year
+            if not chunk_years.empty and int(chunk_years.min()) > int(reference_year):
+                break
+        if max_rows is not None and not require_full_year and rows_selected >= int(max_rows):
+            break
+    if not frames:
+        LOGGER.info("loader.csv_read.complete path=%s rows=0 columns=0", resolved_path)
+        return pd.DataFrame()
+    frame = pd.concat(frames, ignore_index=True)
+    if max_rows is not None and not require_full_year:
+        frame = frame.head(max(int(max_rows), 1))
+    LOGGER.info("loader.csv_read.complete path=%s rows=%s columns=%s", resolved_path, len(frame), len(frame.columns))
+    return frame
+
+
 @lru_cache(maxsize=8)
 def _read_yaml_cached(path: str) -> dict[str, Any]:
     """Read a YAML file once and reuse it across deterministic and cohort runs."""
@@ -128,6 +191,40 @@ def _resolve_path(path_str: str | None) -> Path | None:
     if candidate.is_absolute():
         return candidate
     return Path.cwd() / candidate
+
+
+def _quick_max_steps(config: Mapping[str, Any]) -> int | None:
+    """Return the active quick-mode max steps if validation quick mode is enabled."""
+
+    validation_cfg = dict(config.get("validation", {}))
+    quick_cfg = dict(validation_cfg.get("quick_mode", {}))
+    if not bool(quick_cfg.get("enabled", False)):
+        return None
+    simulation_cfg = dict(config.get("simulation", {}))
+    configured_max_steps = simulation_cfg.get("max_steps", quick_cfg.get("max_steps"))
+    if configured_max_steps in {None, ""}:
+        configured_max_steps = quick_cfg.get("max_steps", 168)
+    try:
+        return max(int(configured_max_steps), 1)
+    except (TypeError, ValueError):
+        return max(int(quick_cfg.get("max_steps", 168) or 168), 1)
+
+
+def _source_row_cap(
+    config: Mapping[str, Any],
+    source_cfg: Mapping[str, Any],
+    *,
+    default_resolution_seconds: int,
+    safety_steps: int = 8,
+) -> int | None:
+    """Estimate source rows needed to cover a quick-mode model horizon."""
+
+    max_steps = _quick_max_steps(config)
+    if max_steps is None:
+        return None
+    source_resolution = max(int(source_cfg.get("original_timestep_seconds", default_resolution_seconds) or default_resolution_seconds), 1)
+    rows_per_step = max(1, int(round(default_resolution_seconds / source_resolution)))
+    return (max_steps + max(int(safety_steps), 1)) * rows_per_step
 
 
 def _series_from_frame(frame: pd.DataFrame, column_name: str, expected_length: int) -> list[float | None]:
@@ -152,6 +249,9 @@ def _load_timeseries_from_csv(
     column_mapping: Mapping[str, str],
     fallback_timestamp: str,
     default_resolution_seconds: int,
+    max_rows: int | None = None,
+    reference_year: int | None = None,
+    require_full_reference_year: bool = False,
 ) -> TimeSeriesData | None:
     """Load a structured source dataset from a configured CSV file."""
 
@@ -159,8 +259,17 @@ def _load_timeseries_from_csv(
     if resolved_path is None or not resolved_path.exists():
         return None
 
-    frame = _read_csv_cached(str(resolved_path)).copy()
     timestamp_column = str(source_cfg.get("timestamp_column", "timestamp"))
+    if reference_year is not None:
+        frame = _read_csv_reference_year(
+            resolved_path,
+            timestamp_column=timestamp_column,
+            reference_year=int(reference_year),
+            max_rows=max_rows,
+            require_full_year=require_full_reference_year,
+        ).copy()
+    else:
+        frame = _read_csv(resolved_path, max_rows=max_rows).copy()
     if timestamp_column not in frame.columns:
         raise ValueError(f"{source_name} input is missing timestamp column: {timestamp_column}")
 
@@ -193,6 +302,7 @@ def _load_timeseries_from_csv(
 def _load_lcl_aggregate_profile(
     source_cfg: Mapping[str, Any],
     default_resolution_seconds: int,
+    max_rows: int | None = None,
 ) -> TimeSeriesData | None:
     """Load and aggregate the LCL load-profile dataset into a representative total load profile."""
 
@@ -200,7 +310,7 @@ def _load_lcl_aggregate_profile(
     if resolved_path is None or not resolved_path.exists():
         return None
 
-    frame = _read_csv_cached(str(resolved_path)).copy()
+    frame = _read_csv(resolved_path, max_rows=max_rows).copy()
     timestamp_column = str(source_cfg.get("timestamp_column", "DateTime"))
     if timestamp_column not in frame.columns:
         raise ValueError(f"load_profiles input is missing timestamp column: {timestamp_column}")
@@ -296,6 +406,24 @@ def _select_archetype_row(frame: pd.DataFrame, archetype_cfg: Mapping[str, Any])
         if selected.empty:
             raise ValueError(f"Requested archetype_id not found: {archetype_id}")
         return selected.iloc[0]
+    if selection_mode in {"stock_weighted_average", "weighted_average"}:
+        weights = pd.to_numeric(frame["stock_weight"], errors="coerce").fillna(0.0).clip(lower=0.0)
+        if float(weights.sum()) <= 0.0:
+            raise ValueError("Cannot build stock-weighted archetype because stock_weight sums to zero.")
+        selected = frame.sort_values("stock_weight", ascending=False).iloc[0].copy()
+        for column_name in frame.columns:
+            if pd.api.types.is_numeric_dtype(frame[column_name]):
+                values = pd.to_numeric(frame[column_name], errors="coerce")
+                selected[column_name] = float((values.fillna(0.0) * weights).sum() / weights.sum())
+        selected["archetype_id"] = "BE_RES_STOCK_WEIGHTED_AVERAGE"
+        selected["archetype_name"] = "Belgian residential stock-weighted average"
+        selected["dwelling_type"] = "stock_weighted"
+        selected["renovation_state"] = "stock_weighted"
+        selected["construction_period_id"] = "stock_weighted"
+        selected["construction_period"] = "stock_weighted"
+        selected["u_value_package_id"] = "stock_weighted"
+        selected["value_source"] = "stock_weighted_archetype_parameters_merged_v3"
+        return selected
 
     sorted_frame = frame.sort_values("stock_weight", ascending=False)
     return sorted_frame.iloc[0]
@@ -512,6 +640,11 @@ def load_source_weather(config: Mapping[str, Any] | None = None) -> TimeSeriesDa
     weather_cfg = dict(sources_cfg.get("weather", {}))
     forcing_cfg = dict(config.get("forcing", {}))
     fallback_timestamp = str(simulation_cfg.get("start_timestamp", "2023-12-01T01:00:00+01:00"))
+    row_cap = _source_row_cap(
+        config,
+        weather_cfg,
+        default_resolution_seconds=int(data_cfg.get("target_resolution_seconds", 3600)),
+    )
 
     file_dataset = _load_timeseries_from_csv(
         source_name="weather",
@@ -519,6 +652,9 @@ def load_source_weather(config: Mapping[str, Any] | None = None) -> TimeSeriesDa
         column_mapping={"T_outdoor_C": str(weather_cfg.get("column_mapping", {}).get("T_outdoor_C", "temp_dry_shelter_avg"))},
         fallback_timestamp=fallback_timestamp,
         default_resolution_seconds=int(data_cfg.get("target_resolution_seconds", 3600)),
+        max_rows=row_cap,
+        reference_year=int(simulation_cfg["reference_year"]) if row_cap is not None and simulation_cfg.get("reference_year") is not None else None,
+        require_full_reference_year=True,
     )
     if file_dataset is not None:
         return file_dataset
@@ -543,10 +679,17 @@ def load_source_load_profiles(config: Mapping[str, Any] | None = None) -> TimeSe
     load_cfg = dict(sources_cfg.get("load_profiles", {}))
     forcing_cfg = dict(config.get("forcing", {}))
     raw_loads_cfg = dict(forcing_cfg.get("electric_loads_W", {}))
+    target_resolution_seconds = int(data_cfg.get("target_resolution_seconds", 3600))
+    row_cap = _source_row_cap(
+        config,
+        load_cfg,
+        default_resolution_seconds=target_resolution_seconds,
+    )
 
     lcl_dataset = _load_lcl_aggregate_profile(
         source_cfg=load_cfg,
-        default_resolution_seconds=int(data_cfg.get("target_resolution_seconds", 3600)),
+        default_resolution_seconds=target_resolution_seconds,
+        max_rows=row_cap,
     )
     if lcl_dataset is not None:
         end_use_cfg = dict(sources_cfg.get("end_use_shares", {}))
@@ -580,7 +723,7 @@ def load_source_load_profiles(config: Mapping[str, Any] | None = None) -> TimeSe
             "ev_charging": load_cfg.get("data", {}).get("ev_charging"),
         },
         fallback_timestamp=fallback_timestamp,
-        default_resolution_seconds=int(data_cfg.get("target_resolution_seconds", 3600)),
+        default_resolution_seconds=target_resolution_seconds,
     )
 
 
@@ -593,6 +736,11 @@ def load_source_internal_gains(config: Mapping[str, Any] | None = None) -> TimeS
     sources_cfg = dict(data_cfg.get("sources", {}))
     internal_cfg = dict(sources_cfg.get("internal_gains", {}))
     fallback_timestamp = str(simulation_cfg.get("start_timestamp", "2023-12-01T01:00:00+01:00"))
+    row_cap = _source_row_cap(
+        config,
+        internal_cfg,
+        default_resolution_seconds=int(data_cfg.get("target_resolution_seconds", 3600)),
+    )
 
     file_dataset = _load_timeseries_from_csv(
         source_name="internal_gains",
@@ -602,6 +750,7 @@ def load_source_internal_gains(config: Mapping[str, Any] | None = None) -> TimeS
         },
         fallback_timestamp=fallback_timestamp,
         default_resolution_seconds=int(data_cfg.get("target_resolution_seconds", 3600)),
+        max_rows=row_cap,
     )
     if file_dataset is not None:
         return file_dataset
@@ -626,6 +775,11 @@ def load_source_solar(config: Mapping[str, Any] | None = None) -> TimeSeriesData
     sources_cfg = dict(data_cfg.get("sources", {}))
     solar_cfg = dict(sources_cfg.get("solar", {}))
     fallback_timestamp = str(simulation_cfg.get("start_timestamp", "2023-12-01T01:00:00+01:00"))
+    row_cap = _source_row_cap(
+        config,
+        solar_cfg,
+        default_resolution_seconds=int(data_cfg.get("target_resolution_seconds", 3600)),
+    )
 
     file_dataset = _load_timeseries_from_csv(
         source_name="solar",
@@ -637,6 +791,7 @@ def load_source_solar(config: Mapping[str, Any] | None = None) -> TimeSeriesData
         },
         fallback_timestamp=fallback_timestamp,
         default_resolution_seconds=int(data_cfg.get("target_resolution_seconds", 3600)),
+        max_rows=row_cap,
     )
     if file_dataset is not None:
         solar_gain_scale = float(solar_cfg.get("gain_scale", 1.0))
@@ -656,6 +811,8 @@ def load_source_solar(config: Mapping[str, Any] | None = None) -> TimeSeriesData
     raw_dir = _resolve_path(str(solar_cfg.get("raw_dir", "")))
     if raw_dir is not None and raw_dir.exists():
         frame = _load_pvgis_unified_frame(str(raw_dir))
+        if row_cap is not None:
+            frame = frame.head(row_cap)
         return _build_source_from_frame(
             source_name="solar",
             frame=frame,

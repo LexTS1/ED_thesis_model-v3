@@ -1,0 +1,126 @@
+metadata:
+  output_id: output6_technology_investment_adaptation_value
+  currency: EUR
+  price_basis: illustrative_scenario_assumptions
+  interpretation_note: >
+    Output 6 is a techno-economic adaptation indicator. It combines modelled
+    scenario bills, PV self-consumption, and climate/comfort exposure indicators
+    with editable investment assumptions. It is not a precise household retrofit
+    forecast and it does not include active cooling electricity.
+  core_subsidy_included: false
+  discount_rate: 0.03
+  analysis_horizon_years: 15
+  cooling_proxy_note: >
+    Reversible heat-pump adaptation value is represented as a comfort-service
+    proxy based on cooling-exposure indicators. No active cooling final energy is
+    priced or added to electricity demand.
+  source_notes:
+    - name: IEA - The Future of Heat Pumps
+      url: https://www.iea.org/reports/the-future-of-heat-pumps/executive-summary
+      note: Heat pumps can provide both heating and cooling and are framed as an electrification and adaptation technology.
+    - name: European Commission - Heat pumps
+      url: https://energy.ec.europa.eu/topics/energy-efficiency/heat-pumps_en
+      note: The Commission describes heat pumps as mature technology that can be several times more efficient than gas boilers.
+    - name: Vlaamse Nutsregulator - PV self-consumption and injection context
+      url: https://www.vlaamsenutsregulator.be/cijfers/dashboard-terugleveringsvergoedingen-vooruitblik
+      note: Flemish PV value depends strongly on own-use versus injection compensation under digital-meter conditions.
+    - name: Vlaanderen - Mijn VerbouwPremie for heat pumps
+      url: https://www.vlaanderen.be/premies-voor-renovatie/mijn-verbouwpremie/mijn-verbouwpremie-voor-warmtepomp
+      note: Heat-pump premiums vary by application date, technology type, and household category, so subsidies are sensitivity-only.
+defaults:
+  lifetime_years: 15
+  fixed_om_eur_per_year: 100.0
+  variable_om_eur_per_kwh_service: 0.0
+  subsidy_eur_optional: 0.0
+  comfort_value_eur_per_overheating_hour: 1.0
+  cooling_service_proxy_kwh_per_cdd22: 12.0
+  bill_savings_multiplier: 1.0
+technology_options:
+  - technology_option_id: gas_boiler_reference
+    label: Gas boiler reference / current stock
+    applies_to_technology_case_ids: [tech_current_stock]
+    role: reference
+    capex_gross_eur_per_adopting_household: 0.0
+    stock_penetration_fraction: 0.0
+    lifetime_years: 15
+    fixed_om_eur_per_year: 120.0
+    subsidy_eur_optional: 0.0
+    reversible_cooling_service: false
+    pv_component: false
+    smart_control_sensitivity: false
+    interpretation_scope: reference stock; no new investment CAPEX is assigned.
+  - technology_option_id: frozen_stock_reference
+    label: Frozen-stock climate reference
+    applies_to_technology_case_ids: [tech_frozen_stock]
+    role: climate_only_reference
+    capex_gross_eur_per_adopting_household: 0.0
+    stock_penetration_fraction: 0.0
+    lifetime_years: 15
+    fixed_om_eur_per_year: 120.0
+    subsidy_eur_optional: 0.0
+    reversible_cooling_service: false
+    pv_component: false
+    smart_control_sensitivity: false
+    interpretation_scope: climate-only stock reference; no new investment CAPEX is assigned.
+  - technology_option_id: air_water_heat_pump_heating
+    label: Air-water heat pump for heating
+    applies_to_technology_case_ids: [tech_moderate_electrification]
+    role: heat_pump_heating
+    capex_gross_eur_per_adopting_household: 12000.0
+    stock_penetration_fraction: 0.25
+    lifetime_years: 15
+    fixed_om_eur_per_year: 150.0
+    subsidy_eur_optional: 1500.0
+    reversible_cooling_service: false
+    pv_component: false
+    smart_control_sensitivity: false
+    interpretation_scope: heating-only heat-pump investment indicator for the moderate-electrification stock case.
+  - technology_option_id: reversible_heat_pump_adaptation
+    label: Reversible heat pump heating + cooling-service proxy
+    applies_to_technology_case_ids: [tech_moderate_electrification]
+    role: reversible_heat_pump
+    capex_gross_eur_per_adopting_household: 13500.0
+    stock_penetration_fraction: 0.30
+    lifetime_years: 15
+    fixed_om_eur_per_year: 170.0
+    subsidy_eur_optional: 1500.0
+    reversible_cooling_service: true
+    cooling_exposure_coverage_fraction: 1.0
+    comfort_value_eur_per_overheating_hour: 1.0
+    cooling_service_proxy_kwh_per_cdd22: 12.0
+    pv_component: false
+    smart_control_sensitivity: false
+    interpretation_scope: reversible heat-pump adaptation indicator; cooling is comfort-service proxy only.
+  - technology_option_id: heat_pump_pv
+    label: Heat pump + PV
+    applies_to_technology_case_ids: [tech_high_electrification_pv_ev]
+    role: heat_pump_pv
+    capex_gross_eur_per_adopting_household: 21000.0
+    stock_penetration_fraction: 0.60
+    lifetime_years: 15
+    fixed_om_eur_per_year: 220.0
+    subsidy_eur_optional: 1500.0
+    reversible_cooling_service: true
+    cooling_exposure_coverage_fraction: 1.0
+    comfort_value_eur_per_overheating_hour: 1.0
+    cooling_service_proxy_kwh_per_cdd22: 12.0
+    pv_component: true
+    smart_control_sensitivity: false
+    interpretation_scope: HP+PV stock indicator for the high-electrification PV/EV case; EV load is a confounder.
+  - technology_option_id: heat_pump_pv_smart_control_sensitivity
+    label: Heat pump + PV + smart-control sensitivity
+    applies_to_technology_case_ids: [tech_high_electrification_pv_ev]
+    role: heat_pump_pv_smart_control
+    capex_gross_eur_per_adopting_household: 22500.0
+    stock_penetration_fraction: 0.60
+    lifetime_years: 15
+    fixed_om_eur_per_year: 240.0
+    subsidy_eur_optional: 1500.0
+    reversible_cooling_service: true
+    cooling_exposure_coverage_fraction: 1.0
+    comfort_value_eur_per_overheating_hour: 1.0
+    cooling_service_proxy_kwh_per_cdd22: 12.0
+    pv_component: true
+    smart_control_sensitivity: true
+    bill_savings_multiplier: 1.05
+    interpretation_scope: post-processing smart-control sensitivity; no physical dispatch optimisation is modelled.

@@ -195,12 +195,11 @@ technologies:
       hybrid_hp:
         control:
           dhw_by_boiler: true
-          hp_max_leaving_water_temperature_c: 55
-          hp_load_fraction:
-            low: 0.45
-            base: 0.65
-            high: 0.85
-            assumption_flag: true
+          hp_capacity_fraction: 0.65
+          hp_min_outdoor_temperature_C: -5.0
+          hp_min_cop: 2.5
+          hp_max_sink_temperature_C: 55.0
+          control_note: "Minimum bivalent-parallel control: heat pump runs only when outdoor temperature, current COP, sink temperature, and available capacity are within defensible operating bounds; gas boiler supplies residual or lockout heat."
       district_heating:
         dwelling_conversion:
           low: 1.0
@@ -401,4 +400,21 @@ mobility:
       uncontrolled_arrival_window:
         start_hour: 17
         end_hour: 22
+        assumption_flag: true
+      charging_strategy: "delayed_overnight_home"
+      charging_window:
+        start_hour: 22
+        end_hour: 6
+        assumption_flag: true
+        note: "Minimum calibration update from Fluvius EV signature validation; represents delayed residential home charging, not session-level evidence."
+      charging_shape: "gaussian"
+      peak_hour: 1
+      profile_spread_hours:
+        base: 1.8
+        assumption_flag: true
+      peak_jitter_sigma_hours:
+        base: 1.25
+        assumption_flag: true
+      peak_jitter_max_hours:
+        base: 3.0
         assumption_flag: true

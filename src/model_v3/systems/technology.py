@@ -165,18 +165,69 @@ def convert_heat_to_carriers(
 
     if tech == "hybrid_hp_gas" and prefix == "space_heating":
         hybrid_cfg = dict(dict(_performance_cfg(technologies_cfg).get("hybrid_hp", {})).get("control", {}))
-        hp_fraction = value_from_range(hybrid_cfg.get("hp_load_fraction"), 0.65)
-        hp_useful = useful_heat_w * min(max(hp_fraction, 0.0), 1.0)
-        gas_useful = useful_heat_w - hp_useful
+        outdoor_c = float(source_temperature_c if source_temperature_c is not None else 7.0)
+        setpoint_c = float(indoor_setpoint_c if indoor_setpoint_c is not None else 20.0)
+        system_capacity_w = max(float(capacity_w if capacity_w is not None else useful_heat_w), 0.0)
+        hp_capacity_fraction = min(max(value_from_range(hybrid_cfg.get("hp_capacity_fraction"), 0.65), 0.0), 1.0)
+        hp_nominal_capacity_w = system_capacity_w * hp_capacity_fraction
+        provisional_hp_useful_w = min(useful_heat_w, hp_nominal_capacity_w)
         hp_performance = heat_pump_performance(
             "hybrid_hp_gas",
             systems_cfg=systems_cfg,
-            outdoor_temperature_c=float(source_temperature_c if source_temperature_c is not None else 7.0),
-            indoor_setpoint_c=float(indoor_setpoint_c if indoor_setpoint_c is not None else 20.0),
-            useful_heat_w=hp_useful,
-            capacity_w=float(capacity_w if capacity_w is not None else useful_heat_w),
+            outdoor_temperature_c=outdoor_c,
+            indoor_setpoint_c=setpoint_c,
+            useful_heat_w=provisional_hp_useful_w,
+            capacity_w=max(hp_nominal_capacity_w, 1e-9),
             mode=mode,
         )
+        hp_available_capacity_w = hp_nominal_capacity_w * min(
+            max(float(hp_performance["capacity_available_fraction"]), 0.0),
+            1.0,
+        )
+        hp_candidate_useful_w = min(useful_heat_w, hp_available_capacity_w)
+        if hp_candidate_useful_w > 0.0:
+            hp_performance = heat_pump_performance(
+                "hybrid_hp_gas",
+                systems_cfg=systems_cfg,
+                outdoor_temperature_c=outdoor_c,
+                indoor_setpoint_c=setpoint_c,
+                useful_heat_w=hp_candidate_useful_w,
+                capacity_w=max(hp_available_capacity_w, 1e-9),
+                mode=mode,
+            )
+
+        min_outdoor_c = value_from_range(hybrid_cfg.get("hp_min_outdoor_temperature_C"), -5.0)
+        min_cop = value_from_range(hybrid_cfg.get("hp_min_cop"), 2.5)
+        max_sink_c = value_from_range(
+            hybrid_cfg.get("hp_max_sink_temperature_C", hybrid_cfg.get("hp_max_leaving_water_temperature_c")),
+            55.0,
+        )
+        cop_ok = float(hp_performance["cop"]) >= min_cop
+        outdoor_ok = outdoor_c >= min_outdoor_c
+        sink_ok = float(hp_performance["sink_temperature_C"]) <= max_sink_c
+        capacity_ok = hp_available_capacity_w > 0.0 and hp_candidate_useful_w > 0.0
+        hp_allowed = useful_heat_w > 0.0 and cop_ok and outdoor_ok and sink_ok and capacity_ok
+
+        if hp_allowed:
+            hp_useful = hp_candidate_useful_w
+            if hp_useful >= useful_heat_w - 1e-9:
+                dispatch_mode = "hp_only"
+            else:
+                dispatch_mode = "parallel"
+        else:
+            hp_useful = 0.0
+            if useful_heat_w <= 0.0:
+                dispatch_mode = "no_heat_demand"
+            elif not outdoor_ok:
+                dispatch_mode = "gas_only_outdoor_lockout"
+            elif not sink_ok:
+                dispatch_mode = "gas_only_sink_temperature_lockout"
+            elif not cop_ok:
+                dispatch_mode = "gas_only_cop_lockout"
+            else:
+                dispatch_mode = "gas_only_capacity_unavailable"
+
+        gas_useful = useful_heat_w - hp_useful
         hp_carrier, hp_factor = "electricity", float(hp_performance["cop"])
         gas_carrier, gas_factor = _technology_performance("gas_boiler", technologies_cfg, systems_cfg)
         _assign_carrier_power(
@@ -196,7 +247,12 @@ def convert_heat_to_carriers(
                 "technology_type": tech,
                 "energy_carrier": "electricity+gas",
                 "conversion_factor": None,
-                "hybrid_hp_load_fraction": float(min(max(hp_fraction, 0.0), 1.0)),
+                "hybrid_hp_load_fraction": float(hp_useful / useful_heat_w) if useful_heat_w > 0.0 else 0.0,
+                "hybrid_hp_capacity_fraction": float(hp_capacity_fraction),
+                "hybrid_hp_useful_heat_W": float(hp_useful),
+                "hybrid_gas_useful_heat_W": float(gas_useful),
+                "hybrid_hp_available_capacity_W": float(hp_available_capacity_w),
+                "hybrid_dispatch_mode": dispatch_mode,
                 "heat_pump_cop": float(hp_performance["cop"]),
                 "heat_pump_cop_base": float(hp_performance["cop_base"]),
                 "heat_pump_emitter_type": hp_performance["emitter_type"],

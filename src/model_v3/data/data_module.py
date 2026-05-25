@@ -70,16 +70,25 @@ def _load_cached_processed_source(
     source_name: str,
     source_cfg_json: str,
     end_use_cfg_json: str,
+    validation_cfg_json: str,
     target_resolution_seconds: int,
     alignment_method: str,
     reconstruction_method: str,
     simulation_start_timestamp: str,
+    simulation_reference_year: str,
+    simulation_max_steps: str,
 ) -> Any:
     """Load, harmonise, and reconstruct a static file-backed source once per config."""
 
     source_cfg = json.loads(source_cfg_json)
+    validation_cfg = json.loads(validation_cfg_json)
     mini_config: dict[str, Any] = {
-        "simulation": {"start_timestamp": simulation_start_timestamp},
+        "simulation": {
+            "start_timestamp": simulation_start_timestamp,
+            "reference_year": None if simulation_reference_year == "" else simulation_reference_year,
+            "max_steps": None if simulation_max_steps == "" else simulation_max_steps,
+        },
+        "validation": validation_cfg,
         "data": {
             "target_resolution_seconds": target_resolution_seconds,
             "sources": {source_name: source_cfg},
@@ -93,12 +102,21 @@ def _load_cached_processed_source(
         "load_profiles": load_source_load_profiles,
         "solar": load_source_solar,
     }
+    LOGGER.info("data.source.load start source=%s file_backed=true", source_name)
     raw_dataset = loader_map[source_name](config=mini_config)
+    LOGGER.info(
+        "data.source.loaded source=%s shape=%s original_timestep_seconds=%s",
+        source_name,
+        raw_dataset.shape,
+        raw_dataset.metadata.get("original_timestep_seconds"),
+    )
+    LOGGER.info("data.source.harmonise start source=%s method=%s", source_name, alignment_method)
     harmonised = harmonise_timeseries(
         df=raw_dataset,
         target_resolution_seconds=target_resolution_seconds,
         method=alignment_method,
     )
+    LOGGER.info("data.source.reconstruct start source=%s method=%s", source_name, reconstruction_method)
     return reconstruct_missing_data(df=harmonised, method=reconstruction_method)
 
 
@@ -108,6 +126,7 @@ def load_all_sources(config: Mapping[str, Any] | None = None) -> InputDataset:
     config = config or {}
     simulation_cfg = dict(config.get("simulation", {}))
     data_cfg = dict(config.get("data", {}))
+    validation_cfg = dict(config.get("validation", {}))
     forcing_cfg = dict(config.get("forcing", {}))
     building_cfg = dict(config.get("building", {}))
     dhw_cfg = dict(forcing_cfg.get("dhw", {}))
@@ -138,6 +157,7 @@ def load_all_sources(config: Mapping[str, Any] | None = None) -> InputDataset:
     processed_sources = {}
     provenance = {}
     end_use_cfg_json = _json_dumps(dict(data_cfg.get("sources", {})).get("end_use_shares", {}))
+    validation_cfg_json = _json_dumps(validation_cfg)
 
     for source_name, loader in source_loaders.items():
         source_cfg = dict(data_cfg.get("sources", {})).get(source_name, {})
@@ -146,12 +166,16 @@ def load_all_sources(config: Mapping[str, Any] | None = None) -> InputDataset:
                 source_name=source_name,
                 source_cfg_json=_json_dumps(source_cfg),
                 end_use_cfg_json=end_use_cfg_json,
+                validation_cfg_json=validation_cfg_json,
                 target_resolution_seconds=target_resolution_seconds,
                 alignment_method=alignment_methods[source_name],
                 reconstruction_method=reconstruction_methods[source_name],
                 simulation_start_timestamp=str(simulation_cfg.get("start_timestamp", "2026-01-01T00:00:00+01:00")),
+                simulation_reference_year="" if simulation_cfg.get("reference_year") in {None, ""} else str(simulation_cfg.get("reference_year")),
+                simulation_max_steps="" if simulation_cfg.get("max_steps") in {None, ""} else str(simulation_cfg.get("max_steps")),
             )
         else:
+            LOGGER.info("data.source.load start source=%s file_backed=false", source_name)
             dataset = loader(config=config)
             LOGGER.info(
                 "data.source.loaded source=%s shape=%s original_timestep_seconds=%s",
@@ -159,11 +183,13 @@ def load_all_sources(config: Mapping[str, Any] | None = None) -> InputDataset:
                 dataset.shape,
                 dataset.metadata.get("original_timestep_seconds"),
             )
+            LOGGER.info("data.source.harmonise start source=%s method=%s", source_name, alignment_methods[source_name])
             harmonised = harmonise_timeseries(
                 df=dataset,
                 target_resolution_seconds=target_resolution_seconds,
                 method=alignment_methods[source_name],
             )
+            LOGGER.info("data.source.reconstruct start source=%s method=%s", source_name, reconstruction_methods[source_name])
             reconstructed = reconstruct_missing_data(
                 df=harmonised,
                 method=reconstruction_methods[source_name],

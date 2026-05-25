@@ -14,21 +14,26 @@ simulation:
   max_steps: ~
 
 baseline:
-  electricity_annual_kWh: 3900
-  electricity_range_kWh: [3600, 3900]
+  electricity_annual_kWh: 3500
+  electricity_range_kWh: [3000, 3900]
   space_heating_kWh: 12000
   space_heating_range_kWh: [12000, 16000]
   dhw_kWh: 3000
   dhw_range_kWh: [2500, 3300]
 
 electricity_split:
-  appliances: 0.524
-  lighting: 0.072
-  cooking: 0.067
-  dhw: 0.19
-  space_heating: 0.137
-  other: 0.01
-  note: "Lighting share is derived from the EU appliance-lighting bucket fallback."
+  appliances: 0.70
+  lighting: 0.08
+  cooking: 0.10
+  dhw: 0.07
+  space_heating: 0.05
+  other: 0.0
+  note: >
+    Central electricity target is aligned to the common Belgian standard-household
+    benchmark of 3500 kWh/year. Thermal services are primarily represented through
+    useful heat and carrier conversion; the DHW and space-heating electricity
+    shares are retained as modest auxiliary/direct-electric current-stock
+    components rather than dominant electric heating loads.
 
 thermal_split:
   space_heating: 0.83
@@ -80,6 +85,56 @@ uncertainty:
     occupancy_sigma: 0.2
     dhw_sigma: 0.4
     dhw_cohort_scale: 3.217
+    dhw_calibration:
+      enabled: true
+      daily_useful_kWh_per_person:
+        low: 0.8
+        base: 1.2
+        high: 1.5
+      equivalent_litres_per_person_day_42C:
+        base: 32.0
+      cold_water_temperature_C: 10.0
+      draw_temperature_C: 42.0
+      event_frequency_per_occupant_day:
+        low: 1.4
+        base: 2.0
+        high: 3.0
+      timing_weights:
+        morning:
+          start_hour: 6.0
+          end_hour: 9.0
+          weight: 0.45
+        daytime:
+          start_hour: 9.0
+          end_hour: 18.0
+          weight: 0.12
+        evening:
+          start_hour: 18.0
+          end_hour: 22.0
+          weight: 0.40
+        night:
+          start_hour: 22.0
+          end_hour: 6.0
+          weight: 0.03
+      event_type_probabilities:
+        sink: 0.58
+        shower: 0.26
+        dishwashing: 0.13
+        bath: 0.03
+      event_volume_liters:
+        sink:
+          low: 1.0
+          high: 6.0
+        shower:
+          low: 25.0
+          high: 65.0
+        dishwashing:
+          low: 8.0
+          high: 18.0
+        bath:
+          low: 80.0
+          high: 140.0
+      source_note: "Bounded useful draw-off DHW calibration from Belgian/European residential water-use and DHW profile literature; production/storage/distribution losses remain outside Q_dhw_demand_W."
     appliance_sigma: 0.5
     household_size_probabilities:
       1: 0.36
@@ -211,8 +266,30 @@ systems:
   heating:
     capacity_W: 8000
     cop: 3.0
+    ground_source_temperature_C:
+      low: 4.0
+      base: 8.0
+      high: 12.0
+      unit: degC
+      source_note: "Category I/II shallow geothermal assumption; Belgian ground temperature around 10-14C at 20-30m, adjusted downward for entering brine/source temperature."
   dhw:
     cop: 1.0
+  heat_pump_performance:
+    types:
+      air_water:
+        cop_ref: 4.4
+        min_cop: 2.0
+        max_cop: 5.0
+        defrost_penalty_fraction: 0.12
+      air_air:
+        cop_ref: 4.4
+        min_cop: 2.0
+        max_cop: 5.3
+        defrost_penalty_fraction: 0.12
+      ground_source:
+        cop_ref: 3.8
+        min_cop: 3.0
+        max_cop: 5.2
 
 comfort:
   T_min_C: 18

@@ -1,0 +1,17 @@
+runner:
+  name: aggregate_fluvius
+  description: Aggregate external-load validation against representative Fluvius profiles.
+  timeout_seconds: 1200
+  command:
+    - "{python}"
+    - "-m"
+    - "model_v3.validation.runners.validate_against_aggregate"
+    - "--config"
+    - "config/thesis.yaml"
+  quick_args:
+    - "--quick"
+  full_args: []
+  expected_artifacts:
+    - "outputs/validation/validation_report_v3_fluvius_external.md"
+    - "outputs/validation/fluvius_external/metrics.json"
+    - "outputs/validation/fluvius_external/aligned_absolute_timeseries.csv"

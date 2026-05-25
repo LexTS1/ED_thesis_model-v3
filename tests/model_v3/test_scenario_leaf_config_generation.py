@@ -95,6 +95,8 @@ class ScenarioLeafConfigGenerationTest(unittest.TestCase):
                 self.assertIn(section, config)
             self.assertEqual(config["status"], "configured_not_run")
             self.assertFalse(config["model_options"]["execute_simulation"])
+            self.assertEqual(config["model_options"]["runner_mode"], "annual_demand")
+            self.assertFalse(config["model_options"]["use_stochastic_cohort"])
             self.assertEqual(config["scenario_leaf"]["id"], leaf_id)
             self.assertTrue(Path(config["output"]["outputs_dir"]).is_dir())
             self.assertTrue(Path(config["output"]["logs_dir"]).is_dir())

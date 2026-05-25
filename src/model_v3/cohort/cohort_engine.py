@@ -172,6 +172,8 @@ def run_cohort_simulation(config: Mapping[str, Any]) -> dict[str, Any]:
     aggregate_power_profiles: dict[str, np.ndarray] = {}
     household_event_profiles: dict[str, list[float]] = {}
     household_total_profiles: dict[str, list[float]] = {}
+    household_grid_import_profiles: dict[str, list[float]] = {}
+    household_gross_actual_profiles: dict[str, list[float]] = {}
     household_nonthermal_profiles: dict[str, list[float]] = {}
     household_base_profiles: dict[str, list[float]] = {}
     household_lighting_profiles: dict[str, list[float]] = {}
@@ -221,6 +223,8 @@ def run_cohort_simulation(config: Mapping[str, Any]) -> dict[str, Any]:
 
         profile_frame = pd.DataFrame(outputs["profile_frame"]).copy()
         household_profile = _frame_column_or_zeros(profile_frame, "P_el_total_W")
+        household_grid_import_profile = _frame_column_or_zeros(profile_frame, "P_el_grid_import_W")
+        household_gross_actual_profile = _frame_column_or_zeros(profile_frame, "P_el_gross_actual_W")
         event_profile = _frame_column_or_zeros(profile_frame, "P_events_W")
         nonthermal_profile = _frame_column_or_zeros(profile_frame, "P_nonthermal_W")
         base_profile = _frame_column_or_zeros(profile_frame, "P_base_W")
@@ -239,6 +243,8 @@ def run_cohort_simulation(config: Mapping[str, Any]) -> dict[str, Any]:
         household_profiles.append(household_profile)
         household_id = f"household_{household_index:03d}"
         household_total_profiles[household_id] = household_profile.tolist()
+        household_grid_import_profiles[household_id] = household_grid_import_profile.tolist()
+        household_gross_actual_profiles[household_id] = household_gross_actual_profile.tolist()
         household_event_profiles[household_id] = event_profile.tolist()
         household_nonthermal_profiles[household_id] = nonthermal_profile.tolist()
         household_base_profiles[household_id] = base_profile.tolist()
@@ -392,8 +398,20 @@ def run_cohort_simulation(config: Mapping[str, Any]) -> dict[str, Any]:
         raise ValueError("cohort.n_households must be positive.")
 
     profile_matrix = np.vstack(household_profiles) if household_profiles else np.zeros((1, 1), dtype=float)
+    grid_import_matrix = (
+        np.vstack([np.asarray(values, dtype=float) for values in household_grid_import_profiles.values()])
+        if household_grid_import_profiles
+        else np.zeros((1, 1), dtype=float)
+    )
+    gross_actual_matrix = (
+        np.vstack([np.asarray(values, dtype=float) for values in household_gross_actual_profiles.values()])
+        if household_gross_actual_profiles
+        else np.zeros((1, 1), dtype=float)
+    )
     dhw_matrix = np.vstack([np.asarray(values, dtype=float) for values in household_dhw_profiles.values()]) if household_dhw_profiles else np.zeros((1, 1), dtype=float)
     aggregate_profile = aggregate_power_profiles.get("P_el_total_W", profile_matrix.sum(axis=0))
+    aggregate_grid_import_profile = aggregate_power_profiles.get("P_el_grid_import_W", grid_import_matrix.sum(axis=0))
+    aggregate_gross_actual_profile = aggregate_power_profiles.get("P_el_gross_actual_W", gross_actual_matrix.sum(axis=0))
     aggregate_dhw_profile = dhw_matrix.sum(axis=0)
     per_household_profile = aggregate_profile / max(n_households, 1)
     per_household_dhw_profile = aggregate_dhw_profile / max(n_households, 1)
@@ -411,6 +429,8 @@ def run_cohort_simulation(config: Mapping[str, Any]) -> dict[str, Any]:
     aggregated_peak = float(np.max(aggregate_profile)) if len(aggregate_profile) else 0.0
     aggregated_dhw_peak = float(np.max(aggregate_dhw_profile)) if len(aggregate_dhw_profile) else 0.0
     diversity_factor = compute_diversity_factor(profile_matrix, aggregate_profile)
+    diversity_factor_grid_import = compute_diversity_factor(grid_import_matrix, aggregate_grid_import_profile)
+    diversity_factor_gross_actual = compute_diversity_factor(gross_actual_matrix, aggregate_gross_actual_profile)
     mean_profile = float(np.mean(per_household_profile))
     std_profile = float(np.std(per_household_profile, ddof=0))
     P10_profile = float(np.mean(p10_profile_series))
@@ -496,6 +516,8 @@ def run_cohort_simulation(config: Mapping[str, Any]) -> dict[str, Any]:
         "P50_profile": P50_profile,
         "P90_profile": P90_profile,
         "diversity_factor": diversity_factor,
+        "diversity_factor_grid_import": diversity_factor_grid_import,
+        "diversity_factor_gross_actual": diversity_factor_gross_actual,
         "peak_distribution": {
             "mean_peak_W": float(np.mean(peak_array)),
             "std_peak_W": float(np.std(peak_array)),
@@ -590,6 +612,8 @@ def run_cohort_simulation(config: Mapping[str, Any]) -> dict[str, Any]:
         "technology_counts": technology_counts,
         "household_class_counts": household_class_counts,
         "household_profiles": household_total_profiles,
+        "household_grid_import_profiles": household_grid_import_profiles,
+        "household_gross_actual_profiles": household_gross_actual_profiles,
         "household_event_profiles": household_event_profiles,
         "household_nonthermal_profiles": household_nonthermal_profiles,
         "household_base_profiles": household_base_profiles,

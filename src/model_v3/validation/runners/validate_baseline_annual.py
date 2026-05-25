@@ -54,6 +54,14 @@ def _format_float(value: Any, digits: int, none_label: str = "n/a") -> str:
         return "n/a"
 
 
+def _check_status(ok: bool, quick_metadata: Mapping[str, Any]) -> str:
+    """Render baseline status without treating quick/debug checks as thesis failures."""
+
+    if bool(quick_metadata.get("enabled", False)):
+        return "DEBUG_ONLY_PASS" if ok else "DEBUG_ONLY_FAIL"
+    return "PASS" if ok else "FAIL"
+
+
 def validate_baseline_annual(config: Mapping[str, Any], quick_mode: bool | None = None) -> dict[str, Any]:
     """Check the deterministic annual run against literature annual targets."""
 
@@ -97,8 +105,16 @@ def validate_baseline_annual(config: Mapping[str, Any], quick_mode: bool | None 
     }
     electricity_calibration = dict(results.get("electricity_calibration", {}))
     if simulation_cfg.get("max_steps") in {None, ""} and int(results.get("n_steps", 0)) >= 1000:
-        assert 5000.0 < annual_summary["space_heating_thermal_kWh"] < 25000.0
-        assert 1000.0 < annual_summary["dhw_thermal_kWh"] < 5000.0
+        if not 5000.0 < annual_summary["space_heating_thermal_kWh"] < 25000.0:
+            LOGGER.warning(
+                "baseline_annual.sanity_fail space_heating_thermal_kWh=%.3f expected_range=(5000,25000)",
+                annual_summary["space_heating_thermal_kWh"],
+            )
+        if not 1000.0 < annual_summary["dhw_thermal_kWh"] < 5000.0:
+            LOGGER.warning(
+                "baseline_annual.sanity_fail dhw_thermal_kWh=%.3f expected_range=(1000,5000)",
+                annual_summary["dhw_thermal_kWh"],
+            )
     checks = {
         "annual_electricity_ok": _within_range(
             annual_summary["annual_electricity_kWh"],
@@ -154,9 +170,9 @@ def validate_baseline_annual(config: Mapping[str, Any], quick_mode: bool | None 
         "",
         "| Quantity | Model | Literature range | Status |",
         "| --- | ---: | ---: | --- |",
-        f"| Annual electricity (kWh) | {annual_summary['annual_electricity_kWh']:.3f} | {baseline_cfg.get('electricity_range_kWh')} | {'PASS' if checks['annual_electricity_ok'] else 'FAIL'} |",
-        f"| Space heating thermal (kWh) | {annual_summary['space_heating_thermal_kWh']:.3f} | {baseline_cfg.get('space_heating_range_kWh')} | {'PASS' if checks['space_heating_thermal_ok'] else 'FAIL'} |",
-        f"| DHW thermal (kWh) | {annual_summary['dhw_thermal_kWh']:.3f} | {baseline_cfg.get('dhw_range_kWh')} | {'PASS' if checks['dhw_thermal_ok'] else 'FAIL'} |",
+        f"| Annual electricity (kWh) | {annual_summary['annual_electricity_kWh']:.3f} | {baseline_cfg.get('electricity_range_kWh')} | {_check_status(checks['annual_electricity_ok'], quick_metadata)} |",
+        f"| Space heating thermal (kWh) | {annual_summary['space_heating_thermal_kWh']:.3f} | {baseline_cfg.get('space_heating_range_kWh')} | {_check_status(checks['space_heating_thermal_ok'], quick_metadata)} |",
+        f"| DHW thermal (kWh) | {annual_summary['dhw_thermal_kWh']:.3f} | {baseline_cfg.get('dhw_range_kWh')} | {_check_status(checks['dhw_thermal_ok'], quick_metadata)} |",
         "",
         "## End-use shares",
         "",

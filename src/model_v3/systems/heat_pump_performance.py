@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping
 
+from model_v3.systems.distributed_energy import value_from_range
+
 
 @dataclass(frozen=True)
 class EmitterSpec:
@@ -38,9 +40,9 @@ class HeatPumpSpec:
 
 EMITTER_SPECS: dict[str, EmitterSpec] = {
     "underfloor": EmitterSpec(sink_high_c=35.0, sink_low_c=27.0),
-    "low_temperature_radiators": EmitterSpec(sink_high_c=45.0, sink_low_c=32.0),
-    "standard_radiators": EmitterSpec(sink_high_c=55.0, sink_low_c=38.0),
-    "high_temperature_radiators": EmitterSpec(sink_high_c=60.0, sink_low_c=40.0),
+    "low_temperature_radiators": EmitterSpec(sink_high_c=45.0, sink_low_c=35.0),
+    "standard_radiators": EmitterSpec(sink_high_c=55.0, sink_low_c=42.0),
+    "high_temperature_radiators": EmitterSpec(sink_high_c=60.0, sink_low_c=45.0),
     "fan_coils": EmitterSpec(sink_high_c=42.0, sink_low_c=28.0),
 }
 
@@ -50,12 +52,12 @@ HEAT_PUMP_SPECS: dict[str, HeatPumpSpec] = {
         default_refrigerant="R290",
         source_ref_c=7.0,
         sink_ref_c=35.0,
-        cop_ref=5.0,
-        min_cop=2.2,
-        max_cop=5.8,
+        cop_ref=4.4,
+        min_cop=2.0,
+        max_cop=5.0,
         source_slope_per_k=0.11,
         sink_slope_per_k=0.095,
-        defrost_penalty_fraction=0.07,
+        defrost_penalty_fraction=0.12,
         part_load_min=0.20,
         degradation_coefficient=0.95,
         capacity_fraction_at_ref=1.0,
@@ -68,12 +70,12 @@ HEAT_PUMP_SPECS: dict[str, HeatPumpSpec] = {
         default_refrigerant="R32",
         source_ref_c=7.0,
         sink_ref_c=20.0,
-        cop_ref=5.5,
+        cop_ref=4.4,
         min_cop=2.0,
-        max_cop=6.0,
+        max_cop=5.3,
         source_slope_per_k=0.14,
         sink_slope_per_k=0.03,
-        defrost_penalty_fraction=0.07,
+        defrost_penalty_fraction=0.12,
         part_load_min=0.20,
         degradation_coefficient=0.95,
         capacity_fraction_at_ref=0.85,
@@ -86,9 +88,9 @@ HEAT_PUMP_SPECS: dict[str, HeatPumpSpec] = {
         default_refrigerant="R290",
         source_ref_c=0.0,
         sink_ref_c=35.0,
-        cop_ref=4.2,
+        cop_ref=3.8,
         min_cop=3.0,
-        max_cop=6.0,
+        max_cop=5.2,
         source_slope_per_k=0.045,
         sink_slope_per_k=0.085,
         part_load_min=0.15,
@@ -150,7 +152,7 @@ def _source_temperature(
     outdoor_temperature_c: float,
 ) -> float:
     if hp_type == "ground_source":
-        return _as_float(heating_cfg, "ground_source_temperature_C", 0.0)
+        return value_from_range(heating_cfg.get("ground_source_temperature_C"), 8.0)
     if hp_type == "hpwh":
         return _as_float(dhw_cfg, "ambient_source_temperature_C", 15.0)
     return float(outdoor_temperature_c)
@@ -233,7 +235,7 @@ def heat_pump_performance(
         indoor_setpoint_c,
     )
     cop_ref_cfg = dhw_cfg if model_hp_type == "hpwh" else heating_cfg
-    cop_ref = _as_float(type_overrides, "cop_ref", _as_float(cop_ref_cfg, "cop_ref", spec.cop_ref))
+    cop_ref = _as_float(cop_ref_cfg, "cop_ref", _as_float(type_overrides, "cop_ref", spec.cop_ref))
     min_cop = _as_float(type_overrides, "min_cop", spec.min_cop)
     max_cop = _as_float(type_overrides, "max_cop", spec.max_cop)
     source_slope = _as_float(type_overrides, "source_slope_per_K", spec.source_slope_per_k)

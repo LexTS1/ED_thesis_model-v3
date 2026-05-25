@@ -45,6 +45,18 @@ class ScenarioTreeNamingTest(unittest.TestCase):
         )
         self.assertEqual(parse_scenario_leaf_id(scenario_leaf_id)["realization_id"], "seed_0042")
 
+    def test_valid_design_year_scenario_leaf_id_passes(self) -> None:
+        scenario_leaf_id = (
+            "mid_century_2050_2070__rcp_4_5__tech_frozen_stock"
+            "__cold_design_year__seed_0001"
+        )
+
+        parsed = parse_scenario_leaf_id(scenario_leaf_id)
+
+        self.assertEqual(parsed["scenario_id"], "mid_century_2050_2070__rcp_4_5__tech_frozen_stock")
+        self.assertEqual(parsed["design_year_id"], "cold_design_year")
+        self.assertEqual(parsed["realization_id"], "seed_0001")
+
     def test_uppercase_id_fails(self) -> None:
         with self.assertRaises(ScenarioTreeNamingError):
             validate_scenario_id("mid_century_2050_2070__RCP_8_5__tech_high_electrification_pv_ev")

@@ -22,9 +22,9 @@ def test_figure_generation_writes_stable_png_and_pdf_files(tmp_path: Path) -> No
         write_captions_flag=True,
     )
 
-    assert summary["figures_written"] == 17
-    assert summary["png_files"] == 17
-    assert summary["pdf_files"] == 17
+    assert summary["figures_written"] == 24
+    assert summary["png_files"] == 24
+    assert summary["pdf_files"] == 24
     assert (figures_root / "structure" / "scenario_tree_structure.png").exists()
     assert (figures_root / "structure" / "scenario_tree_structure.pdf").exists()
     assert all(" " not in path.name for path in figures_root.glob("*/*.*"))

@@ -25,6 +25,7 @@ if __package__ in {None, ""}:
 import argparse
 import csv
 import json
+from copy import deepcopy
 from dataclasses import dataclass
 from datetime import timedelta, timezone
 from pathlib import Path
@@ -56,6 +57,15 @@ DEFAULT_ELIA_URL = (
     "&where=resolutioncode%20%3D%20%22PT15M%22%20AND%20datetime%20%3E%3D%20"
     "date%272024-01-01T00%3A00%3A00%27%20AND%20datetime%20%3C%20"
     "date%272025-01-01T00%3A00%3A00%27"
+    "&refine=region%3ABelgium&order_by=datetime%20ASC&timezone=Europe%2FBrussels"
+    "&use_labels=false&delimiter=%3B"
+)
+DEFAULT_ELIA_URL_2023 = (
+    "https://opendata.elia.be/api/explore/v2.1/catalog/datasets/ods032/exports/csv?"
+    "select=datetime,resolutioncode,region,measured,monitoredcapacity,loadfactor"
+    "&where=resolutioncode%20%3D%20%22PT15M%22%20AND%20datetime%20%3E%3D%20"
+    "date%272023-01-01T00%3A00%3A00%27%20AND%20datetime%20%3C%20"
+    "date%272024-01-01T00%3A00%3A00%27"
     "&refine=region%3ABelgium&order_by=datetime%20ASC&timezone=Europe%2FBrussels"
     "&use_labels=false&delimiter=%3B"
 )
@@ -262,6 +272,212 @@ def _select_existing_path(repo_root: Path, globs: Iterable[str]) -> Path | None:
     return files[0] if files else None
 
 
+def _series_to_local_daily(series: pd.Series) -> pd.Series:
+    """Aggregate a timestamped series to local-calendar daily means."""
+
+    if series.empty:
+        return pd.Series(dtype=float)
+    local = series.copy().sort_index()
+    if local.index.tz is None:
+        local.index = pd.DatetimeIndex(local.index).tz_localize(BELGIUM_TZ)
+    else:
+        local.index = pd.DatetimeIndex(local.index).tz_convert(BELGIUM_TZ)
+    return local.resample("D").mean().dropna()
+
+
+def _monthly_abs_error_pct(model: pd.Series, reference: pd.Series) -> float:
+    """Return mean absolute monthly relative error between two daily/instant series."""
+
+    if model.empty or reference.empty:
+        return float("nan")
+    model_monthly = model.resample("ME").mean()
+    reference_monthly = reference.resample("ME").mean()
+    aligned = pd.concat([model_monthly, reference_monthly], axis=1, join="inner").dropna()
+    if aligned.empty:
+        return float("nan")
+    denom = aligned.iloc[:, 1].abs().clip(lower=1e-9)
+    return float(((aligned.iloc[:, 0] - aligned.iloc[:, 1]).abs() / denom * 100.0).mean())
+
+
+def _write_model_capacity_factor(path: Path, model_cf: pd.Series, *, year: int | None = None) -> Path:
+    """Write model PV capacity factor with the standard Elia-comparison schema."""
+
+    series = model_cf.sort_index()
+    if year is not None:
+        local_index = pd.DatetimeIndex(series.index)
+        years = local_index.tz_convert(BELGIUM_TZ).year if local_index.tz is not None else local_index.year
+        series = series.loc[years == int(year)]
+    path.parent.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(
+        {
+            "timestamp": series.index.astype(str),
+            "capacity_factor": series.to_numpy(dtype=float),
+            "source": "model_v3_pvgis_irradiance_conversion",
+        }
+    ).to_csv(path, index=False)
+    return path
+
+
+def _write_model_net_load(path: Path, frame: pd.DataFrame) -> Path:
+    """Write a model net-load profile with the standard Fluvius-comparison schema."""
+
+    columns = [
+        "timestamp",
+        "P_el_net_grid_W",
+        "P_el_grid_import_W",
+        "P_el_grid_export_W",
+        "P_el_gross_actual_W",
+        "P_pv_generation_W",
+    ]
+    missing = [column for column in columns if column not in frame.columns]
+    if missing:
+        raise ValueError(f"Cannot write model net-load profile; missing columns: {', '.join(missing)}")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    frame.loc[:, columns].to_csv(path, index=False)
+    return path
+
+
+def _generate_model_net_load_file(repo_root: Path, cfg: Mapping[str, Any], destination: Path) -> list[str]:
+    """Generate a PV-enabled annual model net-load profile for the Fluvius PV leg."""
+
+    from model_v3.simulation.annual_runner import run_annual_simulation
+    from pipelines.run_model_v3 import load_config
+
+    model_config_path = _resolve_path(repo_root, cfg.get("model_config_file", "config/thesis.yaml"))
+    if model_config_path is None or not model_config_path.exists():
+        raise FileNotFoundError(
+            "Cannot generate model net-load profile because the configured model_config_file is missing: "
+            f"{model_config_path}"
+        )
+    model_config = deepcopy(load_config(model_config_path))
+    der_cfg = model_config.setdefault("der", {})
+    pv_cfg = der_cfg.setdefault("pv", {})
+    pv_cfg["enabled"] = True
+    if cfg.get("model_pv_system_size_kwp") is not None:
+        pv_cfg["system_size_kwp"] = {"base": float(cfg["model_pv_system_size_kwp"])}
+    if cfg.get("model_max_steps") not in {None, ""}:
+        model_config.setdefault("simulation", {})["max_steps"] = int(cfg["model_max_steps"])
+    results = run_annual_simulation(config=model_config)
+    frame = pd.DataFrame(results["profile_frame"]).copy()
+    _write_model_net_load(destination, frame)
+    return [
+        f"Generated model net-load comparison file from `{model_config_path.relative_to(repo_root)}`.",
+        "The generated Fluvius PV model profile forces der.pv.enabled=true for a single PV household case.",
+    ]
+
+
+def _validate_pvgis_alignment_fallback(
+    repo_root: Path,
+    cfg: Mapping[str, Any],
+    report_dir: Path,
+    figure_dir: Path,
+    *,
+    path: Path,
+) -> ValidationLegResult:
+    """Reconstruct PVGIS comparison metrics from an existing alignment artifact."""
+
+    frame = _read_csv_sniffed(path)
+    required = {
+        "timestamp",
+        "pvgis_reference_W",
+        "model_formula_W",
+        "pvgis_reference_capacity_factor",
+        "model_capacity_factor",
+    }
+    missing = sorted(required.difference(frame.columns))
+    if missing:
+        return ValidationLegResult(
+            status="invalid_reference",
+            metrics={"columns": list(frame.columns)},
+            source_files=[str(path.relative_to(repo_root))],
+            output_files=[],
+            warnings=[f"PVGIS alignment fallback is missing required columns: {', '.join(missing)}"],
+        )
+
+    timestamps = pd.to_datetime(frame["timestamp"], utc=True, errors="coerce").dt.tz_convert(BELGIUM_TZ)
+    reference_w = pd.Series(
+        pd.to_numeric(frame["pvgis_reference_W"], errors="coerce").to_numpy(dtype=float),
+        index=pd.DatetimeIndex(timestamps),
+        dtype=float,
+    ).dropna()
+    model_w = pd.Series(
+        pd.to_numeric(frame["model_formula_W"], errors="coerce").to_numpy(dtype=float),
+        index=pd.DatetimeIndex(timestamps),
+        dtype=float,
+    ).dropna()
+    reference_cf = pd.Series(
+        pd.to_numeric(frame["pvgis_reference_capacity_factor"], errors="coerce").to_numpy(dtype=float),
+        index=pd.DatetimeIndex(timestamps),
+        dtype=float,
+    ).dropna()
+    model_cf = pd.Series(
+        pd.to_numeric(frame["model_capacity_factor"], errors="coerce").to_numpy(dtype=float),
+        index=pd.DatetimeIndex(timestamps),
+        dtype=float,
+    ).dropna()
+    capacity_kwp = float(cfg.get("capacity_kwp", 1.0))
+    reference_yearly = _yearly_energy_kwh(reference_w)
+    model_yearly = _yearly_energy_kwh(model_w)
+    monthly_ref = _monthly_energy_kwh(reference_w)
+    monthly_model = _monthly_energy_kwh(model_w)
+    monthly_aligned = pd.concat([monthly_model, monthly_ref], axis=1, join="inner").dropna()
+    if monthly_aligned.empty:
+        mean_abs_monthly_yield_error_pct = float("nan")
+    else:
+        mean_abs_monthly_yield_error_pct = float(
+            (
+                (monthly_aligned.iloc[:, 0] - monthly_aligned.iloc[:, 1]).abs()
+                / monthly_aligned.iloc[:, 1].abs().clip(lower=1e-9)
+                * 100.0
+            ).mean()
+        )
+    metrics = {
+        "rows": int(len(frame)),
+        "start": str(reference_cf.index.min()) if not reference_cf.empty else None,
+        "end": str(reference_cf.index.max()) if not reference_cf.empty else None,
+        "capacity_kwp": capacity_kwp,
+        "reference_mean_annual_specific_yield_kwh_per_kwp": float(reference_yearly.mean()) / max(capacity_kwp, 1e-9),
+        "model_mean_annual_specific_yield_kwh_per_kwp": float(model_yearly.mean()) / max(capacity_kwp, 1e-9),
+        "annual_specific_yield_error_pct": (
+            (float(model_yearly.mean()) - float(reference_yearly.mean()))
+            / max(float(reference_yearly.mean()), 1e-9)
+            * 100.0
+        ),
+        "mean_abs_monthly_yield_error_pct": mean_abs_monthly_yield_error_pct,
+        "hourly_capacity_factor_rmse": _rmse(model_cf, reference_cf),
+        "hourly_capacity_factor_mae": _mae(model_cf, reference_cf),
+        "pearson_correlation": _correlation(model_cf, reference_cf),
+        "source_kind": "existing_alignment_fallback",
+    }
+    alignment_path = report_dir / "pvgis_reference_alignment.csv"
+    frame.to_csv(alignment_path, index=False)
+    output_files = [str(alignment_path.relative_to(repo_root))]
+    figure_path = figure_dir / "pvgis_reference_validation.png"
+    _plot_pvgis(figure_path, reference_w, model_w)
+    if figure_path.exists():
+        output_files.append(str(figure_path.relative_to(repo_root)))
+
+    model_cf_path = _resolve_path(repo_root, cfg.get("model_capacity_factor_file"))
+    if model_cf_path is not None:
+        output_files.append(
+            str(
+                _write_model_capacity_factor(
+                    model_cf_path,
+                    model_cf,
+                    year=int(cfg["model_capacity_factor_year"]) if cfg.get("model_capacity_factor_year") is not None else None,
+                ).relative_to(repo_root)
+            )
+        )
+
+    return ValidationLegResult(
+        status="model_reference_comparison",
+        metrics=metrics,
+        source_files=[str(path.relative_to(repo_root))],
+        output_files=output_files,
+        warnings=["PVGIS raw reference was not found; reused existing alignment artifact as fallback."],
+    )
+
+
 def _plot_pvgis(path: Path, reference_w: pd.Series, model_w: pd.Series) -> None:
     if plt is None:
         return
@@ -342,6 +558,9 @@ def validate_pvgis_leg(repo_root: Path, cfg: Mapping[str, Any], report_dir: Path
     if path is None or not path.exists():
         path = _select_existing_path(repo_root, globs)
     if path is None or not path.exists():
+        fallback_path = _resolve_path(repo_root, cfg.get("reference_alignment_file"))
+        if fallback_path is not None and fallback_path.exists():
+            return _validate_pvgis_alignment_fallback(repo_root, cfg, report_dir, figure_dir, path=fallback_path)
         return ValidationLegResult(
             status="missing_reference",
             metrics={},
@@ -450,6 +669,17 @@ def validate_pvgis_leg(repo_root: Path, cfg: Mapping[str, Any], report_dir: Path
     _plot_pvgis(figure_path, reference_w, model_w)
     if figure_path.exists():
         output_files.append(str(figure_path.relative_to(repo_root)))
+    model_cf_path = _resolve_path(repo_root, cfg.get("model_capacity_factor_file"))
+    if model_cf_path is not None:
+        output_files.append(
+            str(
+                _write_model_capacity_factor(
+                    model_cf_path,
+                    model_cf,
+                    year=int(cfg["model_capacity_factor_year"]) if cfg.get("model_capacity_factor_year") is not None else None,
+                ).relative_to(repo_root)
+            )
+        )
 
     return ValidationLegResult(
         status="model_reference_comparison",
@@ -462,8 +692,14 @@ def validate_pvgis_leg(repo_root: Path, cfg: Mapping[str, Any], report_dir: Path
 
 def _download_file(url: str, destination: Path) -> None:
     destination.parent.mkdir(parents=True, exist_ok=True)
-    with urlopen(url, timeout=120) as response:
-        destination.write_bytes(response.read())
+    try:
+        with urlopen(url, timeout=120) as response:
+            destination.write_bytes(response.read())
+    except Exception as exc:
+        raise RuntimeError(
+            f"Could not download Elia ODS032 reference to `{destination}`. "
+            "Run again with network access or place the CSV at the configured local_file path."
+        ) from exc
 
 
 def validate_elia_leg(
@@ -477,9 +713,11 @@ def validate_elia_leg(
     warnings: list[str] = []
     output_files: list[str] = []
     source_files: list[str] = []
-    local_file = _resolve_path(repo_root, cfg.get("local_file", "inputs/validation/pv/elia/ods032_belgium_pv_2024_pt15m.csv"))
+    report_dir.mkdir(parents=True, exist_ok=True)
+    figure_dir.mkdir(parents=True, exist_ok=True)
+    local_file = _resolve_path(repo_root, cfg.get("local_file", "inputs/validation/pv/elia/ods032_belgium_pv_2023_pt15m.csv"))
     assert local_file is not None
-    url = str(cfg.get("url") or DEFAULT_ELIA_URL)
+    url = str(cfg.get("url") or DEFAULT_ELIA_URL_2023)
     download_if_missing = bool(cfg.get("download_if_missing", False) or force_download)
     if force_download or (download_if_missing and not local_file.exists()):
         _download_file(url, local_file)
@@ -555,15 +793,25 @@ def validate_elia_leg(
     model_profile = _resolve_path(repo_root, cfg.get("model_capacity_factor_file"))
     if model_profile and model_profile.exists():
         model_cf = _load_power_profile(model_profile, value_candidates=["capacity_factor", "model_capacity_factor", "pv_capacity_factor"])
+        exact_aligned = pd.concat([model_cf, capacity_factor], axis=1, join="inner").dropna()
+        daily_model = _series_to_local_daily(model_cf)
+        daily_reference = _series_to_local_daily(capacity_factor)
+        daily_aligned = pd.concat([daily_model, daily_reference], axis=1, join="inner").dropna()
+        metrics["exact_overlap_rows"] = int(len(exact_aligned))
+        metrics["daily_overlap_days"] = int(len(daily_aligned))
         metrics["model_capacity_factor_rmse"] = _rmse(model_cf, capacity_factor)
         metrics["model_capacity_factor_mae"] = _mae(model_cf, capacity_factor)
         metrics["model_capacity_factor_correlation"] = _correlation(model_cf, capacity_factor)
+        metrics["daily_capacity_factor_rmse"] = _rmse(daily_model, daily_reference)
+        metrics["daily_capacity_factor_mae"] = _mae(daily_model, daily_reference)
+        metrics["daily_capacity_factor_correlation"] = _correlation(daily_model, daily_reference)
+        metrics["monthly_mean_abs_capacity_factor_error_pct"] = _monthly_abs_error_pct(daily_model, daily_reference)
         status = "model_reference_comparison"
         source_files.append(str(model_profile.relative_to(repo_root)))
     else:
         status = "reference_ingested"
         warnings.append(
-            "No model capacity-factor profile is configured for 2024; Elia validation is currently ingestion/reference-only."
+            "No model capacity-factor profile is configured for the Elia reference year; validation is ingestion/reference-only."
         )
 
     source_files.insert(0, str(local_file.relative_to(repo_root)))
@@ -707,6 +955,11 @@ def validate_fluvius_leg(repo_root: Path, cfg: Mapping[str, Any], report_dir: Pa
     }
 
     model_profile = _resolve_path(repo_root, cfg.get("model_net_load_file"))
+    if model_profile and not model_profile.exists() and bool(cfg.get("generate_model_net_load_if_missing", False)):
+        try:
+            warnings.extend(_generate_model_net_load_file(repo_root, cfg, model_profile))
+        except Exception as exc:
+            warnings.append(f"Could not generate configured model net-load profile: {exc}")
     if model_profile and model_profile.exists():
         model_net_w = _load_power_profile(model_profile, value_candidates=["P_el_net_grid_W", "P_el_grid_import_W", "model_net_W", "net_load_W"])
         model_net_kw = model_net_w / 1000.0
@@ -791,12 +1044,20 @@ def run_validation(
     config_path: Path,
     download_elia: bool = False,
     skip_fluvius: bool = False,
+    report_dir_override: str | Path | None = None,
+    figure_dir_override: str | Path | None = None,
 ) -> dict[str, Any]:
     config = _load_yaml(config_path)
     pv_cfg = dict(dict(dict(config.get("validation", {})).get("technology", {})).get("pv", config.get("pv", {})))
     outputs_cfg = dict(pv_cfg.get("outputs", {}))
-    report_dir = _resolve_path(repo_root, outputs_cfg.get("report_dir", "reports/model_v3/validation/technology/pv"))
-    figure_dir = _resolve_path(repo_root, outputs_cfg.get("figure_dir", "figures/model_v3/validation/technology/pv"))
+    report_dir = _resolve_path(
+        repo_root,
+        report_dir_override if report_dir_override is not None else outputs_cfg.get("report_dir", "reports/model_v3/validation/technology/pv"),
+    )
+    figure_dir = _resolve_path(
+        repo_root,
+        figure_dir_override if figure_dir_override is not None else outputs_cfg.get("figure_dir", "figures/model_v3/validation/technology/pv"),
+    )
     assert report_dir is not None and figure_dir is not None
     report_dir.mkdir(parents=True, exist_ok=True)
     figure_dir.mkdir(parents=True, exist_ok=True)
@@ -855,6 +1116,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--config", default=DEFAULT_CONFIG, help=f"PV validation config. Defaults to {DEFAULT_CONFIG}.")
     parser.add_argument("--download-elia", action="store_true", help="Download/cache the configured Elia ODS032 CSV before validation.")
     parser.add_argument("--skip-fluvius", action="store_true", help="Skip loading large Fluvius representative profile files.")
+    parser.add_argument("--report-dir", default=None, help="Override the configured report directory.")
+    parser.add_argument("--figure-dir", default=None, help="Override the configured figure directory.")
     parser.add_argument("--print-summary", action="store_true", help="Print concise validation status summary.")
     return parser
 
@@ -870,6 +1133,8 @@ def main(argv: list[str] | None = None) -> int:
         config_path=config_path,
         download_elia=bool(args.download_elia),
         skip_fluvius=bool(args.skip_fluvius),
+        report_dir_override=args.report_dir,
+        figure_dir_override=args.figure_dir,
     )
     if args.print_summary:
         print("PV validation triangle complete.")

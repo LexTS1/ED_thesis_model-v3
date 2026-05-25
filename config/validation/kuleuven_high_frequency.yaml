@@ -1,0 +1,17 @@
+runner:
+  name: kuleuven_high_frequency
+  description: KU Leuven high-frequency household case-study validation.
+  timeout_seconds: 1800
+  command:
+    - "{python}"
+    - "-m"
+    - "model_v3.validation.runners.validate_high_frequency_kuleuven"
+    - "--config"
+    - "config/thesis.yaml"
+  quick_args:
+    - "--quick"
+  full_args:
+    - "--rebuild-cache-if-missing"
+  expected_artifacts:
+    - "outputs/validation/validation_report_v3_kuleuven_high_freq.md"
+    - "outputs/validation/kuleuven_high_freq/metrics.json"

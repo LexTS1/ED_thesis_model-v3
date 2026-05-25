@@ -98,26 +98,50 @@ def _quality_checks(series: pd.Series, *, label: str) -> list[str]:
     return warnings
 
 
-def load_fluvius_profiles(base_path: str | Path) -> dict[str, pd.Series]:
+def load_fluvius_profiles(
+    base_path: str | Path,
+    *,
+    max_rows_per_file: int | None = None,
+    pv_variant_policy: str = "all",
+) -> dict[str, pd.Series]:
     """Load all Fluvius CSV files and return representative kW profiles by segment."""
 
     root = _resolve_base_path(base_path)
+    policy = str(pv_variant_policy or "all").strip().lower()
     csv_files = sorted(path for path in root.rglob("*.csv") if path.is_file())
+    if policy == "no_pv_only":
+        csv_files = [path for path in csv_files if _profile_key(path)[1] == "no_pv"]
+    elif policy == "with_pv_only":
+        csv_files = [path for path in csv_files if _profile_key(path)[1] == "with_pv"]
+    elif policy not in {"all", "mean_all"}:
+        raise ValueError(f"Unsupported Fluvius pv_variant_policy: {pv_variant_policy}")
     if not csv_files:
         raise FileNotFoundError(f"No Fluvius CSV files found under {root}")
 
     profiles: dict[str, pd.Series] = {}
     for csv_path in csv_files:
+        LOGGER.info(
+            "fluvius_loader.file.start path=%s max_rows_per_file=%s",
+            csv_path,
+            max_rows_per_file if max_rows_per_file is not None else "full",
+        )
         technology, pv_variant = _profile_key(csv_path)
         profile_name = f"{technology}_{pv_variant}"
         timestamp_sums: defaultdict[pd.Timestamp, float] = defaultdict(float)
         timestamp_counts: defaultdict[pd.Timestamp, int] = defaultdict(int)
+        rows_seen = 0
 
         sample = pd.read_csv(csv_path, nrows=5)
         timestamp_column = _detect_timestamp_column(list(sample.columns))
         value_column = _detect_value_column(list(sample.columns))
 
         for chunk in pd.read_csv(csv_path, usecols=[timestamp_column, value_column], chunksize=200_000):
+            if max_rows_per_file is not None:
+                remaining = max(int(max_rows_per_file), 1) - rows_seen
+                if remaining <= 0:
+                    break
+                chunk = chunk.head(remaining)
+            rows_seen += len(chunk)
             timestamps = pd.to_datetime(chunk[timestamp_column], utc=True, errors="coerce")
             values = pd.to_numeric(chunk[value_column], errors="coerce")
             frame = pd.DataFrame(
@@ -130,6 +154,8 @@ def load_fluvius_profiles(base_path: str | Path) -> dict[str, pd.Series]:
             for timestamp, row in grouped.iterrows():
                 timestamp_sums[pd.Timestamp(timestamp)] += float(row["sum"])
                 timestamp_counts[pd.Timestamp(timestamp)] += int(row["count"])
+            if max_rows_per_file is not None and rows_seen >= int(max_rows_per_file):
+                break
 
         if not timestamp_sums:
             LOGGER.warning("fluvius_loader.empty_profile file=%s", csv_path)
@@ -146,6 +172,7 @@ def load_fluvius_profiles(base_path: str | Path) -> dict[str, pd.Series]:
         for warning in _quality_checks(series, label=profile_name):
             LOGGER.warning("fluvius_loader.warning %s", warning)
         profiles[profile_name] = series
+        LOGGER.info("fluvius_loader.file.complete path=%s profile=%s rows=%s points=%s", csv_path, profile_name, rows_seen, len(series))
 
     return profiles
 
@@ -153,11 +180,14 @@ def load_fluvius_profiles(base_path: str | Path) -> dict[str, pd.Series]:
 def aggregate_fluvius_profiles(
     profiles: Mapping[str, pd.Series],
     profile_weights: Mapping[str, Any],
+    *,
+    pv_variant_policy: str = "all",
 ) -> tuple[pd.Series, dict[str, Any]]:
     """Build a weighted Fluvius representative profile in kW."""
 
     category_series: dict[str, pd.Series] = {}
-    details: dict[str, Any] = {"category_components": {}, "warnings": []}
+    policy = str(pv_variant_policy or "all").strip().lower()
+    details: dict[str, Any] = {"category_components": {}, "warnings": [], "pv_variant_policy": policy}
 
     for category_name, raw_weight in profile_weights.items():
         weight = float(raw_weight)
@@ -172,8 +202,14 @@ def aggregate_fluvius_profiles(
                 or profile_name.split("_unspecified_pv")[0] == category_name
             )
         }
+        if policy == "no_pv_only":
+            matching = {profile_name: profile for profile_name, profile in matching.items() if profile_name.endswith("_no_pv")}
+        elif policy == "with_pv_only":
+            matching = {profile_name: profile for profile_name, profile in matching.items() if profile_name.endswith("_with_pv")}
+        elif policy not in {"all", "mean_all"}:
+            raise ValueError(f"Unsupported Fluvius pv_variant_policy: {pv_variant_policy}")
         if not matching:
-            raise ValueError(f"No Fluvius profiles found for weighted category: {category_name}")
+            raise ValueError(f"No Fluvius profiles found for weighted category: {category_name} with pv_variant_policy={policy}")
 
         matching_frame = pd.concat(matching.values(), axis=1, join="inner").sort_index()
         if matching_frame.empty:

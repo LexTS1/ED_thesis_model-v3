@@ -32,7 +32,7 @@ def test_figure_validator_passes_on_generated_fixture(tmp_path: Path) -> None:
 
     summary = validate_figures(figures_root=figures_root, experiment_root=experiment_root)
 
-    assert summary["figures_checked"] == 17
+    assert summary["figures_checked"] == 24
     assert summary["manual_spreadsheet_dependencies"] == 0
     assert summary["near_future_includes_2050"] is False
     assert summary["mid_century_includes_2050"] is True

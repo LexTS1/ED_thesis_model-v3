@@ -93,9 +93,10 @@ def _quality_checks(series: pd.Series, *, label: str) -> list[str]:
     return warnings
 
 
-def _load_house_profile(csv_path: Path, *, chunksize: int = 200_000) -> pd.Series:
+def _load_house_profile(csv_path: Path, *, chunksize: int = 200_000, max_rows: int | None = None) -> pd.Series:
     """Load one KU Leuven household file into a 15-minute kW profile."""
 
+    LOGGER.info("kuleuven_loader.file.start path=%s max_rows=%s", csv_path, max_rows if max_rows is not None else "full")
     sample = pd.read_csv(csv_path, nrows=10)
     timestamp_column = _detect_timestamp_column(list(sample.columns))
     signal_column, signal_kind = _detect_signal_column([column for column in sample.columns if column != timestamp_column])
@@ -104,8 +105,15 @@ def _load_house_profile(csv_path: Path, *, chunksize: int = 200_000) -> pd.Serie
     counts: defaultdict[pd.Timestamp, int] = defaultdict(int)
     previous_timestamp: pd.Timestamp | None = None
     previous_value: float | None = None
+    rows_seen = 0
 
     for chunk in pd.read_csv(csv_path, usecols=[timestamp_column, signal_column], chunksize=chunksize):
+        if max_rows is not None:
+            remaining = max(int(max_rows), 1) - rows_seen
+            if remaining <= 0:
+                break
+            chunk = chunk.head(remaining)
+        rows_seen += len(chunk)
         timestamps = pd.to_datetime(chunk[timestamp_column], utc=True, errors="coerce")
         raw_signal = pd.to_numeric(chunk[signal_column], errors="coerce")
 
@@ -141,6 +149,8 @@ def _load_house_profile(csv_path: Path, *, chunksize: int = 200_000) -> pd.Serie
         for timestamp, row in grouped.iterrows():
             sums[pd.Timestamp(timestamp)] += float(row["sum"])
             counts[pd.Timestamp(timestamp)] += int(row["count"])
+        if max_rows is not None and rows_seen >= int(max_rows):
+            break
 
     series = pd.Series(
         {
@@ -152,10 +162,11 @@ def _load_house_profile(csv_path: Path, *, chunksize: int = 200_000) -> pd.Serie
     series.name = csv_path.parent.name
     for warning in _quality_checks(series, label=csv_path.parent.name):
         LOGGER.warning("kuleuven_loader.warning %s", warning)
+    LOGGER.info("kuleuven_loader.file.complete path=%s rows=%s points=%s", csv_path, rows_seen, len(series))
     return series
 
 
-def load_kuleuven_profiles(base_path: str | Path) -> dict[str, pd.Series]:
+def load_kuleuven_profiles(base_path: str | Path, *, max_rows_per_file: int | None = None) -> dict[str, pd.Series]:
     """Load all KU Leuven house case-study electricity files into 15-minute kW profiles."""
 
     root = _resolve_base_path(base_path)
@@ -166,5 +177,5 @@ def load_kuleuven_profiles(base_path: str | Path) -> dict[str, pd.Series]:
     profiles: dict[str, pd.Series] = {}
     for csv_path in house_files:
         house_id = csv_path.parent.name
-        profiles[house_id] = _load_house_profile(csv_path)
+        profiles[house_id] = _load_house_profile(csv_path, max_rows=max_rows_per_file)
     return profiles

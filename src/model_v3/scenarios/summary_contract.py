@@ -31,19 +31,30 @@ REQUIRED_METADATA_COLUMNS = [
 ]
 
 REQUIRED_METRIC_COLUMNS = [
+    # Annual energy totals
     "annual_electricity_gross_kWh",
     "annual_grid_import_kWh",
     "annual_grid_export_kWh",
     "annual_gas_kWh",
+    # annual_useful_heating_kWh = useful space-heating thermal demand ONLY, excluding DHW
     "annual_useful_heating_kWh",
     "annual_dhw_kWh",
+    # Peak and grid-stress metrics — single-point and distributional
     "peak_grid_import_W",
     "winter_peak_grid_import_W",
     "summer_peak_grid_import_W",
+    # Time-weighted percentiles of hourly grid import (Output 3: robust grid-stress)
+    "p95_grid_import_W",
+    "p99_grid_import_W",
+    # Mean-to-peak ratio over the analysis year (Output 4: load-duration compactness)
+    "grid_import_load_factor",
+    # PV metrics
     "pv_generation_kWh",
     "pv_self_consumption_kWh",
     "pv_export_fraction",
+    # EV
     "ev_charging_kWh",
+    # Climate indicators
     "mean_T_out_C",
     "winter_mean_T_out_C",
     "summer_mean_T_out_C",
@@ -84,6 +95,9 @@ _UNITS_BY_COLUMN = {
     "peak_grid_import_W": "W",
     "winter_peak_grid_import_W": "W",
     "summer_peak_grid_import_W": "W",
+    "p95_grid_import_W": "W",
+    "p99_grid_import_W": "W",
+    "grid_import_load_factor": "ratio",
     "pv_generation_kWh": "kWh",
     "pv_self_consumption_kWh": "kWh",
     "pv_export_fraction": "fraction",
@@ -107,6 +121,9 @@ _DESCRIPTIONS_BY_COLUMN = {
     "peak_grid_import_W": "Maximum grid import power over the model output year.",
     "winter_peak_grid_import_W": "Maximum grid import power in December, January, or February.",
     "summer_peak_grid_import_W": "Maximum grid import power in June, July, or August.",
+    "p95_grid_import_W": "Time-weighted 95th percentile of positive grid import over the analysis year. More robust than peak_grid_import_W for grid-stress comparison.",
+    "p99_grid_import_W": "Time-weighted 99th percentile of positive grid import over the analysis year.",
+    "grid_import_load_factor": "Mean grid import divided by peak grid import over the analysis year. Zero when peak is zero.",
     "pv_generation_kWh": "Annual PV generation.",
     "pv_self_consumption_kWh": "Annual PV generation consumed locally.",
     "pv_export_fraction": "Grid export divided by PV generation when PV generation is positive.",

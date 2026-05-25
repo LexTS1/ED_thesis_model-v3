@@ -1,0 +1,16 @@
+runner:
+  name: baseline_annual
+  description: Literature-based annual baseline and end-use validation.
+  timeout_seconds: 300
+  command:
+    - "{python}"
+    - "-m"
+    - "model_v3.validation.runners.validate_baseline_annual"
+    - "--config"
+    - "config/thesis.yaml"
+  quick_args:
+    - "--quick"
+  full_args: []
+  expected_artifacts:
+    - "outputs/validation/baseline_annual/validation_report_v3_baseline_annual.md"
+    - "outputs/validation/baseline_annual/baseline_metrics.json"

@@ -165,10 +165,13 @@ def simulate_household_electricity(
             timestamps=timestamps,
             ev_cfg=ev_cfg,
             has_ev=bool(behaviour.get("has_ev", False)),
+            random_seed=load_seed,
         ),
         dtype=float,
     )
     cohort_metadata = dict(input_data.metadata.get("cohort", {}))
+    dhw_calibration_cfg = dict(behaviour_cfg.get("dhw_calibration", {}))
+    dhw_calibration_enabled = bool(dhw_calibration_cfg.get("enabled", False))
     generated_dhw = generate_dhw_events(
         timestamps=timestamps,
         target_resolution_seconds=int(input_data.target_resolution_seconds),
@@ -185,11 +188,12 @@ def simulate_household_electricity(
         rng=rng,
         event_frequency_scale=float(behaviour.get("dhw_event_frequency_scale", 1.0)),
         event_intensity_scale=float(behaviour.get("dhw_intensity_scale", 1.0)),
+        dhw_calibration=dhw_calibration_cfg,
     )
 
     appliance_events = np.asarray(generated_events["output_loads"]["appliances"], dtype=float) * event_blend_scale
     cooking_events = np.asarray(generated_events["output_loads"]["cooking"], dtype=float) * event_blend_scale
-    dhw_cohort_scale = max(float(behaviour_cfg.get("dhw_cohort_scale", 1.0)), 0.0)
+    dhw_cohort_scale = 1.0 if dhw_calibration_enabled else max(float(behaviour_cfg.get("dhw_cohort_scale", 1.0)), 0.0)
     dhw_profile = np.clip(np.asarray(generated_dhw["output_load_W"], dtype=float) * dhw_cohort_scale, 0.0, None)
     dhw_component_profiles = {
         name: tuple(

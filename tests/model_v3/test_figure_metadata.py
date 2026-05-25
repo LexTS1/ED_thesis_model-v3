@@ -27,7 +27,7 @@ def test_metadata_rows_are_unique_and_reference_outputs(tmp_path: Path) -> None:
     metadata = pd.read_csv(figures_root / "metadata" / "figure_metadata.csv")
 
     assert metadata["figure_id"].is_unique
-    assert len(metadata) == 17
+    assert len(metadata) == 24
     assert metadata["metrics_used"].notna().all()
     for _, row in metadata.iterrows():
         assert row["figure_file_png"].endswith(".png")
@@ -52,7 +52,7 @@ def test_caption_drafts_include_each_figure_and_metric_context(tmp_path: Path) -
 
     captions = (figures_root / "thesis_caption_drafts.md").read_text(encoding="utf-8")
 
-    assert captions.count("### fig_") == 17
+    assert captions.count("### fig_") == 24
     assert "annual grid import" in captions.lower()
     assert "canonical climate analysis window" in captions
     assert "2050" in captions

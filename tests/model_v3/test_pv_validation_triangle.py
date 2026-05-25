@@ -13,7 +13,7 @@ MODEL_V3_SRC = REPO_ROOT / "src"
 if str(MODEL_V3_SRC) not in sys.path:
     sys.path.insert(0, str(MODEL_V3_SRC))
 
-from model_v3.validation.technology.pv.run_pv_validation_triangle import run_validation, validate_pvgis_leg
+from model_v3.validation.technology.pv.run_pv_validation_triangle import run_validation, validate_elia_leg, validate_pvgis_leg
 
 
 def _write_pvgis(path: Path) -> None:
@@ -50,6 +50,15 @@ def _write_elia(path: Path) -> None:
         + "\n",
         encoding="utf-8",
     )
+
+
+def _write_model_capacity_factor(path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    rows = ["timestamp,capacity_factor"]
+    for timestamp in pd.date_range("2024-01-01 00:10", periods=48, freq="h", tz="Europe/Brussels"):
+        capacity_factor = 0.4 if 10 <= timestamp.hour <= 14 else 0.0
+        rows.append(f"{timestamp.isoformat()},{capacity_factor}")
+    path.write_text("\n".join(rows) + "\n", encoding="utf-8")
 
 
 def _write_fluvius(path: Path, *, with_pv: bool) -> None:
@@ -127,3 +136,69 @@ def test_pvgis_leg_marks_missing_reference(tmp_path: Path) -> None:
 
     assert result.status == "missing_reference"
     assert result.warnings
+
+
+def test_elia_leg_compares_model_capacity_factor_daily(tmp_path: Path) -> None:
+    elia = tmp_path / "inputs" / "validation" / "pv" / "elia" / "ods032.csv"
+    model_cf = tmp_path / "outputs" / "validation" / "technology_pv" / "model_capacity_factor.csv"
+    _write_elia(elia)
+    _write_model_capacity_factor(model_cf)
+
+    result = validate_elia_leg(
+        tmp_path,
+        {
+            "local_file": elia,
+            "download_if_missing": False,
+            "model_capacity_factor_file": model_cf,
+        },
+        tmp_path / "reports",
+        tmp_path / "figures",
+    )
+
+    assert result.status == "model_reference_comparison"
+    assert result.metrics["daily_overlap_days"] == 1
+    assert "daily_capacity_factor_correlation" in result.metrics
+
+
+def test_pv_validation_debug_output_does_not_overwrite_canonical_report(tmp_path: Path) -> None:
+    pvgis = tmp_path / "validation" / "pvgis" / "reference.csv"
+    elia = tmp_path / "inputs" / "validation" / "pv" / "elia" / "ods032.csv"
+    _write_pvgis(pvgis)
+    _write_elia(elia)
+    canonical_report = tmp_path / "reports" / "pv" / "technology_pv_validation_triangle_report.md"
+    canonical_report.parent.mkdir(parents=True, exist_ok=True)
+    canonical_report.write_text("canonical report\n", encoding="utf-8")
+
+    config = tmp_path / "config.yaml"
+    config.write_text(
+        f"""
+validation:
+  technology:
+    pv:
+      pvgis:
+        reference_file: {pvgis}
+        capacity_kwp: 1.0
+        performance_ratio: 0.86
+      elia:
+        local_file: {elia}
+        download_if_missing: false
+      fluvius:
+        enabled: false
+      outputs:
+        report_dir: reports/pv
+        figure_dir: figures/pv
+""",
+        encoding="utf-8",
+    )
+
+    result = run_validation(
+        repo_root=tmp_path,
+        config_path=config,
+        skip_fluvius=True,
+        report_dir_override="outputs/validation/debug/technology_pv/reports",
+        figure_dir_override="outputs/validation/debug/technology_pv/figures",
+    )
+
+    assert canonical_report.read_text(encoding="utf-8") == "canonical report\n"
+    assert result["report_path"] == "outputs/validation/debug/technology_pv/reports/technology_pv_validation_triangle_report.md"
+    assert (tmp_path / result["report_path"]).exists()
