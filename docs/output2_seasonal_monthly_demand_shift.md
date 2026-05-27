@@ -13,6 +13,17 @@ electricity demand, grid import, gas demand, total final energy, CDD 22, excess
 heat, overheating hours, and indoor-temperature exceedance degree-hours. Active
 cooling final energy is not included.
 
+Current audit note:
+
+The climate-only annual useful-heating comparison should be treated with
+caution. The climate metrics show the expected HDD decrease in warmer future
+windows, but some useful-heating rows increase. The latest audit indicates this
+is not thesis-ready evidence yet because baseline and future frozen-stock rows
+can mix different run provenance/model-input hashes. Use the HDD/CDD direction
+and the seasonal diagnostic tables as context, but do not foreground exact
+annual useful-heating percentage deltas until the baseline and future
+frozen-stock leaves are rerun from one frozen clean revision.
+
 Season definitions are fixed:
 
 - winter: December, January, February

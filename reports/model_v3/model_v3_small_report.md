@@ -16,7 +16,7 @@ Canonical thesis runtime:
 
 - internal consistency: smoke checks, annual accounting sanity, runner flow, report generation, and unit/normalization audits
 - baseline/literature annual calibration: comparison with configured Belgian annual electricity, space-heating, DHW, and end-use-share targets
-- aggregate validation: Fluvius profile comparisons as the thesis-facing aggregate validation source
+- aggregate validation: Fluvius profile comparisons as the thesis-facing aggregate diagnostic source; the current artifact is weak/failed and must not be cited as a passed external validation
 - high-frequency/event realism: KU Leuven case-study checks for spikes, ramps, and daily maxima
 
 ## Current Artifact Status
@@ -27,7 +27,7 @@ Current cached validation artifacts show:
 
 - `baseline_annual`: `max steps: 24`; not thesis-valid for annual thermal validation
 - `aggregate`: legacy LCL-normalized shape comparison only; not part of the thesis-facing validation evidence
-- `validation_report_v3_fluvius_external.md`: representative Fluvius aggregate-profile comparison, not measured feeder validation
+- `validation_report_v3_fluvius_external.md`: representative Fluvius aggregate-profile comparison, currently weak/failed against simple diagnostic thresholds and not measured feeder validation
 - `validation_report_v3_kuleuven_high_freq.md`: three-household high-frequency case study, not a statistical validation claim
 
 ## Defensible Findings
@@ -44,7 +44,7 @@ The technology labels in cohort outputs now come from the Belgian carrier-stock 
 
 Do not claim independent external calibration from LCL-based normalized aggregate artifacts. LCL is the configured representative input load-shape source, so any LCL comparison is an internal diagnostic only. The separate Belgian smart-meter validation path has been removed because no reliable independent Belgian smart-meter dataset is expected for this thesis model.
 
-Use Fluvius and KU Leuven as the thesis-facing validation sources: Fluvius for independent aggregate profile realism, and KU Leuven for independent high-frequency event/ramp realism.
+Use Fluvius and KU Leuven as thesis-facing external checks, but keep the wording conservative: Fluvius currently exposes aggregate profile mismatch rather than proving aggregate realism, and KU Leuven provides only high-frequency event/ramp case-study evidence.
 
 Do not describe the cached `baseline_annual` report as a valid annual thermal benchmark while it records only `24` steps.
 

@@ -407,6 +407,69 @@ def _validation_report_status(path: Path) -> tuple[str, list[str]]:
     return "present", errors
 
 
+def _provenance_consistency_warnings(registry_rows: Iterable[Mapping[str, str]]) -> list[str]:
+    """Return warnings for latest successful scenario groups with mixed provenance."""
+
+    latest_actual = _latest_actual_by_leaf(registry_rows)
+    latest_success = [row for row in latest_actual.values() if row.get("status") == "success"]
+    grouped: dict[str, list[Mapping[str, str]]] = {}
+    for row in latest_success:
+        grouped.setdefault(row.get("scenario_id", "missing_scenario"), []).append(row)
+
+    warnings: list[str] = []
+    provenance_fields = [
+        "git_commit",
+        "git_is_dirty",
+        "belgian_technology_inputs_hash_sha256",
+        "model_version",
+        "cohort_size",
+    ]
+    for scenario_id, rows in sorted(grouped.items()):
+        mixed_fields = []
+        for field in provenance_fields:
+            values = {str(row.get(field, "")).strip() for row in rows if str(row.get(field, "")).strip()}
+            if len(values) > 1:
+                mixed_fields.append(field)
+        if mixed_fields:
+            warnings.append(
+                "MEDIUM: "
+                f"{scenario_id} latest successful leaves mix provenance field(s): {', '.join(mixed_fields)}. "
+                "Use this group for traceability only, not as a homogeneous thesis comparison, until the affected leaves are rerun from a single frozen revision."
+            )
+    return warnings
+
+
+def _annual_heating_consistency_warnings(experiment_root: Path) -> list[str]:
+    """Return warnings when useful-heating deltas contradict HDD direction."""
+
+    heating_path = experiment_root / "summaries" / "comparison_level" / "annual_space_heating_demand_comparison.csv"
+    degree_path = experiment_root / "summaries" / "comparison_level" / "annual_climate_degree_day_comparison.csv"
+    if not heating_path.exists() or not degree_path.exists():
+        return []
+
+    heating_rows = _read_csv(heating_path)
+    degree_by_scenario = {row.get("scenario_id", ""): row for row in _read_csv(degree_path)}
+    warnings: list[str] = []
+    for row in heating_rows:
+        scenario_id = row.get("scenario_id", "")
+        if row.get("technology_case_id") != "tech_frozen_stock":
+            continue
+        degree = degree_by_scenario.get(scenario_id, {})
+        try:
+            heating_delta_pct = float(row.get("delta_annual_useful_heating_kWh_pct", "nan"))
+            hdd_delta_pct = float(degree.get("delta_HDD_18_pct", "nan"))
+        except ValueError:
+            continue
+        if hdd_delta_pct < -1e-9 and heating_delta_pct > 1e-9:
+            warnings.append(
+                "HIGH: "
+                f"{scenario_id} has lower HDD_18 ({hdd_delta_pct:.1f}%) but higher annual useful-heating demand "
+                f"({heating_delta_pct:.1f}%). Treat `annual_space_heating_demand_comparison.csv` as audit-flagged "
+                "rather than thesis-ready until baseline and future frozen-stock leaves are rerun from the same clean revision."
+            )
+    return warnings
+
+
 def _traceability_markdown_rows(rows: list[dict[str, str]], limit: int = 2) -> list[str]:
     selected: list[dict[str, str]] = []
     baseline = next((row for row in rows if row["climate_pathway_id"] == "historical"), None)
@@ -738,6 +801,8 @@ def run_audit(
         validation[key] = status
         warnings.extend(report_warnings)
     validation["figure_validation"] = "metadata present" if figure_metadata else "missing metadata"
+    warnings.extend(_provenance_consistency_warnings(registry_rows))
+    warnings.extend(_annual_heating_consistency_warnings(experiment_root))
 
     traceability_complete = all(row["traceability_complete"] == "true" for row in matrix_rows)
     audit_summary: dict[str, Any] = {

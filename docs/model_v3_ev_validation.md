@@ -20,6 +20,8 @@ model_v3.systems.distributed_energy.build_ev_charging_profile
 
 This is a technology-level check. It asks whether the model adds EV load at plausible hours and annual energy scale.
 
+The report also includes an annual-energy sensitivity that rescales the same model EV daily shape to approximately `2600 kWh/active EV/year`, close to the Fluvius EV category increment. This is deliberately labelled as a sensitivity, not as a replacement for the base EV assumptions and not as session-level calibration.
+
 ## Command
 
 ```bash
@@ -37,13 +39,14 @@ PYTHONPATH=src python3 -m model_v3.validation.technology.ev.run_ev_validation \
 - `reports/model_v3/validation/technology/ev/technology_ev_validation_metrics.json`
 - `reports/model_v3/validation/technology/ev/fluvius_ev_signature_mean_daily.csv`
 - `reports/model_v3/validation/technology/ev/model_ev_charging_profile_2024.csv`
+- `reports/model_v3/validation/technology/ev/model_ev_charging_profile_2024_sensitivity_2600kwh.csv`
 - `reports/model_v3/validation/technology/ev/ev_diversity_by_count.csv`
 - `figures/model_v3/validation/technology/ev/model_vs_fluvius_ev_effect_mean_daily.png`
 - `figures/model_v3/validation/technology/ev/ev_diversity_by_count.png`
 
 ## Interpretation
 
-The Fluvius comparison is valid as a residential signature check, not as charging-session validation. Fluvius gives representative category profiles, not plug-in times, connection duration, or kWh/session.
+The Fluvius comparison is valid as a residential signature check, not as charging-session validation. Fluvius gives representative category profiles, not plug-in times, connection duration, or kWh/session. The base model energy remains about `1491 kWh/active EV/year`; the `2600 kWh/active EV/year` sensitivity tests whether aligning annual energy improves the comparison while keeping the current timing logic transparent.
 
 KU Leuven house 1 has an EV charger in the metadata, but the public data is whole-house import/export and is confounded by PV and heat-pump operation. It is therefore secondary context only in this minimum workflow.
 

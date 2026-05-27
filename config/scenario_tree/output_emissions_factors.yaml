@@ -1,0 +1,19 @@
+metadata:
+  output_id: output5_output6_operational_emissions
+  unit: kgCO2
+  interpretation_note: >
+    Basic operational emissions post-processing for ecological interpretation.
+    These factors are editable scenario assumptions, not calibrated official
+    Belgian inventory factors. Replace them with thesis-approved year-specific
+    Belgian electricity and gas factors before treating absolute emissions as
+    final empirical results.
+  accounting_scope: >
+    Electricity grid import and natural gas are included. PV generation is
+    treated as zero operational emissions at the household boundary. Grid export
+    receives no avoided-emissions credit by default, because the displaced
+    marginal generation mix is not modelled here.
+factors:
+  electricity_import_kgCO2_per_kWh: 0.150
+  natural_gas_kgCO2_per_kWh: 0.202
+  grid_export_credit_kgCO2_per_kWh: 0.0
+  grid_export_credit_policy: no_credit

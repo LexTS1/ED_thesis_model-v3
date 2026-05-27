@@ -262,6 +262,7 @@ def test_output6_builds_tables_figures_and_validates_scope(tmp_path: Path) -> No
     assert high_pv["pv_self_consumption_ratio_mean"] == pytest.approx(0.8)
     assert high_pv["pv_self_sufficiency_ratio_mean"] == pytest.approx(800.0 / 3000.0)
     assert bool(reversible["active_cooling_final_energy_kWh_included"]) is False
+    assert "annual_operational_emissions_reduction_kgCO2_per_household" in investment.columns
     assert reversible["covered_overheating_hours_proxy_per_scenario_household"] > 0.0
     assert bool(hp_assumption["core_subsidy_included"]) is False
     assert hp_assumption["capex_net_eur_per_scenario_household_optional_subsidy"] < hp_assumption["capex_net_eur_per_scenario_household_core"]

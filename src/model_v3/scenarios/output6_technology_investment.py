@@ -437,6 +437,16 @@ def _calculate_investment_row(
     fixed_om = _safe_float(option.get("fixed_om_eur_per_year")) * stock_fraction
     baseline_bill = _safe_float(annual_row.get("baseline_annual_bill_per_household_EUR_mean"), float("nan"))
     scenario_bill = _safe_float(annual_row.get("annual_bill_per_household_EUR_mean"), float("nan"))
+    baseline_emissions = _safe_float(
+        annual_row.get("baseline_annual_operational_emissions_kgCO2_per_household_mean"),
+        float("nan"),
+    )
+    scenario_emissions = _safe_float(
+        annual_row.get("annual_operational_emissions_kgCO2_per_household_mean"),
+        float("nan"),
+    )
+    emissions_delta = scenario_emissions - baseline_emissions if math.isfinite(scenario_emissions) and math.isfinite(baseline_emissions) else float("nan")
+    emissions_reduction = -emissions_delta if math.isfinite(emissions_delta) else float("nan")
     raw_bill_savings = baseline_bill - scenario_bill if math.isfinite(baseline_bill) and math.isfinite(scenario_bill) else float("nan")
     bill_savings = raw_bill_savings * _safe_float(option.get("bill_savings_multiplier"), 1.0) if math.isfinite(raw_bill_savings) else float("nan")
     annual_net_benefit = bill_savings - fixed_om if math.isfinite(bill_savings) else float("nan")
@@ -471,6 +481,14 @@ def _calculate_investment_row(
             "scenario_annual_bill_per_household_EUR_mean": scenario_bill,
             "annual_bill_savings_vs_baseline_EUR_per_household": bill_savings,
             "raw_annual_bill_savings_vs_baseline_EUR_per_household": raw_bill_savings,
+            "baseline_annual_operational_emissions_kgCO2_per_household_mean": baseline_emissions,
+            "scenario_annual_operational_emissions_kgCO2_per_household_mean": scenario_emissions,
+            "delta_annual_operational_emissions_kgCO2_per_household_abs": emissions_delta,
+            "delta_annual_operational_emissions_kgCO2_per_household_pct": _pct_delta(scenario_emissions, baseline_emissions),
+            "annual_operational_emissions_reduction_kgCO2_per_household": emissions_reduction,
+            "annual_bill_savings_per_kgCO2_reduced_EUR_per_kgCO2": _safe_divide(bill_savings, emissions_reduction)
+            if math.isfinite(emissions_reduction) and emissions_reduction > 0
+            else float("nan"),
             "bill_savings_multiplier": _safe_float(option.get("bill_savings_multiplier"), 1.0),
             "capex_gross_eur_per_adopting_household": gross_adopting,
             "subsidy_eur_optional_per_adopting_household": subsidy_adopting,
@@ -603,6 +621,30 @@ def _build_components(investment: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def _build_emissions_comparison(investment: pd.DataFrame) -> pd.DataFrame:
+    columns = GROUP_COLUMNS + [
+        "technology_option_id",
+        "technology_option_label",
+        "technology_option_role",
+        "tariff_scenario_id",
+        "tariff_scenario_label",
+        "n_successful_runs",
+        "n_households",
+        "baseline_scenario_id",
+        "baseline_annual_operational_emissions_kgCO2_per_household_mean",
+        "scenario_annual_operational_emissions_kgCO2_per_household_mean",
+        "delta_annual_operational_emissions_kgCO2_per_household_abs",
+        "delta_annual_operational_emissions_kgCO2_per_household_pct",
+        "annual_operational_emissions_reduction_kgCO2_per_household",
+        "annual_bill_savings_per_kgCO2_reduced_EUR_per_kgCO2",
+        "npv_savings_EUR_per_scenario_household",
+        "active_cooling_final_energy_kWh_included",
+        "interpretation_scope",
+    ]
+    present = [column for column in columns if column in investment]
+    return investment[present].copy().sort_values(present[: min(len(present), len(GROUP_COLUMNS) + 3)]).reset_index(drop=True)
+
+
 def _build_pv_value_comparison(
     annual_bill: pd.DataFrame,
     service: pd.DataFrame,
@@ -687,6 +729,7 @@ def build_output6_tables(
         cooling_path=Path(cooling_comparison),
     )
     components = _build_components(investment)
+    emissions = _build_emissions_comparison(investment)
     pv_value = _build_pv_value_comparison(annual_bill, service, tariff_rows=tariff_rows)
     assumptions = technology_assumption_rows(config, options)
 
@@ -697,12 +740,14 @@ def build_output6_tables(
     service_path = comparison_dir / "technology_service_indicators.csv"
     investment_path = comparison_dir / "technology_investment_adaptation_comparison.csv"
     components_path = comparison_dir / "technology_investment_components.csv"
+    emissions_path = comparison_dir / "technology_emissions_comparison.csv"
     pv_path = comparison_dir / "pv_self_consumption_value_comparison.csv"
     assumptions_path = comparison_dir / "technology_investment_assumptions.csv"
     leaf_service.to_csv(leaf_service_path, index=False)
     service.to_csv(service_path, index=False)
     investment.to_csv(investment_path, index=False)
     components.to_csv(components_path, index=False)
+    emissions.to_csv(emissions_path, index=False)
     pv_value.to_csv(pv_path, index=False)
     _write_csv(assumptions_path, assumptions, list(assumptions[0].keys()))
     return {
@@ -710,6 +755,7 @@ def build_output6_tables(
         "technology_service_indicators_path": service_path,
         "technology_investment_adaptation_comparison_path": investment_path,
         "technology_investment_components_path": components_path,
+        "technology_emissions_comparison_path": emissions_path,
         "pv_self_consumption_value_comparison_path": pv_path,
         "technology_investment_assumptions_path": assumptions_path,
         "leaf_service_rows": int(len(leaf_service)),
@@ -796,6 +842,41 @@ def _plot_save(fig: plt.Figure, output_base: Path, formats: Iterable[str]) -> li
     return paths
 
 
+def _context_note(frame: pd.DataFrame, *, scope: str) -> str:
+    households = "n/a"
+    if "n_households" in frame and not frame.empty:
+        values = pd.to_numeric(frame["n_households"], errors="coerce").dropna().unique()
+        if len(values) == 1:
+            households = str(int(values[0]))
+        elif len(values) > 1:
+            households = f"{int(min(values))}-{int(max(values))}"
+    seeds = "n/a"
+    if "n_successful_runs" in frame and not frame.empty:
+        values = pd.to_numeric(frame["n_successful_runs"], errors="coerce").dropna().unique()
+        if len(values) == 1:
+            seeds = str(int(values[0]))
+        elif len(values) > 1:
+            seeds = f"{int(min(values))}-{int(max(values))}"
+    return (
+        f"{scope}; cohort={households} households; seeds/group={seeds}; "
+        "selected coverage only, not full 2800 leaves; no active cooling; tariffs/investments=illustrative assumptions."
+    )
+
+
+def _add_context_note(fig: plt.Figure, note: str) -> None:
+    fig.text(0.5, 0.012, note, ha="center", va="bottom", fontsize=7.0, color="#4d4d4d")
+
+
+def _metadata_entry(figure_id: str, frame: pd.DataFrame, figure_paths: list[Path], *, caption: str, context_note: str) -> dict[str, Any]:
+    return {
+        "figure_id": figure_id,
+        "source_rows": len(frame),
+        "files": ";".join(map(str, figure_paths)),
+        "caption": caption,
+        "context_note": context_note,
+    }
+
+
 def generate_output6_figures(
     *,
     experiment_root: Path = DEFAULT_EXPERIMENT_ROOT,
@@ -806,6 +887,7 @@ def generate_output6_figures(
     comparison_dir = Path(experiment_root) / "summaries" / "comparison_level"
     investment = pd.read_csv(comparison_dir / "technology_investment_adaptation_comparison.csv")
     pv_value = pd.read_csv(comparison_dir / "pv_self_consumption_value_comparison.csv")
+    emissions = pd.read_csv(comparison_dir / "technology_emissions_comparison.csv")
     output_dir = Path(figures_root) / "output6_technology_investment_adaptation"
     paths: list[Path] = []
     metadata_rows: list[dict[str, Any]] = []
@@ -836,9 +918,23 @@ def generate_output6_figures(
         ax.set_xlabel("NPV of net savings (EUR/scenario household)")
         ax.set_title("Output 6: investment NPV by tariff scenario")
         ax.legend(fontsize=7, ncol=2)
+        note = _context_note(cold, scope="technology-stress investment post-processing")
+        _add_context_note(fig, note)
+        fig.tight_layout(rect=(0, 0.045, 1, 1))
         figure_paths = _plot_save(fig, output_dir / "output6_npv_by_technology_tariff", formats)
         paths.extend(figure_paths)
-        metadata_rows.append({"figure_id": "output6_npv_by_technology_tariff", "source_rows": len(cold), "files": ";".join(map(str, figure_paths))})
+        metadata_rows.append(
+            _metadata_entry(
+                "output6_npv_by_technology_tariff",
+                cold,
+                figure_paths,
+                caption=(
+                    "Investment NPV by tariff scenario. The figure combines modelled bills with editable CAPEX/O&M assumptions; "
+                    "it is a scenario indicator, not a forecast of household retrofit economics."
+                ),
+                context_note=note,
+            )
+        )
 
     cost = investment[
         (investment["design_year_id"] == "cold_design_year")
@@ -858,9 +954,23 @@ def generate_output6_figures(
         ax.set_xlabel("Annualized cost (EUR/household-year)")
         ax.set_title("Output 6: annualized bill, CAPEX, and O&M stack")
         ax.legend(fontsize=8)
+        note = _context_note(cost, scope="technology-stress investment post-processing")
+        _add_context_note(fig, note)
+        fig.tight_layout(rect=(0, 0.045, 1, 1))
         figure_paths = _plot_save(fig, output_dir / "output6_annualized_cost_stack", formats)
         paths.extend(figure_paths)
-        metadata_rows.append({"figure_id": "output6_annualized_cost_stack", "source_rows": len(cost), "files": ";".join(map(str, figure_paths))})
+        metadata_rows.append(
+            _metadata_entry(
+                "output6_annualized_cost_stack",
+                cost,
+                figure_paths,
+                caption=(
+                    "Annualized cost stack for bill/OPEX, annualized CAPEX, and fixed O&M under the reference tariff. "
+                    "Cooling is represented only as an adaptation-service proxy where applicable."
+                ),
+                context_note=note,
+            )
+        )
 
     pv_plot = pv_value[
         (pv_value["design_year_id"] == "cold_design_year")
@@ -877,9 +987,23 @@ def generate_output6_figures(
         ax.set_xlim(0.0, max(1.0, float(pd.to_numeric(pv_plot[["pv_self_consumption_ratio_mean", "pv_self_sufficiency_ratio_mean"]].stack(), errors="coerce").max()) * 1.1))
         ax.set_title("Output 6: PV self-consumption and self-sufficiency")
         ax.legend(fontsize=8)
+        note = _context_note(pv_plot, scope="technology-stress PV value post-processing")
+        _add_context_note(fig, note)
+        fig.tight_layout(rect=(0, 0.05, 1, 1))
         figure_paths = _plot_save(fig, output_dir / "output6_pv_scr_ssr", formats)
         paths.extend(figure_paths)
-        metadata_rows.append({"figure_id": "output6_pv_scr_ssr", "source_rows": len(pv_plot), "files": ";".join(map(str, figure_paths))})
+        metadata_rows.append(
+            _metadata_entry(
+                "output6_pv_scr_ssr",
+                pv_plot,
+                figure_paths,
+                caption=(
+                    "PV self-consumption ratio and self-sufficiency ratio. These are annual profile accounting metrics; "
+                    "they do not imply optimized PV dispatch or active demand response."
+                ),
+                context_note=note,
+            )
+        )
 
     cooling = investment[
         (investment["design_year_id"] == "cold_design_year")
@@ -894,9 +1018,22 @@ def generate_output6_figures(
         ax.set_yticks(y, cooling["label"], fontsize=8)
         ax.set_xlabel("Covered overheating hours proxy")
         ax.set_title("Output 6: reversible heat-pump adaptation proxy")
+        note = _context_note(cooling, scope="technology-stress adaptation-service proxy")
+        _add_context_note(fig, note)
+        fig.tight_layout(rect=(0, 0.055, 1, 1))
         figure_paths = _plot_save(fig, output_dir / "output6_reversible_hp_adaptation_proxy", formats)
         paths.extend(figure_paths)
-        metadata_rows.append({"figure_id": "output6_reversible_hp_adaptation_proxy", "source_rows": len(cooling), "files": ";".join(map(str, figure_paths))})
+        metadata_rows.append(
+            _metadata_entry(
+                "output6_reversible_hp_adaptation_proxy",
+                cooling,
+                figure_paths,
+                caption=(
+                    "Reversible heat-pump adaptation-service proxy. This is based on cooling exposure indicators and does not price or add active cooling electricity."
+                ),
+                context_note=note,
+            )
+        )
 
     scatter = cold[cold["tariff_scenario_id"] == reference_tariff_id].copy()
     payback_values = pd.to_numeric(scatter["simple_payback_years_bill_savings"], errors="coerce")
@@ -918,9 +1055,57 @@ def generate_output6_figures(
         ax.set_xlabel("Useful heating-demand reduction vs baseline (%)")
         ax.set_ylabel(y_label)
         ax.set_title("Output 6: heating reduction versus technology economics")
+        note = _context_note(scatter, scope="technology-stress investment post-processing")
+        _add_context_note(fig, note)
+        fig.tight_layout(rect=(0, 0.055, 1, 1))
         figure_paths = _plot_save(fig, output_dir / "output6_heating_reduction_vs_economics", formats)
         paths.extend(figure_paths)
-        metadata_rows.append({"figure_id": "output6_heating_reduction_vs_economics", "source_rows": len(scatter), "files": ";".join(map(str, figure_paths))})
+        metadata_rows.append(
+            _metadata_entry(
+                "output6_heating_reduction_vs_economics",
+                scatter,
+                figure_paths,
+                caption=(
+                    "Useful heating-demand reduction versus the selected economic indicator. The plot separates physical heating reduction "
+                    "from tariff/CAPEX assumptions."
+                ),
+                context_note=note,
+            )
+        )
+
+    emissions_plot = emissions[
+        (emissions["design_year_id"] == "cold_design_year")
+        & (emissions["tariff_scenario_id"] == reference_tariff_id)
+        & (~emissions["technology_option_id"].isin(["gas_boiler_reference", "frozen_stock_reference"]))
+    ].copy()
+    if not emissions_plot.empty:
+        emissions_plot["label"] = [_short_label(row, include_option=True) for _, row in emissions_plot.iterrows()]
+        fig, ax = plt.subplots(figsize=(9.5, max(5.0, 0.42 * len(emissions_plot))))
+        y = np.arange(len(emissions_plot))
+        values = emissions_plot["annual_operational_emissions_reduction_kgCO2_per_household"].to_numpy(dtype=float)
+        colors = ["#1b7837" if value >= 0 else "#b2182b" for value in values]
+        ax.barh(y, values, color=colors)
+        ax.axvline(0.0, color="#333333", linewidth=0.8)
+        ax.set_yticks(y, emissions_plot["label"], fontsize=7)
+        ax.set_xlabel("Operational emissions reduction vs baseline (kgCO2/household-year)")
+        ax.set_title("Output 6: emissions effect of technology scenarios")
+        note = _context_note(emissions_plot, scope="technology-stress ecological post-processing")
+        _add_context_note(fig, note)
+        fig.tight_layout(rect=(0, 0.055, 1, 1))
+        figure_paths = _plot_save(fig, output_dir / "output6_operational_emissions_reduction", formats)
+        paths.extend(figure_paths)
+        metadata_rows.append(
+            _metadata_entry(
+                "output6_operational_emissions_reduction",
+                emissions_plot,
+                figure_paths,
+                caption=(
+                    "Operational emissions reduction versus baseline for the technology options. Positive values indicate lower "
+                    "post-processed grid-import-plus-gas CO2 than the historical current-stock baseline."
+                ),
+                context_note=note,
+            )
+        )
 
     metadata_path = output_dir / "output6_figure_metadata.csv"
     pd.DataFrame(metadata_rows).to_csv(metadata_path, index=False)
@@ -936,6 +1121,7 @@ def validate_output6_results(
     investment = pd.read_csv(comparison_dir / "technology_investment_adaptation_comparison.csv")
     components = pd.read_csv(comparison_dir / "technology_investment_components.csv")
     pv_value = pd.read_csv(comparison_dir / "pv_self_consumption_value_comparison.csv")
+    emissions = pd.read_csv(comparison_dir / "technology_emissions_comparison.csv")
     assumptions = pd.read_csv(comparison_dir / "technology_investment_assumptions.csv")
     service = pd.read_csv(comparison_dir / "technology_service_indicators.csv")
     errors: list[str] = []
@@ -951,6 +1137,12 @@ def validate_output6_results(
     for column in ["pv_self_consumption_ratio_mean", "pv_self_sufficiency_ratio_mean"]:
         if column not in pv_value:
             errors.append(f"PV value table missing required column: {column}.")
+    for column in [
+        "scenario_annual_operational_emissions_kgCO2_per_household_mean",
+        "annual_operational_emissions_reduction_kgCO2_per_household",
+    ]:
+        if column not in investment or column not in emissions:
+            errors.append(f"Output 6 emissions table missing required column: {column}.")
     future = investment[investment["scenario_id"] != BASELINE_SCENARIO_ID]
     if future.empty:
         errors.append("Output 6 investment table must include non-baseline scenario rows.")
@@ -962,6 +1154,7 @@ def validate_output6_results(
         "investment_rows": int(len(investment)),
         "component_rows": int(len(components)),
         "pv_value_rows": int(len(pv_value)),
+        "emissions_rows": int(len(emissions)),
         "assumption_rows": int(len(assumptions)),
         "service_indicator_rows": int(len(service)),
         "active_cooling_final_energy_columns_present": False,

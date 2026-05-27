@@ -229,6 +229,47 @@ def _fluvius_diagnostics(model_series_w: pd.Series, data_series_w: pd.Series) ->
     }
 
 
+def _fluvius_validation_verdict(metrics: Mapping[str, Mapping[str, float]]) -> dict[str, Any]:
+    events = dict(metrics.get("events", {}))
+    temporal = dict(metrics.get("temporal", {}))
+    cvrmse_pct = float(events.get("CVRMSE_absolute_pct", float("nan")))
+    annual_error_pct = float(events.get("annual_energy_error_pct", float("nan")))
+    pearson = float(temporal.get("Pearson_correlation", float("nan")))
+    peak_timing_hours = float(temporal.get("peak_timing_error_hours", float("nan")))
+    failed_reasons: list[str] = []
+    if np.isfinite(cvrmse_pct) and cvrmse_pct > 50.0:
+        failed_reasons.append("CVRMSE_absolute_pct > 50")
+    if np.isfinite(annual_error_pct) and annual_error_pct > 25.0:
+        failed_reasons.append("annual_energy_error_pct > 25")
+    if np.isfinite(pearson) and pearson < 0.5:
+        failed_reasons.append("Pearson_correlation < 0.5")
+    if np.isfinite(peak_timing_hours) and abs(peak_timing_hours) > 6.0:
+        failed_reasons.append("abs(peak_timing_error_hours) > 6")
+    if failed_reasons:
+        verdict = "weak_failed_external_validation"
+        interpretation = (
+            "Do not cite this artifact as external validation success. It is a diagnostic comparison "
+            "showing that the current aggregate profile is not yet aligned with the Fluvius representative profile."
+        )
+    else:
+        verdict = "diagnostic_plausibility_check"
+        interpretation = (
+            "The aggregate profile clears the simple diagnostic thresholds, but this is still representative-profile "
+            "comparison rather than measured feeder validation."
+        )
+    return {
+        "verdict": verdict,
+        "failed_thresholds": failed_reasons,
+        "interpretation": interpretation,
+        "thresholds": {
+            "CVRMSE_absolute_pct": "<= 50",
+            "annual_energy_error_pct": "<= 25",
+            "Pearson_correlation": ">= 0.5",
+            "abs_peak_timing_error_hours": "<= 6",
+        },
+    }
+
+
 def _write_fluvius_report(
     report_path: Path,
     *,
@@ -245,6 +286,7 @@ def _write_fluvius_report(
 ) -> None:
     """Write the external Fluvius aggregate validation report."""
 
+    verdict = _fluvius_validation_verdict(metrics)
     lines = [
         "# Validation Report — Model v3 Fluvius External",
         "",
@@ -268,6 +310,22 @@ def _write_fluvius_report(
                 "",
             ]
         )
+    lines.extend(
+        [
+            "## External Validation Verdict",
+            "",
+            f"- verdict: `{verdict['verdict']}`",
+            f"- interpretation: {verdict['interpretation']}",
+            f"- failed diagnostic thresholds: {', '.join(verdict['failed_thresholds']) if verdict['failed_thresholds'] else 'none'}",
+            "- threshold policy: "
+            + ", ".join(f"{key} {value}" for key, value in dict(verdict["thresholds"]).items()),
+            "",
+            "This section is deliberately conservative. The Fluvius artifact is useful because it exposes profile-scale, "
+            "timing, and annual-energy mismatch; it should not be described as a passed external validation unless the "
+            "diagnostic thresholds and thesis acceptance criteria are met.",
+            "",
+        ]
+    )
     lines.extend(
         [
         "## Alignment",

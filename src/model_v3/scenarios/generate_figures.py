@@ -416,6 +416,35 @@ def _compact_climate_labels(frame: pd.DataFrame) -> list[str]:
     ]
 
 
+def _format_unique_range(values: pd.Series, *, integer: bool = True) -> str:
+    numeric = pd.to_numeric(values, errors="coerce").dropna().unique()
+    if len(numeric) == 0:
+        return "n/a"
+    if len(numeric) == 1:
+        return str(int(numeric[0])) if integer else f"{float(numeric[0]):g}"
+    return f"{int(min(numeric))}-{int(max(numeric))}" if integer else f"{float(min(numeric)):g}-{float(max(numeric)):g}"
+
+
+def _coverage_context(realization_df: pd.DataFrame, *, scope: str, tariffs: str = "N/A") -> str:
+    cohort = _format_unique_range(realization_df["cohort_size"]) if "cohort_size" in realization_df else "n/a"
+    if {"scenario_id", "realization_id"}.issubset(realization_df.columns):
+        seed_counts = realization_df.groupby("scenario_id")["realization_id"].nunique()
+        seeds = _format_unique_range(seed_counts)
+    elif "n_successful_realizations" in realization_df:
+        seeds = _format_unique_range(realization_df["n_successful_realizations"])
+    else:
+        seeds = "n/a"
+    return (
+        f"{scope}; cohort={cohort} households; seeds/scenario={seeds}; "
+        f"full 2800 leaves not run; no active cooling; tariffs={tariffs}."
+    )
+
+
+def _add_context_note(fig: plt.Figure, note: str) -> None:
+    if note:
+        fig.text(0.5, 0.012, note, ha="center", va="bottom", fontsize=7.0, color="#4d4d4d")
+
+
 def plot_metric_bars(
     data: pd.DataFrame,
     spec: FigureSpec,
@@ -424,6 +453,7 @@ def plot_metric_bars(
     *,
     x_mode: str = "scenario",
     y_label: str | None = None,
+    context_note: str = "",
 ) -> dict[str, Path]:
     metrics = list(spec.metrics)
     nrows = len(metrics)
@@ -448,7 +478,8 @@ def plot_metric_bars(
         ax.set_xticks(x)
         ax.set_xticklabels(_x_labels(part, x_mode), rotation=0, ha="center")
     fig.suptitle(spec.title)
-    fig.tight_layout()
+    _add_context_note(fig, context_note)
+    fig.tight_layout(rect=(0, 0.05, 1, 1))
     return save_figure(fig, output_base, formats)
 
 
@@ -495,6 +526,8 @@ def plot_phase1_degree_day_intervals(
     spec: FigureSpec,
     output_base: Path,
     formats: Iterable[str],
+    *,
+    context_note: str = "",
 ) -> dict[str, Path]:
     data = _phase1_degree_day_rows(degree_day_df)
     fig, axes = plt.subplots(nrows=2, ncols=1, figsize=FIGURE_SIZES["wide"], squeeze=False)
@@ -515,7 +548,8 @@ def plot_phase1_degree_day_intervals(
         ax.set_xticklabels(_x_labels(part, "climate"), rotation=0, ha="center")
     fig.suptitle(spec.title)
     axes.flat[-1].set_xlabel("Whiskers show P10-P90 across unique climate-window years")
-    fig.tight_layout()
+    _add_context_note(fig, context_note)
+    fig.tight_layout(rect=(0, 0.05, 1, 1))
     return save_figure(fig, output_base, formats)
 
 
@@ -528,6 +562,7 @@ def plot_phase1_degree_day_heatmap(
     metric: str,
     label: str,
     cmap: str,
+    context_note: str = "",
 ) -> dict[str, Path]:
     require_columns(
         degree_day_df,
@@ -562,7 +597,8 @@ def plot_phase1_degree_day_heatmap(
                     ax.text(col_idx, row_idx, f"{value:.1f}{suffix}", ha="center", va="center", color="#202020", fontsize=9)
         colorbar = fig.colorbar(image, ax=ax)
         colorbar.set_label(label)
-    fig.tight_layout()
+    _add_context_note(fig, context_note)
+    fig.tight_layout(rect=(0, 0.05, 1, 1))
     return save_figure(fig, output_base, formats)
 
 
@@ -579,6 +615,8 @@ def plot_output2_monthly_demand_stacked(
     spec: FigureSpec,
     output_base: Path,
     formats: Iterable[str],
+    *,
+    context_note: str = "",
 ) -> dict[str, Path]:
     require_columns(
         monthly_df,
@@ -624,7 +662,8 @@ def plot_output2_monthly_demand_stacked(
     handles, legend_labels = axes.flat[0].get_legend_handles_labels()
     fig.legend(handles, legend_labels, loc="lower center", ncol=3)
     fig.suptitle(spec.title)
-    fig.tight_layout(rect=(0, 0.05, 1, 0.96))
+    _add_context_note(fig, context_note)
+    fig.tight_layout(rect=(0, 0.08, 1, 0.96))
     return save_figure(fig, output_base, formats)
 
 
@@ -633,6 +672,8 @@ def plot_output2_seasonal_heating_shift(
     spec: FigureSpec,
     output_base: Path,
     formats: Iterable[str],
+    *,
+    context_note: str = "",
 ) -> dict[str, Path]:
     require_columns(
         seasonal_df,
@@ -657,7 +698,8 @@ def plot_output2_seasonal_heating_shift(
     ax.set_ylabel("Useful heating (kWh/season)")
     ax.set_title(spec.title)
     ax.legend(ncol=3)
-    fig.tight_layout(rect=(0, 0.04, 1, 1))
+    _add_context_note(fig, context_note)
+    fig.tight_layout(rect=(0, 0.055, 1, 1))
     return save_figure(fig, output_base, formats)
 
 
@@ -666,6 +708,8 @@ def plot_output2_monthly_cooling_pressure(
     spec: FigureSpec,
     output_base: Path,
     formats: Iterable[str],
+    *,
+    context_note: str = "",
 ) -> dict[str, Path]:
     metrics = ["monthly_CDD_22_mean", "monthly_overheating_hours_mean", "monthly_indoor_temperature_exceedance_degree_hours_mean"]
     require_columns(
@@ -693,7 +737,8 @@ def plot_output2_monthly_cooling_pressure(
     handles, legend_labels = axes.flat[0].get_legend_handles_labels()
     by_label = dict(zip(legend_labels, handles))
     fig.legend(by_label.values(), by_label.keys(), loc="lower center", ncol=3)
-    fig.tight_layout(rect=(0, 0.12, 1, 0.96))
+    _add_context_note(fig, context_note)
+    fig.tight_layout(rect=(0, 0.15, 1, 0.96))
     return save_figure(fig, output_base, formats)
 
 
@@ -702,6 +747,8 @@ def plot_output2_seasonal_heating_share(
     spec: FigureSpec,
     output_base: Path,
     formats: Iterable[str],
+    *,
+    context_note: str = "",
 ) -> dict[str, Path]:
     require_columns(
         seasonal_df,
@@ -728,11 +775,12 @@ def plot_output2_seasonal_heating_share(
     ax.set_ylabel("Share of annual useful heating (%)")
     ax.set_title(spec.title)
     ax.legend(ncol=4)
-    fig.tight_layout(rect=(0, 0.04, 1, 1))
+    _add_context_note(fig, context_note)
+    fig.tight_layout(rect=(0, 0.055, 1, 1))
     return save_figure(fig, output_base, formats)
 
 
-def plot_structure(output_base: Path, formats: Iterable[str]) -> dict[str, Path]:
+def plot_structure(output_base: Path, formats: Iterable[str], *, context_note: str = "") -> dict[str, Path]:
     fig, ax = plt.subplots(figsize=FIGURE_SIZES["structure"])
     ax.set_axis_off()
     ax.set_xlim(0, 1)
@@ -798,6 +846,7 @@ def plot_structure(output_base: Path, formats: Iterable[str]) -> dict[str, Path]
         va="center",
         fontsize=9,
     )
+    _add_context_note(fig, context_note)
     fig.tight_layout()
     return save_figure(fig, output_base, formats)
 
@@ -807,6 +856,8 @@ def plot_uncertainty_band(
     spec: FigureSpec,
     output_base: Path,
     formats: Iterable[str],
+    *,
+    context_note: str = "",
 ) -> dict[str, Path]:
     require_columns(
         bands_df,
@@ -830,11 +881,19 @@ def plot_uncertainty_band(
     ax.set_title(spec.title)
     ax.set_ylabel(_metric_label(metric))
     ax.set_xlabel("Scenario group; whiskers show P10-P90 across stochastic realizations")
-    fig.tight_layout()
+    _add_context_note(fig, context_note)
+    fig.tight_layout(rect=(0, 0.055, 1, 1))
     return save_figure(fig, output_base, formats)
 
 
-def plot_winter_peak_vs_electrification(data: pd.DataFrame, spec: FigureSpec, output_base: Path, formats: Iterable[str]) -> dict[str, Path]:
+def plot_winter_peak_vs_electrification(
+    data: pd.DataFrame,
+    spec: FigureSpec,
+    output_base: Path,
+    formats: Iterable[str],
+    *,
+    context_note: str = "",
+) -> dict[str, Path]:
     metric = spec.metrics[0]
     part = metric_stats_from_aggregates(data, [metric])
     part = part[part["technology_case_id"].isin(TECHNOLOGY_CASE_ORDER[1:])].copy()
@@ -850,11 +909,19 @@ def plot_winter_peak_vs_electrification(data: pd.DataFrame, spec: FigureSpec, ou
         ax.set_xticklabels(_x_labels(grouped), ha="center")
     ax.set_title(spec.title)
     ax.set_ylabel(_metric_label(metric))
-    fig.tight_layout()
+    _add_context_note(fig, context_note)
+    fig.tight_layout(rect=(0, 0.055, 1, 1))
     return save_figure(fig, output_base, formats)
 
 
-def plot_summer_peak_emergence(data: pd.DataFrame, spec: FigureSpec, output_base: Path, formats: Iterable[str]) -> tuple[dict[str, Path], list[str]]:
+def plot_summer_peak_emergence(
+    data: pd.DataFrame,
+    spec: FigureSpec,
+    output_base: Path,
+    formats: Iterable[str],
+    *,
+    context_note: str = "",
+) -> tuple[dict[str, Path], list[str]]:
     warnings: list[str] = []
     stats = metric_stats_from_aggregates(data, spec.metrics)
     pivot = stats.pivot_table(
@@ -881,11 +948,19 @@ def plot_summer_peak_emergence(data: pd.DataFrame, spec: FigureSpec, output_base
         ax.set_xticklabels(_x_labels(pivot), ha="center")
     ax.set_title(spec.title)
     ax.set_ylabel("Summer peak / winter peak")
-    fig.tight_layout()
+    _add_context_note(fig, context_note)
+    fig.tight_layout(rect=(0, 0.055, 1, 1))
     return save_figure(fig, output_base, formats), warnings
 
 
-def plot_combined_stress(data: pd.DataFrame, spec: FigureSpec, output_base: Path, formats: Iterable[str]) -> dict[str, Path]:
+def plot_combined_stress(
+    data: pd.DataFrame,
+    spec: FigureSpec,
+    output_base: Path,
+    formats: Iterable[str],
+    *,
+    context_note: str = "",
+) -> dict[str, Path]:
     stats = metric_stats_from_aggregates(data, spec.metrics)
     part = stats[stats["scenario_id"].isin([BASELINE_SCENARIO_ID, COMBINED_STRESS_SCENARIO_ID])].copy()
     fig, axes = plt.subplots(nrows=1, ncols=len(spec.metrics), figsize=FIGURE_SIZES["wide"], squeeze=False)
@@ -906,7 +981,8 @@ def plot_combined_stress(data: pd.DataFrame, spec: FigureSpec, output_base: Path
         ax.set_title(_short_metric_label(metric))
     axes.flat[0].set_ylabel("Grid import peak (W)")
     fig.suptitle(spec.title)
-    fig.tight_layout()
+    _add_context_note(fig, context_note)
+    fig.tight_layout(rect=(0, 0.055, 1, 1))
     return save_figure(fig, output_base, formats)
 
 
@@ -920,6 +996,7 @@ def _metadata_row(
     generated_at_utc: str,
     git_commit: str,
     git_is_dirty: bool | str,
+    context_note: str,
     warnings: Iterable[str] = (),
 ) -> dict[str, Any]:
     return {
@@ -937,6 +1014,7 @@ def _metadata_row(
         "git_is_dirty": git_is_dirty,
         "row_count_used": int(row_count),
         "caption_id": spec.figure_id,
+        "context_note": context_note,
         "status": "generated",
         "warnings": "; ".join(str(item) for item in warnings if item),
     }
@@ -955,7 +1033,7 @@ def _caption_for(spec: FigureSpec) -> str:
             f"{spec.title}. Values are generated from the Phase 1 annual climate degree-day comparison table ({metrics}). HDD 18 is used as the climate proxy for space-heating exposure, while CDD 22 is used as a cooling-exposure indicator rather than a modeled cooling-demand result."
         ),
         "seasonal_monthly_shift": (
-            f"{spec.title}. Values are generated from Output 2 monthly and seasonal demand-shift comparison tables ({metrics}). Heating, electricity, and gas are model outputs; CDD, overheating hours, and indoor exceedance are cooling-pressure indicators, not active cooling electricity demand."
+            f"{spec.title}. Values are generated from Output 2 monthly and seasonal demand-shift comparison tables ({metrics}). Heating, electricity, and gas are model outputs; CDD, overheating hours, and indoor exceedance are cooling-pressure indicators, not active cooling electricity demand. Maximum indoor temperature is diagnostic only and is not used as a main conclusion metric."
         ),
         "annual_demand": (
             f"{spec.title}. Bars show scenario-level means from the Phase 5 aggregate summary with P10-P90 stochastic whiskers where available for {metrics}. Scenarios are grouped by climate window, pathway, and technology case."
@@ -997,6 +1075,7 @@ def write_metadata(metadata_rows: list[dict[str, Any]], metadata_dir: Path) -> t
         "git_is_dirty",
         "row_count_used",
         "caption_id",
+        "context_note",
         "status",
         "warnings",
     ]
@@ -1022,6 +1101,8 @@ def write_captions(metadata_rows: list[dict[str, Any]], captions_path: Path) -> 
                 f"**File:** `{figure_file}`",
                 "",
                 f"**Draft caption:** {_caption_for(spec)}",
+                "",
+                f"**Coverage/context:** {row.get('context_note', '')}",
                 "",
                 f"**Metrics used:** `{row['metrics_used'] or 'scenario-tree metadata'}`",
                 "",
@@ -1085,25 +1166,33 @@ def generate_figures(
     bands_source = [bands_path]
     phase1_degree_day_source = [phase1_degree_day_path]
     output2_source = [monthly_shift_path, seasonal_shift_path]
+    climate_context = _coverage_context(realization_df, scope="climate-only", tariffs="N/A")
+    mixed_context = _coverage_context(realization_df, scope="mixed climate-only/technology-stress", tariffs="N/A")
+    stress_context = _coverage_context(realization_df, scope="technology-stress", tariffs="N/A")
+    structure_context = _coverage_context(realization_df, scope="scenario-tree design/available runs", tariffs="N/A")
 
     for spec in FIGURE_SPECS:
         output_base = _output_base(figures_root, spec)
         warnings: list[str] = []
+        context_note = mixed_context
         if spec.category == "structure":
-            files = plot_structure(output_base, formats)
+            context_note = structure_context
+            files = plot_structure(output_base, formats, context_note=context_note)
             source_files = [experiment_root / "manifests" / "scenario_leaf_index.csv", *config_sources]
             row_count = len(realization_df)
             scenario_filters = "all canonical scenario-tree dimensions; seed_0000 through seed_0099 summarized"
         elif spec.category == "climate":
             data = prepare_climate_metric_data(aggregate_df, spec.metrics)
-            files = plot_metric_bars(data, spec, output_base, formats, x_mode="climate")
+            context_note = climate_context
+            files = plot_metric_bars(data, spec, output_base, formats, x_mode="climate", context_note=context_note)
             source_files = aggregate_source + realization_source
             row_count = len(data)
             scenario_filters = "climate metrics deduplicated by climate window and pathway; future current-stock cases excluded"
             if data.empty:
                 warnings.append("No climate rows available after canonical filtering.")
         elif spec.figure_id == "fig_phase1_hdd_cdd_dot_interval":
-            files = plot_phase1_degree_day_intervals(phase1_degree_day_df, spec, output_base, formats)
+            context_note = climate_context
+            files = plot_phase1_degree_day_intervals(phase1_degree_day_df, spec, output_base, formats, context_note=context_note)
             source_files = phase1_degree_day_source
             row_count = len(phase1_degree_day_df)
             scenario_filters = "Phase 1 climate-only groups; unique climate-window years with repeated stochastic seeds de-duplicated"
@@ -1116,7 +1205,9 @@ def generate_figures(
                 metric="delta_HDD_18_pct",
                 label="HDD 18 change versus baseline (%)",
                 cmap="YlGnBu_r",
+                context_note=climate_context,
             )
+            context_note = climate_context
             source_files = phase1_degree_day_source
             row_count = len(phase1_degree_day_df)
             scenario_filters = "future Phase 1 frozen-stock climate groups; historical baseline used for deltas"
@@ -1129,56 +1220,67 @@ def generate_figures(
                 metric="delta_CDD_22_abs",
                 label="CDD 22 change versus baseline (degree-days/year)",
                 cmap="YlOrRd",
+                context_note=climate_context,
             )
+            context_note = climate_context
             source_files = phase1_degree_day_source
             row_count = len(phase1_degree_day_df)
             scenario_filters = "future Phase 1 frozen-stock climate groups; historical baseline used for absolute CDD deltas"
         elif spec.figure_id == "fig_output2_monthly_demand_stacked":
-            files = plot_output2_monthly_demand_stacked(monthly_shift_df, spec, output_base, formats)
+            context_note = climate_context
+            files = plot_output2_monthly_demand_stacked(monthly_shift_df, spec, output_base, formats, context_note=context_note)
             source_files = output2_source
             row_count = len(monthly_shift_df)
             scenario_filters = "Output 2 Phase 1 climate-only groups; monthly means across selected climate years and realizations"
         elif spec.figure_id == "fig_output2_seasonal_heating_shift":
-            files = plot_output2_seasonal_heating_shift(seasonal_shift_df, spec, output_base, formats)
+            context_note = climate_context
+            files = plot_output2_seasonal_heating_shift(seasonal_shift_df, spec, output_base, formats, context_note=context_note)
             source_files = output2_source
             row_count = len(seasonal_shift_df)
             scenario_filters = "Output 2 winter, shoulder, and summer useful heating demand by Phase 1 climate group"
         elif spec.figure_id == "fig_output2_monthly_cooling_pressure":
-            files = plot_output2_monthly_cooling_pressure(monthly_shift_df, spec, output_base, formats)
+            context_note = climate_context
+            files = plot_output2_monthly_cooling_pressure(monthly_shift_df, spec, output_base, formats, context_note=context_note)
             source_files = output2_source
             row_count = len(monthly_shift_df)
             scenario_filters = "Output 2 cooling-pressure indicators only; no active cooling final energy is included"
         elif spec.figure_id == "fig_output2_seasonal_heating_share":
-            files = plot_output2_seasonal_heating_share(seasonal_shift_df, spec, output_base, formats)
+            context_note = climate_context
+            files = plot_output2_seasonal_heating_share(seasonal_shift_df, spec, output_base, formats, context_note=context_note)
             source_files = output2_source
             row_count = len(seasonal_shift_df)
             scenario_filters = "Output 2 seasonal share of annual useful heating demand by Phase 1 climate group"
         elif spec.category in {"annual_demand", "grid_impact"}:
             data = metric_stats_from_aggregates(aggregate_df, spec.metrics)
-            files = plot_metric_bars(data, spec, output_base, formats)
+            context_note = mixed_context
+            files = plot_metric_bars(data, spec, output_base, formats, context_note=context_note)
             source_files = aggregate_source
             row_count = len(data)
             scenario_filters = "all available standardized scenario aggregate rows"
         elif spec.category == "uncertainty":
-            files = plot_uncertainty_band(bands_df, spec, output_base, formats)
+            context_note = mixed_context
+            files = plot_uncertainty_band(bands_df, spec, output_base, formats, context_note=context_note)
             source_files = bands_source if bands_path_exists else aggregate_source
             row_count = int((bands_df["metric"] == spec.metrics[0]).sum()) if "metric" in bands_df else 0
             scenario_filters = "Phase 6 stochastic robustness rows for the requested metric"
             if not bands_path_exists:
                 warnings.append("Missing stochastic uncertainty band CSV; generated placeholder figure.")
         elif spec.figure_id == "fig_winter_peak_vs_electrification":
-            files = plot_winter_peak_vs_electrification(aggregate_df, spec, output_base, formats)
+            context_note = stress_context
+            files = plot_winter_peak_vs_electrification(aggregate_df, spec, output_base, formats, context_note=context_note)
             source_files = aggregate_source
             row_count = len(metric_stats_from_aggregates(aggregate_df, spec.metrics))
             scenario_filters = "future technology cases: frozen stock, moderate electrification, high electrification + PV/EV"
         elif spec.figure_id == "fig_summer_peak_emergence":
-            files, extra_warnings = plot_summer_peak_emergence(aggregate_df, spec, output_base, formats)
+            context_note = mixed_context
+            files, extra_warnings = plot_summer_peak_emergence(aggregate_df, spec, output_base, formats, context_note=context_note)
             warnings.extend(extra_warnings)
             source_files = aggregate_source
             row_count = len(metric_stats_from_aggregates(aggregate_df, spec.metrics))
             scenario_filters = "all available scenarios with nonzero winter peak"
         elif spec.figure_id == "fig_combined_stress_case_grid_peak":
-            files = plot_combined_stress(aggregate_df, spec, output_base, formats)
+            context_note = stress_context
+            files = plot_combined_stress(aggregate_df, spec, output_base, formats, context_note=context_note)
             source_files = aggregate_source + ([combined_stress_path] if combined_stress_path_exists else [])
             row_count = int(aggregate_df["scenario_id"].isin([BASELINE_SCENARIO_ID, COMBINED_STRESS_SCENARIO_ID]).sum())
             scenario_filters = f"{BASELINE_SCENARIO_ID} versus {COMBINED_STRESS_SCENARIO_ID}"
@@ -1197,6 +1299,7 @@ def generate_figures(
                 generated_at_utc=generated_at_utc,
                 git_commit=git_commit,
                 git_is_dirty=git_is_dirty,
+                context_note=context_note,
                 warnings=warnings,
             )
         )

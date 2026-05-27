@@ -177,6 +177,9 @@ def test_output5_builds_static_bill_tables_and_deltas(tmp_path: Path) -> None:
     )
     assert future["delta_annual_bill_per_household_EUR_abs"] > 0.0
     assert baseline["annual_unpriced_non_gas_fuel_kWh_mean"] == pytest.approx(1752.0)
+    assert baseline["annual_operational_emissions_kgCO2_per_household_mean"] == pytest.approx(
+        (26280 * 0.150 + 8760 * 0.202) / 2
+    )
     assert monthly["monthly_bill_per_household_EUR_mean"].notna().all()
     assert set(tariffs["tariff_scenario_id"]) == {"static_test"}
     assert "source_references" in tariffs.columns

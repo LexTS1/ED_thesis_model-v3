@@ -8,6 +8,13 @@ comfort indicators. This avoids interpreting cooling exposure as actual electric
 consumption, while still allowing the thesis to identify increasing summer stress
 under future climate scenarios.
 
+The thesis interpretation should treat `CDD_22` as the primary defensible cooling
+exposure metric. Overheating hours and indoor-temperature exceedance degree-hours
+can be discussed as uncalibrated comfort-pressure proxies. Maximum indoor
+temperature should not be used as a main conclusion metric, because the current
+one-zone free-float representation is not calibrated for extreme indoor comfort
+prediction and no active cooling controller is present.
+
 The dedicated output is:
 
 `experiments/scenario_tree/summaries/comparison_level/cooling_exposure_overheating_risk_comparison.csv`
@@ -18,6 +25,7 @@ It reports:
 - `overheating_hours`: hours where simulated indoor temperature exceeds the comfort upper bound.
 - `excess_heat_kWh`: thermal excess above the comfort upper bound, expressed as equivalent heat.
 - `indoor_temperature_exceedance_degree_hours`: accumulated indoor temperature exceedance above the comfort upper bound.
+- `max_indoor_temperature_C`: diagnostic only; not a thesis conclusion metric.
 - `active_cooling_final_energy_kWh_included`: always `False` for this model scope.
 
 Reversible heat pumps can therefore be discussed as an adaptation option whose

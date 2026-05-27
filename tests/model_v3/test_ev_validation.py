@@ -46,6 +46,11 @@ def _config(repo: Path) -> dict:
                         "reference_year": 2024,
                         "periods": 24,
                         "target_resolution_seconds": 3600,
+                        "annual_energy_sensitivity": {
+                            "enabled": True,
+                            "label": "fluvius_aligned_2600_kWh",
+                            "annual_kWh_per_active_EV": 2600,
+                        },
                         "ev_config": {
                             "annual_use": {
                                 "km_per_year": {"base": 15000},
@@ -79,7 +84,9 @@ def test_ev_validation_generates_model_reference_comparison(tmp_path: Path) -> N
     assert (tmp_path / "reports" / "technology_ev_validation_metrics.json").exists()
     assert (tmp_path / "reports" / "fluvius_ev_signature_mean_daily.csv").exists()
     assert result.metrics["model_annual_kWh_per_active_EV"] > 0
+    assert result.metrics["sensitivity_target_annual_kWh_per_active_EV"] == 2600
     assert "model_vs_reference_mean_daily_rmse_kW" in result.metrics
+    assert (tmp_path / "reports" / "model_ev_charging_profile_2024_sensitivity_2600kwh.csv").exists()
 
 
 def test_ev_validation_reference_ingested_without_model_profile(tmp_path: Path) -> None:
@@ -102,4 +109,4 @@ def test_ev_validation_reports_ku_leuven_as_secondary_context(tmp_path: Path) ->
 
     assert result.metrics["ku_leuven_status"] == "secondary_context_only"
     assert "whole-house import/export" in report
-
+    assert "Annual Energy Sensitivity" in report

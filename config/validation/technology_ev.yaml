@@ -45,6 +45,15 @@ validation:
         target_resolution_seconds: 3600
         periods: 8760
         jitter_households: true
+        annual_energy_sensitivity:
+          enabled: true
+          label: fluvius_aligned_2600_kWh
+          annual_kWh_per_active_EV: 2600
+          interpretation: >
+            Scales the same model daily charging shape to an annual active-EV
+            home-charging energy close to the Fluvius EV category increment.
+            This is a validation sensitivity, not a replacement for the base
+            EV configuration and not a session-level calibration.
       outputs:
         report_dir: reports/model_v3/validation/technology/ev
         figure_dir: figures/model_v3/validation/technology/ev

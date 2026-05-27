@@ -27,6 +27,7 @@ DEFAULT_EXPERIMENT_ROOT = REPO_ROOT / "experiments" / "scenario_tree_output34"
 DEFAULT_LEAF_INDEX = DEFAULT_EXPERIMENT_ROOT / "manifests" / "output34_leaf_index.csv"
 DEFAULT_RUN_REGISTRY = DEFAULT_EXPERIMENT_ROOT / "manifests" / "run_registry.csv"
 DEFAULT_TARIFF_CONFIG = REPO_ROOT / "config" / "scenario_tree" / "output5_tariffs.yaml"
+DEFAULT_EMISSIONS_CONFIG = REPO_ROOT / "config" / "scenario_tree" / "output_emissions_factors.yaml"
 DEFAULT_FIGURES_ROOT = REPO_ROOT / "figures" / "scenario_tree_output34"
 BASELINE_SCENARIO_ID = "baseline_1981_2005__historical__tech_current_stock"
 ACTIVE_COOLING_COLUMN_NAMES = {
@@ -143,6 +144,73 @@ def load_tariff_config(path: Path = DEFAULT_TARIFF_CONFIG) -> tuple[dict[str, An
     if not rows:
         raise Output5Error(f"No tariff scenarios found in {path}")
     return config, rows
+
+
+def load_emissions_config(path: Path = DEFAULT_EMISSIONS_CONFIG) -> dict[str, Any]:
+    config = _load_yaml(Path(path))
+    factors = dict(config.get("factors", {}))
+    required = ["electricity_import_kgCO2_per_kWh", "natural_gas_kgCO2_per_kWh"]
+    missing = [name for name in required if name not in factors]
+    if missing:
+        raise Output5Error(f"Emissions config missing required factor(s): {', '.join(missing)}")
+    return config
+
+
+def emissions_assumption_rows(config: Mapping[str, Any]) -> list[dict[str, Any]]:
+    metadata = dict(config.get("metadata", {}))
+    factors = dict(config.get("factors", {}))
+    return [
+        {
+            "factor_id": "electricity_import_kgCO2_per_kWh",
+            "carrier": "electricity_grid_import",
+            "factor_kgCO2_per_kWh": _safe_float(factors.get("electricity_import_kgCO2_per_kWh")),
+            "credit_policy": "",
+            "unit": metadata.get("unit", "kgCO2"),
+            "interpretation_note": metadata.get("interpretation_note", ""),
+            "accounting_scope": metadata.get("accounting_scope", ""),
+        },
+        {
+            "factor_id": "natural_gas_kgCO2_per_kWh",
+            "carrier": "natural_gas",
+            "factor_kgCO2_per_kWh": _safe_float(factors.get("natural_gas_kgCO2_per_kWh")),
+            "credit_policy": "",
+            "unit": metadata.get("unit", "kgCO2"),
+            "interpretation_note": metadata.get("interpretation_note", ""),
+            "accounting_scope": metadata.get("accounting_scope", ""),
+        },
+        {
+            "factor_id": "grid_export_credit_kgCO2_per_kWh",
+            "carrier": "electricity_grid_export",
+            "factor_kgCO2_per_kWh": _safe_float(factors.get("grid_export_credit_kgCO2_per_kWh")),
+            "credit_policy": str(factors.get("grid_export_credit_policy", "no_credit")),
+            "unit": metadata.get("unit", "kgCO2"),
+            "interpretation_note": metadata.get("interpretation_note", ""),
+            "accounting_scope": metadata.get("accounting_scope", ""),
+        },
+    ]
+
+
+def _emissions_from_energy(
+    *,
+    import_kwh: float,
+    gas_kwh: float,
+    export_kwh: float,
+    emissions_config: Mapping[str, Any],
+    prefix: str,
+) -> dict[str, float]:
+    factors = dict(emissions_config.get("factors", {}))
+    electricity_factor = _safe_float(factors.get("electricity_import_kgCO2_per_kWh"))
+    gas_factor = _safe_float(factors.get("natural_gas_kgCO2_per_kWh"))
+    export_credit_factor = _safe_float(factors.get("grid_export_credit_kgCO2_per_kWh"))
+    import_emissions = float(import_kwh) * electricity_factor
+    gas_emissions = float(gas_kwh) * gas_factor
+    export_credit = float(export_kwh) * export_credit_factor
+    return {
+        f"{prefix}_electricity_import_emissions_kgCO2": import_emissions,
+        f"{prefix}_gas_emissions_kgCO2": gas_emissions,
+        f"{prefix}_grid_export_emissions_credit_kgCO2": export_credit,
+        f"{prefix}_operational_emissions_kgCO2": import_emissions + gas_emissions - export_credit,
+    }
 
 
 def tariff_assumption_rows(config: Mapping[str, Any], tariffs: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]:
@@ -387,6 +455,7 @@ def _leaf_bill_rows(
     leaf: Mapping[str, Any],
     *,
     tariff: Mapping[str, Any],
+    emissions_config: Mapping[str, Any],
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     meta = _metadata(leaf)
     outputs_dir = _resolve_repo_path(str(leaf["outputs_dir"]))
@@ -419,6 +488,16 @@ def _leaf_bill_rows(
     annual_gas_cost = float(monthly["monthly_gas_cost_EUR"].sum())
     annual_export_credit = float(monthly["monthly_grid_export_credit_EUR"].sum())
     total = annual_import_cost + annual_gas_cost - annual_export_credit + fixed_annual + capacity_annual_cost
+    annual_grid_import_kwh = float(monthly["monthly_grid_import_kWh"].sum())
+    annual_grid_export_kwh = float(monthly["monthly_grid_export_kWh"].sum())
+    annual_gas_kwh = float(monthly["monthly_gas_kWh"].sum())
+    annual_emissions = _emissions_from_energy(
+        import_kwh=annual_grid_import_kwh,
+        gas_kwh=annual_gas_kwh,
+        export_kwh=annual_grid_export_kwh,
+        emissions_config=emissions_config,
+        prefix="annual",
+    )
 
     annual_row = {
         **meta,
@@ -429,9 +508,9 @@ def _leaf_bill_rows(
         "billing_scope": "electricity_gas_export_fixed_capacity",
         "capacity_cost_method": capacity_method,
         "active_cooling_final_energy_kWh_included": False,
-        "annual_grid_import_kWh": float(monthly["monthly_grid_import_kWh"].sum()),
-        "annual_grid_export_kWh": float(monthly["monthly_grid_export_kWh"].sum()),
-        "annual_gas_kWh": float(monthly["monthly_gas_kWh"].sum()),
+        "annual_grid_import_kWh": annual_grid_import_kwh,
+        "annual_grid_export_kWh": annual_grid_export_kwh,
+        "annual_gas_kWh": annual_gas_kwh,
         "annual_unpriced_non_gas_fuel_kWh": float(monthly["monthly_unpriced_non_gas_fuel_kWh"].sum()),
         "annual_import_energy_cost_EUR": annual_import_cost,
         "annual_gas_cost_EUR": annual_gas_cost,
@@ -440,6 +519,8 @@ def _leaf_bill_rows(
         "annual_capacity_cost_EUR": capacity_annual_cost,
         "annual_bill_EUR": total,
         "annual_bill_per_household_EUR": total / max(n_households, 1),
+        **annual_emissions,
+        "annual_operational_emissions_kgCO2_per_household": annual_emissions["annual_operational_emissions_kgCO2"] / max(n_households, 1),
     }
     annual_row.update(
         _household_bill_stats(
@@ -460,6 +541,13 @@ def _leaf_bill_rows(
             - float(row["monthly_grid_export_credit_EUR"])
             + fixed_cost
             + capacity_cost
+        )
+        monthly_emissions = _emissions_from_energy(
+            import_kwh=float(row["monthly_grid_import_kWh"]),
+            gas_kwh=float(row["monthly_gas_kWh"]),
+            export_kwh=float(row["monthly_grid_export_kWh"]),
+            emissions_config=emissions_config,
+            prefix="monthly",
         )
         monthly_rows.append(
             {
@@ -484,6 +572,8 @@ def _leaf_bill_rows(
                 "monthly_capacity_cost_EUR": capacity_cost,
                 "monthly_bill_EUR": monthly_bill,
                 "monthly_bill_per_household_EUR": monthly_bill / max(n_households, 1),
+                **monthly_emissions,
+                "monthly_operational_emissions_kgCO2_per_household": monthly_emissions["monthly_operational_emissions_kgCO2"] / max(n_households, 1),
             }
         )
     return annual_row, monthly_rows
@@ -526,6 +616,11 @@ def _aggregate_annual(leaf_annual: pd.DataFrame) -> pd.DataFrame:
         "annual_capacity_cost_EUR",
         "annual_bill_EUR",
         "annual_bill_per_household_EUR",
+        "annual_electricity_import_emissions_kgCO2",
+        "annual_gas_emissions_kgCO2",
+        "annual_grid_export_emissions_credit_kgCO2",
+        "annual_operational_emissions_kgCO2",
+        "annual_operational_emissions_kgCO2_per_household",
         "household_bill_EUR_mean",
         "household_bill_EUR_p10",
         "household_bill_EUR_p50",
@@ -547,14 +642,25 @@ def _aggregate_annual(leaf_annual: pd.DataFrame) -> pd.DataFrame:
         (str(row["design_year_id"]), str(row["tariff_scenario_id"])): float(row["annual_bill_per_household_EUR_mean"])
         for _, row in result[result["scenario_id"] == BASELINE_SCENARIO_ID].iterrows()
     }
+    baseline_emissions = {
+        (str(row["design_year_id"]), str(row["tariff_scenario_id"])): float(row["annual_operational_emissions_kgCO2_per_household_mean"])
+        for _, row in result[result["scenario_id"] == BASELINE_SCENARIO_ID].iterrows()
+    }
     for index, row in result.iterrows():
         key = (str(row["design_year_id"]), str(row["tariff_scenario_id"]))
         baseline = baseline_means.get(key, float("nan"))
         value = float(row["annual_bill_per_household_EUR_mean"])
+        baseline_emission = baseline_emissions.get(key, float("nan"))
+        emission_value = float(row["annual_operational_emissions_kgCO2_per_household_mean"])
         result.loc[index, "baseline_scenario_id"] = BASELINE_SCENARIO_ID
         result.loc[index, "baseline_annual_bill_per_household_EUR_mean"] = baseline
         result.loc[index, "delta_annual_bill_per_household_EUR_abs"] = value - baseline if math.isfinite(value) and math.isfinite(baseline) else float("nan")
         result.loc[index, "delta_annual_bill_per_household_EUR_pct"] = _pct_delta(value, baseline)
+        result.loc[index, "baseline_annual_operational_emissions_kgCO2_per_household_mean"] = baseline_emission
+        result.loc[index, "delta_annual_operational_emissions_kgCO2_per_household_abs"] = (
+            emission_value - baseline_emission if math.isfinite(emission_value) and math.isfinite(baseline_emission) else float("nan")
+        )
+        result.loc[index, "delta_annual_operational_emissions_kgCO2_per_household_pct"] = _pct_delta(emission_value, baseline_emission)
     return result
 
 
@@ -567,6 +673,11 @@ def _aggregate_components(annual_comparison: pd.DataFrame) -> pd.DataFrame:
         "annual_capacity_cost_EUR",
         "annual_bill_EUR",
         "annual_bill_per_household_EUR",
+        "annual_electricity_import_emissions_kgCO2",
+        "annual_gas_emissions_kgCO2",
+        "annual_grid_export_emissions_credit_kgCO2",
+        "annual_operational_emissions_kgCO2",
+        "annual_operational_emissions_kgCO2_per_household",
         "annual_unpriced_non_gas_fuel_kWh",
     ]
     rows = []
@@ -579,6 +690,9 @@ def _aggregate_components(annual_comparison: pd.DataFrame) -> pd.DataFrame:
     for _, source in annual_comparison.iterrows():
         row = {column: source[column] for column in GROUP_COLUMNS}
         row["baseline_scenario_id"] = BASELINE_SCENARIO_ID
+        row["n_successful_runs"] = int(source.get("n_successful_runs", 0) or 0)
+        row["n_households"] = int(source.get("n_households", 0) or 0)
+        row["active_cooling_final_energy_kWh_included"] = False
         for metric in component_metrics:
             value = float(source.get(f"{metric}_mean", float("nan")))
             base = baseline_map.get((str(source["design_year_id"]), str(source["tariff_scenario_id"]), metric), float("nan"))
@@ -602,12 +716,18 @@ def _aggregate_monthly(leaf_monthly: pd.DataFrame) -> pd.DataFrame:
         "monthly_capacity_cost_EUR",
         "monthly_bill_EUR",
         "monthly_bill_per_household_EUR",
+        "monthly_electricity_import_emissions_kgCO2",
+        "monthly_gas_emissions_kgCO2",
+        "monthly_grid_export_emissions_credit_kgCO2",
+        "monthly_operational_emissions_kgCO2",
+        "monthly_operational_emissions_kgCO2_per_household",
     ]
     group_cols = GROUP_COLUMNS + ["month"]
     rows = []
     for values, group in leaf_monthly.groupby(group_cols, dropna=False):
         row = dict(zip(group_cols, values))
         row["n_month_samples"] = int(len(group))
+        row["n_successful_runs"] = int(group["scenario_leaf_id"].nunique())
         row["n_households"] = int(pd.to_numeric(group["n_households"], errors="coerce").median())
         row["billing_scope"] = str(group["billing_scope"].iloc[0])
         row["capacity_cost_method"] = str(group["capacity_cost_method"].iloc[0])
@@ -638,15 +758,17 @@ def build_output5_tables(
     leaf_index: Path = DEFAULT_LEAF_INDEX,
     run_registry: Path = DEFAULT_RUN_REGISTRY,
     tariff_config: Path = DEFAULT_TARIFF_CONFIG,
+    emissions_config: Path = DEFAULT_EMISSIONS_CONFIG,
 ) -> dict[str, Any]:
     experiment_root = Path(experiment_root)
     config, tariffs = load_tariff_config(Path(tariff_config))
+    emissions = load_emissions_config(Path(emissions_config))
     selected = _load_successful_leaf_index(Path(leaf_index), Path(run_registry))
     annual_rows: list[dict[str, Any]] = []
     monthly_rows: list[dict[str, Any]] = []
     for _, leaf in selected.iterrows():
         for tariff in tariffs:
-            annual, monthly = _leaf_bill_rows(dict(leaf), tariff=tariff)
+            annual, monthly = _leaf_bill_rows(dict(leaf), tariff=tariff, emissions_config=emissions)
             annual_rows.append(annual)
             monthly_rows.extend(monthly)
     leaf_annual = pd.DataFrame(annual_rows)
@@ -654,6 +776,23 @@ def build_output5_tables(
     annual_comparison = _aggregate_annual(leaf_annual)
     monthly_comparison = _aggregate_monthly(leaf_monthly)
     components = _aggregate_components(annual_comparison)
+    emissions_comparison = annual_comparison[
+        GROUP_COLUMNS
+        + [
+            "n_successful_runs",
+            "n_households",
+            "active_cooling_final_energy_kWh_included",
+            "annual_electricity_import_emissions_kgCO2_mean",
+            "annual_gas_emissions_kgCO2_mean",
+            "annual_grid_export_emissions_credit_kgCO2_mean",
+            "annual_operational_emissions_kgCO2_mean",
+            "annual_operational_emissions_kgCO2_per_household_mean",
+            "baseline_scenario_id",
+            "baseline_annual_operational_emissions_kgCO2_per_household_mean",
+            "delta_annual_operational_emissions_kgCO2_per_household_abs",
+            "delta_annual_operational_emissions_kgCO2_per_household_pct",
+        ]
+    ].copy()
 
     realization_dir = experiment_root / "summaries" / "realization_level"
     comparison_dir = experiment_root / "summaries" / "comparison_level"
@@ -664,20 +803,27 @@ def build_output5_tables(
     annual_path = comparison_dir / "annual_energy_bill_comparison.csv"
     monthly_path = comparison_dir / "monthly_energy_bill_comparison.csv"
     components_path = comparison_dir / "annual_energy_bill_components.csv"
+    emissions_path = comparison_dir / "annual_operational_emissions_comparison.csv"
     tariff_path = comparison_dir / "tariff_assumptions.csv"
+    emissions_assumptions_path = comparison_dir / "emissions_assumptions.csv"
     leaf_annual.to_csv(leaf_annual_path, index=False)
     leaf_monthly.to_csv(leaf_monthly_path, index=False)
     annual_comparison.to_csv(annual_path, index=False)
     monthly_comparison.to_csv(monthly_path, index=False)
     components.to_csv(components_path, index=False)
+    emissions_comparison.to_csv(emissions_path, index=False)
     _write_csv(tariff_path, tariff_assumption_rows(config, tariffs), list(tariff_assumption_rows(config, tariffs)[0].keys()))
+    emission_rows = emissions_assumption_rows(emissions)
+    _write_csv(emissions_assumptions_path, emission_rows, list(emission_rows[0].keys()))
     return {
         "leaf_annual_bill_path": leaf_annual_path,
         "leaf_monthly_bill_path": leaf_monthly_path,
         "annual_energy_bill_comparison_path": annual_path,
         "monthly_energy_bill_comparison_path": monthly_path,
         "annual_energy_bill_components_path": components_path,
+        "annual_operational_emissions_comparison_path": emissions_path,
         "tariff_assumptions_path": tariff_path,
+        "emissions_assumptions_path": emissions_assumptions_path,
         "successful_leaf_count": int(selected["scenario_leaf_id"].nunique()),
         "tariff_scenario_count": len(tariffs),
         "annual_comparison_rows": len(annual_comparison),
@@ -721,6 +867,42 @@ def _plot_save(fig: plt.Figure, output_base: Path, formats: Iterable[str]) -> li
     return paths
 
 
+def _context_note(frame: pd.DataFrame, *, scope: str) -> str:
+    households = "n/a"
+    if "n_households" in frame and not frame.empty:
+        values = pd.to_numeric(frame["n_households"], errors="coerce").dropna().unique()
+        if len(values) == 1:
+            households = str(int(values[0]))
+        elif len(values) > 1:
+            households = f"{int(min(values))}-{int(max(values))}"
+    seeds = "n/a"
+    seed_column = next((column for column in ["n_successful_runs", "n_successful_runs_x", "n_successful_runs_y"] if column in frame), "")
+    if seed_column and not frame.empty:
+        values = pd.to_numeric(frame[seed_column], errors="coerce").dropna().unique()
+        if len(values) == 1:
+            seeds = str(int(values[0]))
+        elif len(values) > 1:
+            seeds = f"{int(min(values))}-{int(max(values))}"
+    return (
+        f"{scope}; cohort={households} households; seeds/group={seeds}; "
+        "selected coverage only, not full 2800 leaves; no active cooling; tariffs=illustrative assumptions."
+    )
+
+
+def _add_context_note(fig: plt.Figure, note: str) -> None:
+    fig.text(0.5, 0.012, note, ha="center", va="bottom", fontsize=7.0, color="#4d4d4d")
+
+
+def _metadata_entry(figure_id: str, frame: pd.DataFrame, figure_paths: list[Path], *, caption: str, context_note: str) -> dict[str, Any]:
+    return {
+        "figure_id": figure_id,
+        "source_rows": len(frame),
+        "files": ";".join(map(str, figure_paths)),
+        "caption": caption,
+        "context_note": context_note,
+    }
+
+
 def generate_output5_figures(
     *,
     experiment_root: Path = DEFAULT_EXPERIMENT_ROOT,
@@ -732,6 +914,7 @@ def generate_output5_figures(
     annual = pd.read_csv(comparison_dir / "annual_energy_bill_comparison.csv")
     monthly = pd.read_csv(comparison_dir / "monthly_energy_bill_comparison.csv")
     components = pd.read_csv(comparison_dir / "annual_energy_bill_components.csv")
+    emissions = pd.read_csv(comparison_dir / "annual_operational_emissions_comparison.csv")
     output_dir = Path(figures_root) / "output5_energy_bills"
     paths: list[Path] = []
     metadata_rows: list[dict[str, Any]] = []
@@ -756,9 +939,23 @@ def generate_output5_figures(
     ax.set_ylabel("Annual bill per household (EUR/year)")
     ax.set_title("Output 5: annual bill by tariff scenario")
     ax.legend(fontsize=7, ncol=2)
+    note = _context_note(annual_plot, scope="technology-stress bill post-processing")
+    _add_context_note(fig, note)
+    fig.tight_layout(rect=(0, 0.055, 1, 1))
     figure_paths = _plot_save(fig, output_dir / "output5_annual_bill_by_tariff", formats)
     paths.extend(figure_paths)
-    metadata_rows.append({"figure_id": "output5_annual_bill_by_tariff", "source_rows": len(annual_plot), "files": ";".join(map(str, figure_paths))})
+    metadata_rows.append(
+        _metadata_entry(
+            "output5_annual_bill_by_tariff",
+            annual_plot,
+            figure_paths,
+            caption=(
+                "Annual household bill by tariff scenario. Bills are post-processing results using illustrative tariff assumptions; "
+                "they price electricity import, gas, PV export credit, fixed costs, and capacity costs, and exclude active cooling final energy."
+            ),
+            context_note=note,
+        )
+    )
 
     monthly_plot = monthly[
         (monthly["design_year_id"] == "cold_design_year")
@@ -776,9 +973,23 @@ def generate_output5_figures(
     ax.set_ylabel("Monthly bill delta vs baseline (EUR/household)")
     ax.set_title("Output 5: monthly bill difference under low/zero export value")
     ax.legend(fontsize=7, ncol=2)
+    note = _context_note(monthly_plot, scope="technology-stress bill post-processing")
+    _add_context_note(fig, note)
+    fig.tight_layout(rect=(0, 0.055, 1, 1))
     figure_paths = _plot_save(fig, output_dir / "output5_monthly_bill_delta", formats)
     paths.extend(figure_paths)
-    metadata_rows.append({"figure_id": "output5_monthly_bill_delta", "source_rows": len(monthly_plot), "files": ";".join(map(str, figure_paths))})
+    metadata_rows.append(
+        _metadata_entry(
+            "output5_monthly_bill_delta",
+            monthly_plot,
+            figure_paths,
+            caption=(
+                "Monthly bill delta versus the historical current-stock baseline under the low/zero export-value tariff. "
+                "This shows timing of bill pressure rather than a forecast of real Belgian monthly bills."
+            ),
+            context_note=note,
+        )
+    )
 
     water = components[
         (components["design_year_id"] == "cold_design_year")
@@ -801,9 +1012,61 @@ def generate_output5_figures(
         ax.axhline(0.0, color="#333333", linewidth=0.8)
         ax.set_ylabel("Bill component delta (EUR/household-year)")
         ax.set_title("Output 5: component waterfall versus baseline")
+        note = _context_note(water, scope="technology-stress bill post-processing")
+        _add_context_note(fig, note)
+        fig.tight_layout(rect=(0, 0.06, 1, 1))
         figure_paths = _plot_save(fig, output_dir / "output5_bill_component_waterfall", formats)
         paths.extend(figure_paths)
-        metadata_rows.append({"figure_id": "output5_bill_component_waterfall", "source_rows": len(water), "files": ";".join(map(str, figure_paths))})
+        metadata_rows.append(
+            _metadata_entry(
+                "output5_bill_component_waterfall",
+                water,
+                figure_paths,
+                caption=(
+                    "Bill component delta for the selected stress case versus baseline. Import, gas, export credit, fixed, "
+                    "and capacity-cost components are shown separately to avoid hiding the tariff mechanism."
+                ),
+                context_note=note,
+            )
+        )
+
+    emissions_plot = (
+        emissions[emissions["design_year_id"] == "cold_design_year"]
+        .drop_duplicates(["scenario_id", "design_year_id"])
+        .copy()
+    )
+    if not emissions_plot.empty:
+        emissions_plot["label"] = [_compact_label(row) for _, row in emissions_plot.iterrows()]
+        fig, ax = plt.subplots(figsize=(13, 5.2))
+        x = np.arange(len(emissions_plot))
+        electric = emissions_plot["annual_electricity_import_emissions_kgCO2_mean"].to_numpy(dtype=float) / emissions_plot["n_households"].to_numpy(dtype=float)
+        gas = emissions_plot["annual_gas_emissions_kgCO2_mean"].to_numpy(dtype=float) / emissions_plot["n_households"].to_numpy(dtype=float)
+        export_credit = emissions_plot["annual_grid_export_emissions_credit_kgCO2_mean"].to_numpy(dtype=float) / emissions_plot["n_households"].to_numpy(dtype=float)
+        ax.bar(x, electric, label="Grid import", color="#2166ac")
+        ax.bar(x, gas, bottom=electric, label="Gas", color="#b2182b")
+        if np.nanmax(np.abs(export_credit)) > 0:
+            ax.bar(x, -export_credit, label="Export credit", color="#67a9cf")
+        ax.set_xticks(x, emissions_plot["label"], fontsize=8)
+        ax.set_ylabel("Operational emissions (kgCO2/household-year)")
+        ax.set_title("Output 5: operational CO2 by scenario")
+        ax.legend(fontsize=8, ncol=3)
+        note = _context_note(emissions_plot, scope="technology-stress ecological post-processing")
+        _add_context_note(fig, note)
+        fig.tight_layout(rect=(0, 0.06, 1, 1))
+        figure_paths = _plot_save(fig, output_dir / "output5_operational_emissions_by_scenario", formats)
+        paths.extend(figure_paths)
+        metadata_rows.append(
+            _metadata_entry(
+                "output5_operational_emissions_by_scenario",
+                emissions_plot,
+                figure_paths,
+                caption=(
+                    "Operational CO2 post-processing by scenario. The bars apply configurable kgCO2/kWh factors to grid import and gas; "
+                    "PV export receives no avoided-emissions credit by default."
+                ),
+                context_note=note,
+            )
+        )
 
     metadata_path = output_dir / "output5_figure_metadata.csv"
     pd.DataFrame(metadata_rows).to_csv(metadata_path, index=False)
@@ -820,6 +1083,8 @@ def validate_output5_results(
     monthly = pd.read_csv(comparison_dir / "monthly_energy_bill_comparison.csv")
     components = pd.read_csv(comparison_dir / "annual_energy_bill_components.csv")
     tariffs = pd.read_csv(comparison_dir / "tariff_assumptions.csv")
+    emissions = pd.read_csv(comparison_dir / "annual_operational_emissions_comparison.csv")
+    emissions_assumptions = pd.read_csv(comparison_dir / "emissions_assumptions.csv")
     errors = []
     if len(set(tariffs["tariff_scenario_id"])) != int(expected_tariff_count):
         errors.append(f"Expected {expected_tariff_count} tariff scenarios, found {len(set(tariffs['tariff_scenario_id']))}.")
@@ -830,6 +1095,16 @@ def validate_output5_results(
         errors.append("Future annual bill deltas must be populated.")
     if monthly.empty or annual.empty or components.empty:
         errors.append("Output 5 comparison tables must not be empty.")
+    if emissions.empty or emissions_assumptions.empty:
+        errors.append("Output 5 emissions tables must not be empty.")
+    for column in [
+        "annual_operational_emissions_kgCO2_per_household_mean",
+        "delta_annual_operational_emissions_kgCO2_per_household_abs",
+    ]:
+        if column not in annual:
+            errors.append(f"Output 5 annual table missing emissions column: {column}.")
+    if "factor_kgCO2_per_kWh" not in emissions_assumptions:
+        errors.append("Emissions assumptions must include factor_kgCO2_per_kWh.")
     if "source_references" not in tariffs or tariffs["source_references"].astype(str).str.len().min() == 0:
         errors.append("Tariff assumptions must include source references.")
     if errors:
@@ -838,7 +1113,9 @@ def validate_output5_results(
         "annual_rows": int(len(annual)),
         "monthly_rows": int(len(monthly)),
         "component_rows": int(len(components)),
+        "emissions_rows": int(len(emissions)),
         "tariff_rows": int(len(tariffs)),
+        "emissions_assumption_rows": int(len(emissions_assumptions)),
         "active_cooling_final_energy_columns_present": False,
     }
 
@@ -852,6 +1129,7 @@ def build_parser() -> argparse.ArgumentParser:
     tables.add_argument("--leaf-index", type=Path, default=DEFAULT_LEAF_INDEX)
     tables.add_argument("--run-registry", type=Path, default=DEFAULT_RUN_REGISTRY)
     tables.add_argument("--tariff-config", type=Path, default=DEFAULT_TARIFF_CONFIG)
+    tables.add_argument("--emissions-config", type=Path, default=DEFAULT_EMISSIONS_CONFIG)
 
     figures = subparsers.add_parser("figures", help="Generate Output 5 bill figures.")
     figures.add_argument("--experiment-root", type=Path, default=DEFAULT_EXPERIMENT_ROOT)
@@ -873,6 +1151,7 @@ def main(argv: list[str] | None = None) -> int:
             leaf_index=args.leaf_index,
             run_registry=args.run_registry,
             tariff_config=args.tariff_config,
+            emissions_config=args.emissions_config,
         )
     elif args.command == "figures":
         result = generate_output5_figures(

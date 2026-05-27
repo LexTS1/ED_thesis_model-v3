@@ -336,6 +336,31 @@ def _write_model_ev_profile(repo_root: Path, cfg: Mapping[str, Any], destination
     return pd.Series(mean_w_per_ev / 1000.0, index=timestamps, dtype=float), destination
 
 
+def _write_model_sensitivity_profile(
+    path: Path,
+    profile_kw: pd.Series,
+    *,
+    target_annual_kwh: float,
+    scale_factor: float,
+    label: str,
+) -> Path:
+    output = pd.DataFrame(
+        {
+            "timestamp": pd.DatetimeIndex(profile_kw.index).astype(str),
+            "P_el_ev_charging_W": profile_kw.to_numpy(dtype=float) * 1000.0,
+            "P_el_net_grid_W": profile_kw.to_numpy(dtype=float) * 1000.0,
+            "P_el_grid_import_W": np.clip(profile_kw.to_numpy(dtype=float) * 1000.0, 0.0, None),
+            "P_el_grid_export_W": np.zeros(len(profile_kw)),
+            "target_annual_kWh_per_active_EV": float(target_annual_kwh),
+            "scale_factor_vs_base_model": float(scale_factor),
+            "profile_kind": f"technology_ev_increment_sensitivity_{label}",
+        }
+    )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    output.to_csv(path, index=False)
+    return path
+
+
 def _write_fluvius_signature(path: Path, signature_kw: pd.Series, base_kw: pd.Series, ev_kw: pd.Series) -> Path:
     frame = pd.DataFrame(
         {
@@ -393,18 +418,22 @@ def _write_diversity_table(
     return path
 
 
-def _plot_profiles(path: Path, reference: pd.Series, model: pd.Series) -> None:
+def _plot_profiles(
+    path: Path,
+    reference: pd.Series,
+    model: pd.Series,
+    sensitivity: pd.Series | None = None,
+) -> None:
     if plt is None or reference.empty or model.empty:
         return
     path.parent.mkdir(parents=True, exist_ok=True)
-    frame = pd.concat(
-        {
-            "Fluvius EV increment kW": reference,
-            "model EV charging kW": model,
-        },
-        axis=1,
-        join="inner",
-    ).dropna()
+    series = {
+        "Fluvius EV increment kW": reference,
+        "model EV charging kW": model,
+    }
+    if sensitivity is not None and not sensitivity.empty:
+        series["model EV charging kW, 2600 kWh/y sensitivity"] = sensitivity
+    frame = pd.concat(series, axis=1, join="inner").dropna()
     if frame.empty:
         return
     fig, ax = plt.subplots(figsize=(10, 4))
@@ -517,6 +546,36 @@ def run_validation(
     ev_cfg = _model_ev_cfg(repo_root, model_cfg)
     annual_kwh_per_ev = annual_ev_home_charging_kwh(ev_cfg)
     model_daily = _mean_daily_profile(model_profile_kw)
+    reference_signed_kwh = _energy_kwh(reference_increment_kw_ts * 1000.0, clip_lower=False)
+    reference_positive_kwh = _energy_kwh(reference_increment_kw_ts * 1000.0, clip_lower=True)
+    model_annual_kwh = _energy_kwh(model_profile_kw * 1000.0, clip_lower=True)
+    sensitivity_cfg = dict(model_cfg.get("annual_energy_sensitivity", {}))
+    sensitivity_profile_kw = pd.Series(dtype=float)
+    sensitivity_daily = pd.Series(dtype=float)
+    sensitivity_label = str(sensitivity_cfg.get("label", "annual_energy_sensitivity")).replace(" ", "_")
+    sensitivity_target_kwh = float(sensitivity_cfg.get("annual_kWh_per_active_EV", 0.0) or 0.0)
+    sensitivity_scale = float("nan")
+    if bool(sensitivity_cfg.get("enabled", False)) and not model_profile_kw.empty and model_annual_kwh > 0.0:
+        if sensitivity_target_kwh <= 0.0:
+            warnings.append("EV annual-energy sensitivity is enabled but target annual_kWh_per_active_EV is not positive.")
+        else:
+            sensitivity_scale = sensitivity_target_kwh / model_annual_kwh
+            sensitivity_profile_kw = model_profile_kw * sensitivity_scale
+            sensitivity_daily = _mean_daily_profile(sensitivity_profile_kw)
+            reference_year = int(model_cfg.get("reference_year", 2024) or 2024)
+            target_token = int(round(sensitivity_target_kwh))
+            sensitivity_path = report_dir / f"model_ev_charging_profile_{reference_year}_sensitivity_{target_token}kwh.csv"
+            output_files.append(
+                str(
+                    _write_model_sensitivity_profile(
+                        sensitivity_path,
+                        sensitivity_profile_kw,
+                        target_annual_kwh=sensitivity_target_kwh,
+                        scale_factor=sensitivity_scale,
+                        label=sensitivity_label,
+                    ).relative_to(repo_root)
+                )
+            )
     diversity_path = report_dir / "ev_diversity_by_count.csv"
     if not model_profile_kw.empty:
         timestamps = tuple(pd.DatetimeIndex(model_profile_kw.index))
@@ -537,13 +596,10 @@ def run_validation(
             output_files.append(str(diversity_figure.relative_to(repo_root)))
 
     figure_path = figure_dir / "model_vs_fluvius_ev_effect_mean_daily.png"
-    _plot_profiles(figure_path, reference_daily, model_daily)
+    _plot_profiles(figure_path, reference_daily, model_daily, sensitivity_daily)
     if figure_path.exists():
         output_files.append(str(figure_path.relative_to(repo_root)))
 
-    reference_signed_kwh = _energy_kwh(reference_increment_kw_ts * 1000.0, clip_lower=False)
-    reference_positive_kwh = _energy_kwh(reference_increment_kw_ts * 1000.0, clip_lower=True)
-    model_annual_kwh = _energy_kwh(model_profile_kw * 1000.0, clip_lower=True)
     metrics: dict[str, Any] = {
         "status": "model_reference_comparison" if not model_profile_kw.empty else "reference_ingested",
         "validation_scope": "technology_ev_increment_signature",
@@ -562,6 +618,12 @@ def run_validation(
         "model_cohort_size_active_ev_households": int(model_cfg.get("cohort_size", 100) or 100),
         "model_annual_kWh_per_active_EV": model_annual_kwh,
         "model_configured_annual_home_charging_kWh_per_active_EV": annual_kwh_per_ev,
+        "model_annual_energy_gap_vs_reference_kWh": model_annual_kwh - reference_positive_kwh,
+        "model_annual_energy_gap_vs_reference_pct": (
+            100.0 * (model_annual_kwh - reference_positive_kwh) / reference_positive_kwh
+            if reference_positive_kwh
+            else float("nan")
+        ),
         "model_annual_energy_formula": "km_per_year * specific_consumption_kwh_per_100km / 100 * home_charging_probability",
         "model_daily_kWh_per_active_EV": model_annual_kwh / 365.0 if model_annual_kwh else 0.0,
         "model_peak_charging_hour": _profile_peak_hour(model_daily),
@@ -572,6 +634,32 @@ def run_validation(
         "model_vs_reference_mean_daily_correlation": _correlation(model_daily, reference_daily),
         "ku_leuven_status": "secondary_context_only",
     }
+    if not sensitivity_profile_kw.empty:
+        sensitivity_annual_kwh = _energy_kwh(sensitivity_profile_kw * 1000.0, clip_lower=True)
+        metrics.update(
+            {
+                "sensitivity_enabled": True,
+                "sensitivity_label": sensitivity_label,
+                "sensitivity_target_annual_kWh_per_active_EV": sensitivity_target_kwh,
+                "sensitivity_annual_kWh_per_active_EV": sensitivity_annual_kwh,
+                "sensitivity_scale_factor_vs_base_model": sensitivity_scale,
+                "sensitivity_daily_kWh_per_active_EV": sensitivity_annual_kwh / 365.0,
+                "sensitivity_peak_charging_hour": _profile_peak_hour(sensitivity_daily),
+                "sensitivity_evening_peak_magnitude_kW": _evening_peak_kw(sensitivity_daily),
+                "sensitivity_vs_reference_mean_daily_rmse_kW": _rmse(sensitivity_daily, reference_daily),
+                "sensitivity_vs_reference_mean_daily_mae_kW": _mae(sensitivity_daily, reference_daily),
+                "sensitivity_vs_reference_mean_daily_bias_kW": _bias(sensitivity_daily, reference_daily),
+                "sensitivity_vs_reference_mean_daily_correlation": _correlation(sensitivity_daily, reference_daily),
+                "sensitivity_annual_energy_gap_vs_reference_kWh": sensitivity_annual_kwh - reference_positive_kwh,
+                "sensitivity_annual_energy_gap_vs_reference_pct": (
+                    100.0 * (sensitivity_annual_kwh - reference_positive_kwh) / reference_positive_kwh
+                    if reference_positive_kwh
+                    else float("nan")
+                ),
+            }
+        )
+    else:
+        metrics["sensitivity_enabled"] = False
     if diversity_path.exists():
         diversity = pd.read_csv(diversity_path)
         if not diversity.empty:
@@ -640,11 +728,22 @@ def _report_lines(
         f"- Fluvius positive EV increment: `{_fmt(metrics.get('reference_ev_effect_positive_kWh_per_meter_year'), 1)}` kWh/reference meter/year",
         f"- model annual EV charging: `{_fmt(metrics.get('model_annual_kWh_per_active_EV'), 1)}` kWh/active EV/year",
         f"- model configured annual home charging: `{_fmt(metrics.get('model_configured_annual_home_charging_kWh_per_active_EV'), 1)}` kWh/active EV/year",
+        f"- model annual-energy gap vs Fluvius positive increment: `{_fmt(metrics.get('model_annual_energy_gap_vs_reference_pct'), 1)}` %",
         f"- Fluvius peak EV-signature hour: `{metrics.get('reference_peak_charging_hour')}`",
         f"- model peak EV-charging hour: `{metrics.get('model_peak_charging_hour')}`",
         f"- mean-daily RMSE: `{_fmt(metrics.get('model_vs_reference_mean_daily_rmse_kW'))}` kW",
         f"- mean-daily correlation: `{_fmt(metrics.get('model_vs_reference_mean_daily_correlation'))}`",
         f"- diversity factor at 100 active EVs: `{_fmt(metrics.get('model_diversity_factor_at_100_active_EVs'))}`",
+        "",
+        "## Annual Energy Sensitivity",
+        "",
+        f"- sensitivity enabled: `{metrics.get('sensitivity_enabled')}`",
+        f"- sensitivity target: `{_fmt(metrics.get('sensitivity_target_annual_kWh_per_active_EV'), 1)}` kWh/active EV/year",
+        f"- sensitivity scale factor vs base model: `{_fmt(metrics.get('sensitivity_scale_factor_vs_base_model'))}`",
+        f"- sensitivity annual-energy gap vs Fluvius positive increment: `{_fmt(metrics.get('sensitivity_annual_energy_gap_vs_reference_pct'), 1)}` %",
+        f"- sensitivity mean-daily RMSE: `{_fmt(metrics.get('sensitivity_vs_reference_mean_daily_rmse_kW'))}` kW",
+        "",
+        "This sensitivity keeps the model's current charging timing shape but rescales annual active-EV home-charging energy to approximately 2600 kWh/year. It is useful for checking whether the Fluvius mismatch is mainly an annual-energy calibration issue. It is not a session-level EV model and should not be presented as a completed behavioural calibration.",
         "",
         "## Interpretation",
         "",

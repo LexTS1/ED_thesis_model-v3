@@ -936,6 +936,55 @@ def _plot_save(fig: plt.Figure, output_base: Path, formats: Iterable[str]) -> li
     return paths
 
 
+def _context_note(frame: pd.DataFrame, *, scope: str) -> str:
+    households = "n/a"
+    household_column = "source_cohort_size" if "source_cohort_size" in frame else "n_households"
+    if household_column in frame and not frame.empty:
+        values = pd.to_numeric(frame[household_column], errors="coerce").dropna().unique()
+        if len(values) == 1:
+            households = str(int(values[0]))
+        elif len(values) > 1:
+            households = f"{int(min(values))}-{int(max(values))}"
+    elif "cohort_size" in frame and not frame.empty:
+        values = pd.to_numeric(frame["cohort_size"], errors="coerce").dropna().unique()
+        if len(values) == 1:
+            households = str(int(values[0]))
+        elif len(values) > 1:
+            households = f"{int(min(values))}-{int(max(values))}"
+    seeds = "n/a"
+    seed_column = next((column for column in ["n_successful_runs", "n_successful_runs_x", "n_successful_runs_y"] if column in frame), "")
+    if seed_column and not frame.empty:
+        values = pd.to_numeric(frame[seed_column], errors="coerce").dropna().unique()
+        if len(values) == 1:
+            seeds = str(int(values[0]))
+        elif len(values) > 1:
+            seeds = f"{int(min(values))}-{int(max(values))}"
+    elif "realization_id" in frame and not frame.empty:
+        counts = frame.groupby("scenario_id")["realization_id"].nunique()
+        if not counts.empty and counts.min() == counts.max():
+            seeds = str(int(counts.iloc[0]))
+        elif not counts.empty:
+            seeds = f"{int(counts.min())}-{int(counts.max())}"
+    return (
+        f"{scope}; cohort={households} households; seeds/group={seeds}; "
+        "selected coverage only, not full 2800 leaves; no active cooling; tariffs=N/A."
+    )
+
+
+def _add_context_note(fig: plt.Figure, note: str) -> None:
+    fig.text(0.5, 0.012, note, ha="center", va="bottom", fontsize=7.0, color="#4d4d4d")
+
+
+def _metadata_entry(figure_id: str, frame: pd.DataFrame, figure_paths: list[Path], *, caption: str, context_note: str) -> dict[str, Any]:
+    return {
+        "figure_id": figure_id,
+        "source_rows": len(frame),
+        "files": ";".join(map(str, figure_paths)),
+        "caption": caption,
+        "context_note": context_note,
+    }
+
+
 def generate_output34_figures(
     *,
     experiment_root: Path = OUTPUT34_EXPERIMENT_ROOT,
@@ -962,11 +1011,27 @@ def generate_output34_figures(
     ax.set_ylabel("Peak grid import (W)")
     ax.set_title("Output 3: cold-design-year peak grid import")
     ax.tick_params(axis="x", labelrotation=0, labelsize=8)
+    note = _context_note(cold_leaf, scope="technology-stress peak-grid design-year subset")
+    _add_context_note(fig, note)
+    fig.tight_layout(rect=(0, 0.06, 1, 1))
     figure_paths = _plot_save(fig, Path(figures_root) / "output3_peak_grid_stress" / "output3_peak_grid_import_boxplot", formats)
     paths.extend(figure_paths)
-    metadata_rows.append({"figure_id": "output3_peak_grid_import_boxplot", "source_rows": len(cold_leaf), "files": ";".join(map(str, figure_paths))})
+    metadata_rows.append(
+        _metadata_entry(
+            "output3_peak_grid_import_boxplot",
+            cold_leaf,
+            figure_paths,
+            caption=(
+                "Cold-design-year peak grid import across selected scenario leaves. The boxplot shows stochastic spread across the selected seeds only."
+            ),
+            context_note=note,
+        )
+    )
 
+    context_cols = ["scenario_id", "design_year_id", "n_successful_runs", "n_households"]
+    context_lookup = peak[context_cols].drop_duplicates().rename(columns={"n_households": "source_cohort_size"})
     cold_ldc = ldc[(ldc["design_year_id"] == "cold_design_year") & (ldc["exceedance_pct"] <= 10.0)].copy()
+    cold_ldc = cold_ldc.merge(context_lookup, on=["scenario_id", "design_year_id"], how="left")
     fig, ax = plt.subplots(figsize=(10, 5))
     for scenario_id, group in cold_ldc.groupby("scenario_id", sort=False):
         group = group.sort_values("exceedance_pct")
@@ -976,9 +1041,22 @@ def generate_output34_figures(
     ax.set_ylabel("Grid import (W)")
     ax.set_title("Output 3: load-duration upper tail")
     ax.legend(fontsize=7, ncol=2)
+    note = _context_note(cold_ldc, scope="technology-stress peak-grid design-year subset")
+    _add_context_note(fig, note)
+    fig.tight_layout(rect=(0, 0.055, 1, 1))
     figure_paths = _plot_save(fig, Path(figures_root) / "output3_peak_grid_stress" / "output3_load_duration_upper_tail", formats)
     paths.extend(figure_paths)
-    metadata_rows.append({"figure_id": "output3_load_duration_upper_tail", "source_rows": len(cold_ldc), "files": ";".join(map(str, figure_paths))})
+    metadata_rows.append(
+        _metadata_entry(
+            "output3_load_duration_upper_tail",
+            cold_ldc,
+            figure_paths,
+            caption=(
+                "Upper tail of the grid-import load-duration curve. The figure focuses on the highest-load hours that matter for grid stress."
+            ),
+            context_note=note,
+        )
+    )
 
     cold_peak = peak[peak["design_year_id"] == "cold_design_year"].copy()
     cold_peak["label"] = [_compact_label(row) for _, row in cold_peak.iterrows()]
@@ -987,9 +1065,22 @@ def generate_output34_figures(
     ax.set_xticks(range(len(cold_peak)), cold_peak["label"], fontsize=8)
     ax.set_ylabel("Hours above baseline cold P99")
     ax.set_title("Output 3: grid-stress threshold exceedance")
+    note = _context_note(cold_peak, scope="technology-stress peak-grid design-year subset")
+    _add_context_note(fig, note)
+    fig.tight_layout(rect=(0, 0.06, 1, 1))
     figure_paths = _plot_save(fig, Path(figures_root) / "output3_peak_grid_stress" / "output3_top1pct_grid_stress_hours", formats)
     paths.extend(figure_paths)
-    metadata_rows.append({"figure_id": "output3_top1pct_grid_stress_hours", "source_rows": len(cold_peak), "files": ";".join(map(str, figure_paths))})
+    metadata_rows.append(
+        _metadata_entry(
+            "output3_top1pct_grid_stress_hours",
+            cold_peak,
+            figure_paths,
+            caption=(
+                "Hours above the historical baseline cold-design-year P99 grid-import threshold. This is a stress-duration indicator, not a feeder-capacity violation model."
+            ),
+            context_note=note,
+        )
+    )
 
     fig, ax = plt.subplots(figsize=(10, 5))
     for scenario_id, group in cold_ldc.groupby("scenario_id", sort=False):
@@ -1006,9 +1097,22 @@ def generate_output34_figures(
     ax.set_ylabel("Grid import (W)")
     ax.set_title("Output 4: P10/P50/P90 load-duration band")
     ax.legend(fontsize=7, ncol=2)
+    note = _context_note(cold_ldc, scope="technology-stress distribution design-year subset")
+    _add_context_note(fig, note)
+    fig.tight_layout(rect=(0, 0.055, 1, 1))
     figure_paths = _plot_save(fig, Path(figures_root) / "output4_distribution_diversity" / "output4_load_duration_uncertainty_band", formats)
     paths.extend(figure_paths)
-    metadata_rows.append({"figure_id": "output4_load_duration_uncertainty_band", "source_rows": len(cold_ldc), "files": ";".join(map(str, figure_paths))})
+    metadata_rows.append(
+        _metadata_entry(
+            "output4_load_duration_uncertainty_band",
+            cold_ldc,
+            figure_paths,
+            caption=(
+                "P10/P50/P90 load-duration band across selected stochastic seeds. The uncertainty band is seed-level spread, not full climate-model uncertainty."
+            ),
+            context_note=note,
+        )
+    )
 
     cold_div = diversity[diversity["design_year_id"] == "cold_design_year"].copy()
     cold_div["label"] = [_compact_label(row) for _, row in cold_div.iterrows()]
@@ -1023,11 +1127,25 @@ def generate_output34_figures(
     ax.set_xticks(x, cold_div["label"], fontsize=8)
     ax.set_ylabel("Grid-import diversity factor")
     ax.set_title("Output 4: diversity factor by climate and technology scenario")
+    note = _context_note(cold_div, scope="technology-stress diversity design-year subset")
+    _add_context_note(fig, note)
+    fig.tight_layout(rect=(0, 0.06, 1, 1))
     figure_paths = _plot_save(fig, Path(figures_root) / "output4_distribution_diversity" / "output4_diversity_factor_by_scenario", formats)
     paths.extend(figure_paths)
-    metadata_rows.append({"figure_id": "output4_diversity_factor_by_scenario", "source_rows": len(cold_div), "files": ";".join(map(str, figure_paths))})
+    metadata_rows.append(
+        _metadata_entry(
+            "output4_diversity_factor_by_scenario",
+            cold_div,
+            figure_paths,
+            caption=(
+                "Grid-import diversity factor by scenario. Higher values indicate more non-coincident household peaks relative to the aggregate peak."
+            ),
+            context_note=note,
+        )
+    )
 
     cold_count = diversity_count[diversity_count["design_year_id"] == "cold_design_year"].copy()
+    cold_count = cold_count.merge(context_lookup, on=["scenario_id", "design_year_id"], how="left")
     fig, ax = plt.subplots(figsize=(10, 5))
     for scenario_id, group in cold_count.groupby("scenario_id", sort=False):
         group = group.sort_values("n_households")
@@ -1037,9 +1155,23 @@ def generate_output34_figures(
     ax.set_ylabel("Grid-import diversity factor")
     ax.set_title("Output 4: diversity factor versus aggregation size")
     ax.legend(fontsize=7, ncol=2)
+    note = _context_note(cold_count, scope="technology-stress diversity design-year subset")
+    _add_context_note(fig, note)
+    fig.tight_layout(rect=(0, 0.055, 1, 1))
     figure_paths = _plot_save(fig, Path(figures_root) / "output4_distribution_diversity" / "output4_diversity_factor_by_household_count", formats)
     paths.extend(figure_paths)
-    metadata_rows.append({"figure_id": "output4_diversity_factor_by_household_count", "source_rows": len(cold_count), "files": ";".join(map(str, figure_paths))})
+    metadata_rows.append(
+        _metadata_entry(
+            "output4_diversity_factor_by_household_count",
+            cold_count,
+            figure_paths,
+            caption=(
+                "Diversity factor versus aggregation size using bootstrap subsamples of the household grid-import matrix. "
+                "This indicates how coincidence changes as households are aggregated."
+            ),
+            context_note=note,
+        )
+    )
 
     metadata_dir = Path(figures_root) / "output34_metadata"
     metadata_dir.mkdir(parents=True, exist_ok=True)
