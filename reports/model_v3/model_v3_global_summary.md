@@ -67,7 +67,7 @@ This is an important operational nuance: the same script is used for two quite d
 
 ## Inputs And Configuration
 
-The default runtime config is `config/model_v3/model_v3.yaml`. The canonical thesis household/cohort config is `config/model_v3/model_v3_thesis.yaml`, with reference year `2023`, `30` households, `simulation.max_steps: null`, and climate disabled. These files define:
+The default runtime config is `config/model.yaml`. The canonical thesis household/cohort config is `config/thesis.yaml`, with reference year `2023`, `30` households, `simulation.max_steps: null`, and climate disabled. These files define:
 
 - module activation flags
 - annual baseline targets
@@ -78,7 +78,7 @@ The default runtime config is `config/model_v3/model_v3.yaml`. The canonical the
 - building, comfort, setpoint, and system defaults
 - validation settings and acceptance thresholds
 
-The input namespace is `inputs/model_v3/`. Active runtime inputs are stored locally inside the repository, including weather, load-profile, solar, occupancy, end-use, and building reference files. The core model no longer requires sibling-repository symlinks for runtime data.
+The input namespace is `inputs/`. Active runtime inputs are stored locally inside the repository, including weather, load-profile, solar, occupancy, end-use, and building reference files. The removed duplicate `inputs/model_v3/` namespace is not part of the canonical runtime.
 
 The active source families are:
 

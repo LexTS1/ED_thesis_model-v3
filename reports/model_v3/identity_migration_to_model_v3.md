@@ -12,6 +12,11 @@
 
 Safety statement: Only files listed as copied in the original migration report were moved or rewritten. Pre-existing model_v3 files were not modified.
 
+Cleanup note: this is a historical migration report. The temporary `config/model_v3/`
+and `inputs/model_v3/` runtime namespaces produced during migration were later
+removed as duplicate/stale copies. The current canonical runtime paths are
+`config/model.yaml`, `config/thesis.yaml`, `config/scenario_tree/`, and `inputs/`.
+
 ## Path Moves
 
 - `config/model_v2/archetypes.yaml` -> `config/model_v3/archetypes.yaml`

@@ -5,12 +5,12 @@
 The canonical thesis run is the 30-household stochastic cohort run with climate disabled:
 
 ```bash
-PYTHONPATH=src python3 src/pipelines/run_model_v3_stochastic.py --config config/model_v3/model_v3_thesis.yaml
+PYTHONPATH=src python3 src/pipelines/run_model_v3_stochastic.py --config config/thesis.yaml
 ```
 
-Validation runners also accept `--config`, so thesis-facing reruns should pass `config/model_v3/model_v3_thesis.yaml` explicitly rather than relying on defaults.
+Validation runners also accept `--config`, so thesis-facing reruns should pass `config/thesis.yaml` explicitly rather than relying on defaults.
 
-The thesis config is `config/model_v3/model_v3_thesis.yaml`. It keeps the current calibrated baseline and cohort settings, sets `simulation.reference_year: 2023`, starts at `2023-01-01T00:00:00+01:00`, keeps `simulation.max_steps: null`, sets `climate.enabled: false`, and applies `building.ua_multiplier: 1.10`.
+The thesis config is `config/thesis.yaml`. It keeps the current calibrated baseline and cohort settings, sets `simulation.reference_year: 2023`, starts at `2023-01-01T00:00:00+01:00`, keeps `simulation.max_steps: null`, sets `climate.enabled: false`, and applies `building.ua_multiplier: 1.10`.
 
 The `building.ua_multiplier` is an explicit envelope/UA calibration factor. It raises the selected deterministic apartment archetype's heat-loss coefficient so the annual space-heating thermal demand sits inside the configured Belgian literature range. This should be cited as thermal baseline calibration, not as an independently validated envelope parameter.
 
@@ -26,17 +26,17 @@ The `building.ua_multiplier` is an explicit envelope/UA calibration factor. It r
 
 The canonical reference year is 2023.
 
-This is based on the actual configured weather input coverage in `inputs/model_v3/weather/aws_1hour_Uccle.csv`: 2023 has a complete 8760-hour weather year, while 2013 has only 105 hourly weather rows. Therefore 2013 is not defensible for the weather-driven annual/cohort thesis run.
+This is based on the actual configured weather input coverage in `inputs/weather/aws_1hour_Uccle.csv`: 2023 has a complete 8760-hour weather year, while 2013 has only 105 hourly weather rows. Therefore 2013 is not defensible for the weather-driven annual/cohort thesis run.
 
 The annual runner now refuses to simulate a configured weather reference year unless the selected weather rows are close to the expected full-year hourly count: about 8760 rows for a non-leap year or 8784 rows for a leap year. This guard runs before `simulation.max_steps` is applied, so quick/debug runs still work only when the underlying selected weather year is complete.
 
-The configured LCL load file, `inputs/model_v3/load_profiles/LCL_2013.csv`, remains a representative 2013 load-shape/calibration source. The annual and cohort runners use the selected weather timeline as the simulated year; load profile values are resolved as representative shapes and scaled to the configured annual Belgian household baseline.
+The configured LCL load file, `inputs/load_profiles/LCL_2013.csv`, remains a representative 2013 load-shape/calibration source. The annual and cohort runners use the selected weather timeline as the simulated year; load profile values are resolved as representative shapes and scaled to the configured annual Belgian household baseline.
 
 LCL is not used as thesis-facing validation evidence in the canonical config. This avoids validating against the same dataset family that supplies the representative input load shape. Thesis-facing validation uses Fluvius for aggregate profile realism and KU Leuven for high-frequency event/ramp realism. The separate Belgian smart-meter validation path has been removed because no reliable independent Belgian smart-meter dataset is expected for this thesis model.
 
 The PVGIS climate weather and solar files cover complete years from 2005 through 2023, including 2013, but those files belong to the separate climate ensemble path.
 
-The active runtime input files are stored locally under `inputs/model_v3/`. The core model is archival and independently runnable without sibling-repository symlinks.
+The active runtime input files are stored locally under `inputs/`. The core model is archival and independently runnable without sibling-repository symlinks or the removed duplicate `inputs/model_v3/` namespace.
 
 ## Climate Mode
 

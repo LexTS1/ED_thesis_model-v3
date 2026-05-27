@@ -16,7 +16,7 @@ The scientific runtime is not the one-step smoke pipeline. The meaningful model 
 - stochastic cohort simulation: sampled households, annual household runs, and aggregate cohort outputs
 - climate uncertainty workflow: separate climate sensitivity branch when `climate.enabled: true`
 
-The canonical thesis household/cohort run is defined by `config/model_v3/model_v3_thesis.yaml`: reference year `2023`, `30` households, full horizon, and climate disabled.
+The canonical thesis household/cohort run is defined by `config/thesis.yaml`: reference year `2023`, `30` households, full horizon, and climate disabled.
 
 ## Validation Categories
 

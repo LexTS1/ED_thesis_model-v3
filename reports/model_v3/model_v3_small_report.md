@@ -6,7 +6,7 @@ This compact report summarises the current `model_v3` validation position using 
 
 Canonical thesis runtime:
 
-- config: `config/model_v3/model_v3_thesis.yaml`
+- config: `config/thesis.yaml`
 - reference year: `2023`
 - cohort size: `30` households
 - horizon: `simulation.max_steps: null`
@@ -48,14 +48,14 @@ Use Fluvius and KU Leuven as thesis-facing external checks, but keep the wording
 
 Do not describe the cached `baseline_annual` report as a valid annual thermal benchmark while it records only `24` steps.
 
-All active runtime inputs are local files under `inputs/model_v3/`; sibling-repository symlinks are not part of the core model package.
+All active runtime inputs are local files under `inputs/`; sibling-repository symlinks and the removed duplicate `inputs/model_v3/` namespace are not part of the core model package.
 
 ## Regeneration Commands
 
 Use the canonical config explicitly when regenerating thesis-facing household/cohort outputs:
 
 ```bash
-PYTHONPATH=src python3 src/pipelines/run_model_v3_stochastic.py --config config/model_v3/model_v3_thesis.yaml
+PYTHONPATH=src python3 src/pipelines/run_model_v3_stochastic.py --config config/thesis.yaml
 ```
 
-Validation runners now accept `--config`; pass `config/model_v3/model_v3_thesis.yaml` explicitly before citing regenerated outputs as canonical.
+Validation runners now accept `--config`; pass `config/thesis.yaml` explicitly before citing regenerated outputs as canonical.
