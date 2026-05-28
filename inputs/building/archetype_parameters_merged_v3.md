@@ -40,7 +40,10 @@ The implementation uses:
 - Belgian TABULA current-state construction-element U-values for as-is
   construction-period packages;
 - current Flemish/Walloon EPB envelope levels for the single renovated package:
-  wall `0.24`, roof `0.24`, floor `0.24`, window `1.50 W/m2K`.
+  wall `0.24`, roof `0.24`, floor `0.24`, window `1.50 W/m2K`;
+- a Belgian weighted EPC A/B high-performance proxy for the prevalence of the
+  model's single renovated state, stored in
+  `inputs/building/renovation_prevalence_epc_mapping.csv`.
 
 ## Important assumption
 
@@ -50,17 +53,25 @@ The research note does not provide an empirical Belgian matrix for:
 dwelling_type x construction_period x renovation_state
 ```
 
-Therefore, v3 preserves the previous v2 within-type as-is/renovated split and
-only uses the new evidence to improve:
+Therefore, v3 no longer preserves the previous v2 within-type as-is/renovated
+split. Instead, it uses a documented national proxy: regional EPC A/B shares are
+mapped to the single high-performance `renovated` state and weighted across
+regions. The default proxy is `15.9946600%` renovated stock.
+
+This improves the empirical basis of the prevalence parameter, but it is still a
+proxy. It should be described as `implemented_proxy`, not as a directly observed
+Belgian type-by-age renovation matrix. The new evidence improves:
 
 - dwelling-type shares;
 - construction-period shares within as-is stock;
 - age-specific as-is U-values;
-- the technical meaning of the renovated state.
+- the technical meaning of the renovated state;
+- the prevalence of the single high-performance renovated state.
 
-This should be described as `implemented_unverified` for renovation prevalence:
-the current-code renovated package is a scenario/technical state, not evidence
-that all renovated Belgian dwellings meet current-code envelope levels.
+The current-code renovated package remains a scenario/technical state. Mapping
+EPC A/B to this package does not prove that every mapped dwelling meets the exact
+model U-values; it is the most transparent one-state approximation available
+without adding a full EPC-label archetype dimension.
 
 ## Runtime use
 
@@ -79,8 +90,9 @@ selection mode.
 
 - Apartment age shares use a building-count age mix as a proxy for dwelling age
   mix.
-- Renovation shares are inherited from v2 and should be replaced if a stronger
-  Belgian renovation-share source becomes available.
+- Renovation shares are now source-backed by a regional EPC A/B proxy, but should
+  still be refined if a Belgian dwelling-type by construction-period renovation
+  matrix becomes available.
 - TABULA U-values are archetype package values, not measured field observations.
 - Thermal bridges are represented by simple adders.
 - ACH50, ventilation, thermal mass, setpoints, solar factors, and internal gains

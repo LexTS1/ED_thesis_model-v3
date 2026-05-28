@@ -6,6 +6,7 @@ from model_v3.building.build_age_split_archetypes import (
     AGE_BANDS,
     TYPE_STOCK_SHARES,
     build_age_split_rows,
+    load_renovation_prevalence,
     read_csv,
 )
 from model_v3.building.rebuild_archetype_envelope import build_envelope_rows
@@ -13,6 +14,7 @@ from model_v3.building.rebuild_archetype_envelope import build_envelope_rows
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 BASE_TABLE = REPO_ROOT / "inputs/building/archetype_parameters_merged_v2.csv"
+RENOVATION_PREVALENCE_TABLE = REPO_ROOT / "inputs/building/renovation_prevalence_epc_mapping.csv"
 
 
 def test_age_split_generation_creates_expected_row_count_and_normalized_weights() -> None:
@@ -56,3 +58,21 @@ def test_renovated_package_is_current_code_deep_renovation() -> None:
     renovated = [row for row in rows if row["renovation_state"] == "renovated"]
     assert len(renovated) == 4
     assert {row["u_value_package_id"] for row in renovated} == {"current_code_deep_renovation"}
+
+
+def test_renovation_share_uses_epc_proxy_source_not_v2_split() -> None:
+    _, base_rows = read_csv(BASE_TABLE)
+    renovation_prevalence = load_renovation_prevalence(RENOVATION_PREVALENCE_TABLE)
+
+    rows = build_age_split_rows(base_rows, renovation_prevalence=renovation_prevalence)
+
+    for dwelling_type, type_share in TYPE_STOCK_SHARES.items():
+        renovated_weight = sum(
+            float(row["stock_weight"])
+            for row in rows
+            if row["dwelling_type"] == dwelling_type and row["renovation_state"] == "renovated"
+        )
+        assert abs(renovated_weight - type_share * renovation_prevalence.renovated_share) < 1e-6
+
+    assert renovation_prevalence.status == "implemented_proxy"
+    assert "renovation_prevalence_epc_mapping.csv" in rows[0]["renovation_prevalence_source"]

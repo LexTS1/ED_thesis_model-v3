@@ -193,6 +193,104 @@ def _validate_same_realization(frame: pd.DataFrame, left_col: str, right_col: st
     return errors
 
 
+def _split_semicolon_values(value: Any) -> set[str]:
+    if value is None:
+        return set()
+    try:
+        if pd.isna(value):
+            return set()
+    except TypeError:
+        pass
+    return {item.strip() for item in str(value).split(";") if item.strip()}
+
+
+def _validate_annual_space_heating_comparison(frame: pd.DataFrame) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+    required = [
+        "scenario_id",
+        "climate_window_id",
+        "climate_pathway_id",
+        "technology_case_id",
+        "comparison_valid",
+        "paired_realization_ids",
+        "excluded_baseline_realization_ids",
+        "excluded_future_realization_ids",
+        "baseline_n_successful_realizations",
+        "future_n_successful_realizations",
+        "n_missing_realizations",
+        "baseline_annual_useful_heating_kWh_mean",
+        "annual_useful_heating_kWh_mean",
+        "delta_annual_useful_heating_kWh_pct",
+    ]
+    errors.extend(_require_columns(frame, required, "annual_space_heating_demand_comparison"))
+    if errors or frame.empty:
+        return errors, warnings
+
+    future_rows = frame[frame["scenario_id"].astype(str) != "baseline_1981_2005__historical__tech_current_stock"]
+    for _, row in future_rows.iterrows():
+        scenario_id = str(row.get("scenario_id", ""))
+        if not _truthy(row.get("comparison_valid")):
+            errors.append(f"Annual space-heating comparison has invalid or unpaired future row: {scenario_id}")
+        if not _split_semicolon_values(row.get("paired_realization_ids")):
+            errors.append(f"Annual space-heating comparison has no paired realization IDs: {scenario_id}")
+        missing = pd.to_numeric(pd.Series([row.get("n_missing_realizations")]), errors="coerce").iloc[0]
+        if pd.notna(missing) and int(missing) > 0:
+            errors.append(f"Annual space-heating comparison has missing paired realization(s): {scenario_id}")
+        if _split_semicolon_values(row.get("excluded_future_realization_ids")):
+            errors.append(f"Annual space-heating comparison excluded future realization(s): {scenario_id}")
+        if _split_semicolon_values(row.get("excluded_baseline_realization_ids")):
+            warnings.append(f"Annual space-heating comparison excluded extra baseline realization(s): {scenario_id}")
+    return errors, warnings
+
+
+def _validate_useful_heating_hdd_sign(
+    annual_heating: pd.DataFrame,
+    annual_degree_days: pd.DataFrame,
+) -> list[str]:
+    errors: list[str] = []
+    if annual_heating.empty or annual_degree_days.empty:
+        return errors
+    required_heating = {
+        "scenario_id",
+        "climate_window_id",
+        "climate_pathway_id",
+        "technology_case_id",
+        "comparison_valid",
+        "delta_annual_useful_heating_kWh_pct",
+    }
+    required_climate = {
+        "scenario_id",
+        "climate_window_id",
+        "climate_pathway_id",
+        "technology_case_id",
+        "delta_HDD_18_pct",
+    }
+    if not required_heating.issubset(set(annual_heating.columns)) or not required_climate.issubset(set(annual_degree_days.columns)):
+        return errors
+
+    keys = ["scenario_id", "climate_window_id", "climate_pathway_id", "technology_case_id"]
+    merged = annual_heating.merge(
+        annual_degree_days[keys + ["delta_HDD_18_pct"]],
+        on=keys,
+        how="inner",
+    )
+    future = merged[
+        (merged["scenario_id"].astype(str) != "baseline_1981_2005__historical__tech_current_stock")
+        & (merged["technology_case_id"].astype(str) == "tech_frozen_stock")
+        & merged["comparison_valid"].map(_truthy)
+    ]
+    for _, row in future.iterrows():
+        heating_delta = pd.to_numeric(pd.Series([row.get("delta_annual_useful_heating_kWh_pct")]), errors="coerce").iloc[0]
+        hdd_delta = pd.to_numeric(pd.Series([row.get("delta_HDD_18_pct")]), errors="coerce").iloc[0]
+        if pd.notna(heating_delta) and pd.notna(hdd_delta) and float(hdd_delta) < -1e-6 and float(heating_delta) > 1e-6:
+            errors.append(
+                "Annual useful-heating delta is positive while HDD_18 decreases for climate-only frozen-stock row: "
+                f"{row.get('scenario_id')}"
+            )
+    return errors
+
+
 def _diagnostics_missing_groups_reported(output_root: Path) -> tuple[int, list[str]]:
     missing_count = 0
     errors: list[str] = []
@@ -225,6 +323,7 @@ def validate_comparisons(
     output_root = experiment_root / "summaries" / "comparison_level"
     metrics = _all_metrics(definitions)
     errors = _validate_definition_references(definitions, metrics_df, config_root)
+    warnings: list[str] = []
 
     files = {
         "climate_abs": output_root / "climate_only" / "climate_only_absolute_metrics.csv",
@@ -241,6 +340,8 @@ def validate_comparisons(
         "stress_bands": output_root / "combined_stress_case" / "combined_stress_case_uncertainty_bands.csv",
         "stochastic_bands": output_root / "stochastic_robustness" / "stochastic_uncertainty_bands.csv",
         "stochastic_spread": output_root / "stochastic_robustness" / "stochastic_spread_metrics.csv",
+        "annual_heating": output_root / "annual_space_heating_demand_comparison.csv",
+        "annual_degree_days": output_root / "annual_climate_degree_day_comparison.csv",
         "index_csv": output_root / "comparison_index.csv",
         "index_yaml": output_root / "comparison_index.yaml",
     }
@@ -345,6 +446,12 @@ def validate_comparisons(
 
     if "stochastic_spread" in frames:
         errors.extend(_require_columns(frames["stochastic_spread"], ["iqr", "p90_minus_p10", "coefficient_of_variation"], "stochastic_spread"))
+    if "annual_heating" in frames:
+        annual_errors, annual_warnings = _validate_annual_space_heating_comparison(frames["annual_heating"])
+        errors.extend(annual_errors)
+        warnings.extend(annual_warnings)
+    if "annual_heating" in frames and "annual_degree_days" in frames:
+        errors.extend(_validate_useful_heating_hdd_sign(frames["annual_heating"], frames["annual_degree_days"]))
 
     windows = _climate_windows(config_root)
     near = dict(windows.get("near_future_2030_2049", {}))
@@ -368,6 +475,7 @@ def validate_comparisons(
     return {
         "ok": not errors,
         "errors": errors,
+        "warnings": warnings,
         "climate_only_pairs": climate_pairs,
         "technology_only_pairs": technology_pairs,
         "combined_stress_case_pairs": stress_pairs,
@@ -376,6 +484,7 @@ def validate_comparisons(
         "missing_comparison_groups": int(missing_groups),
         "p10_p50_p90_bands_present": not any("p10" in error or "p50" in error or "p90" in error for error in errors),
         "future_current_stock_misuse": any("tech_current_stock" in error for error in errors),
+        "warning_count": len(warnings),
     }
 
 
@@ -407,10 +516,15 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Missing comparison groups: {result['missing_comparison_groups']}")
             print(f"P10/P50/P90 bands present: {'yes' if result['p10_p50_p90_bands_present'] else 'no'}")
             print(f"Future current-stock misuse: {'yes' if result['future_current_stock_misuse'] else 'no'}")
+            print(f"Warnings: {result['warning_count']}")
+            for warning in result.get("warnings", []):
+                print(f"- warning: {warning}")
         else:
             print("Comparison validation failed.")
             for error in result["errors"]:
                 print(f"- {error}")
+            for warning in result.get("warnings", []):
+                print(f"- warning: {warning}")
     return 0 if result["ok"] else 1
 
 

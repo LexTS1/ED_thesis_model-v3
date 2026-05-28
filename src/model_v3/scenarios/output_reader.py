@@ -228,6 +228,27 @@ def _find_power_column(frame: pd.DataFrame, base_candidates: Iterable[str]) -> t
     return None
 
 
+def _profile_duration_years(frame: pd.DataFrame) -> float:
+    timestamps = _timestamp_values(frame)
+    durations = infer_step_durations_seconds(timestamps)
+    total_hours = sum(max(float(duration), 0.0) for duration in durations) / 3600.0
+    return total_hours / 8760.0 if total_hours > 0.0 else 1.0
+
+
+def _annualized_power_scale(raw_outputs: Mapping[str, Any], frame: pd.DataFrame) -> float:
+    """Return scale needed when an annual-calibrated profile spans a multi-year climate window."""
+
+    representation = ""
+    for summary in _summary_dicts(raw_outputs):
+        representation = str(summary.get("profile_representation", ""))
+        if representation:
+            break
+    if representation != "stock_weighted_per_household":
+        return 1.0
+    duration_years = _profile_duration_years(frame)
+    return duration_years if duration_years > 1.5 else 1.0
+
+
 def _integrate_power_column(
     frame: pd.DataFrame,
     base_candidates: Iterable[str],
@@ -389,6 +410,7 @@ def compute_standardized_output_metrics(
     policies: dict[str, str] = {}
     assumptions: list[str] = []
     flags = _technology_flags(run_config)
+    annualized_power_scale = _annualized_power_scale(raw_outputs, frame)
 
     _set_metric(
         metrics,
@@ -503,61 +525,80 @@ def compute_standardized_output_metrics(
         metrics,
         missing,
         "peak_grid_import_W",
-        _peak_power_column(
+        None
+        if (peak_value := _peak_power_column(
             frame,
             ("P_el_grid_import_W", "P_grid_import_W", "grid_import_W"),
             "peak_grid_import_W",
             columns_used,
-        ),
+        ))
+        is None
+        else peak_value * annualized_power_scale,
     )
     _set_metric(
         metrics,
         missing,
         "winter_peak_grid_import_W",
-        _peak_power_column(
+        None
+        if (winter_peak_value := _peak_power_column(
             frame,
             ("P_el_grid_import_W", "P_grid_import_W", "grid_import_W"),
             "winter_peak_grid_import_W",
             columns_used,
             months={12, 1, 2},
-        ),
+        ))
+        is None
+        else winter_peak_value * annualized_power_scale,
     )
     _set_metric(
         metrics,
         missing,
         "summer_peak_grid_import_W",
-        _peak_power_column(
+        None
+        if (summer_peak_value := _peak_power_column(
             frame,
             ("P_el_grid_import_W", "P_grid_import_W", "grid_import_W"),
             "summer_peak_grid_import_W",
             columns_used,
             months={6, 7, 8},
-        ),
+        ))
+        is None
+        else summer_peak_value * annualized_power_scale,
     )
     _set_metric(
         metrics,
         missing,
         "p95_grid_import_W",
-        _percentile_power_column(
+        None
+        if (p95_value := _percentile_power_column(
             frame,
             ("P_el_grid_import_W", "P_grid_import_W", "grid_import_W"),
             "p95_grid_import_W",
             columns_used,
             q=95.0,
-        ),
+        ))
+        is None
+        else p95_value * annualized_power_scale,
     )
     _set_metric(
         metrics,
         missing,
         "p99_grid_import_W",
-        _percentile_power_column(
+        None
+        if (p99_value := _percentile_power_column(
             frame,
             ("P_el_grid_import_W", "P_grid_import_W", "grid_import_W"),
             "p99_grid_import_W",
             columns_used,
             q=99.0,
-        ),
+        ))
+        is None
+        else p99_value * annualized_power_scale,
     )
+    if annualized_power_scale != 1.0:
+        policies["grid_peak_power_policy"] = (
+            "annualized_stock_weighted_profile_scaled_by_climate_window_duration"
+        )
     peak_w = metrics.get("peak_grid_import_W", float("nan"))
     mean_import_w = _summary_value(
         raw_outputs, (("mean_grid_import_W",),)
@@ -566,7 +607,11 @@ def compute_standardized_output_metrics(
         match = _find_power_column(frame, ("P_el_grid_import_W", "P_grid_import_W", "grid_import_W"))
         if match is not None:
             col, mul = match
-            mean_import_w = float(pd.to_numeric(frame[col], errors="coerce").fillna(0.0).mean() * mul)
+            mean_import_w = float(
+                pd.to_numeric(frame[col], errors="coerce").fillna(0.0).mean()
+                * mul
+                * annualized_power_scale
+            )
     if mean_import_w is not None and math.isfinite(peak_w) and peak_w > 0.0:
         load_factor: float | None = float(mean_import_w) / float(peak_w)
     else:

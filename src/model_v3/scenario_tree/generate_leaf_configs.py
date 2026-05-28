@@ -42,6 +42,7 @@ REPORT_SCHEMA_VERSION = "model_v3.config_validation_report.v1"
 GENERATED_BY = "Phase 3 - scenario leaf config generator"
 STATUS_CONFIGURED = "configured_not_run"
 STATUS_INCOMPLETE = "configured_with_missing_inputs"
+STOCK_WEIGHTED_ARCHETYPE_TECH_CASES = {"tech_current_stock", "tech_frozen_stock"}
 
 
 class LeafConfigGenerationError(ValueError):
@@ -359,6 +360,14 @@ def _config_status(prepared: PreparedLeaf) -> str:
     return STATUS_INCOMPLETE if prepared.missing_required_inputs else STATUS_CONFIGURED
 
 
+def _runner_mode_for_leaf(leaf: ScenarioLeaf) -> str:
+    """Return the default thesis runner mode for a scenario-tree leaf."""
+
+    if leaf.technology_case_id in STOCK_WEIGHTED_ARCHETYPE_TECH_CASES:
+        return "stock_weighted_archetypes"
+    return "annual_demand"
+
+
 def _climate_file_text(prepared: PreparedLeaf) -> str:
     if prepared.climate_forcing_file is None:
         return ""
@@ -380,6 +389,7 @@ def run_config_payload(
     leaf = prepared.leaf
     resolved_paths = paths.paths_for_leaf(experiment_root, leaf.scenario_leaf_id)
     seed = seed_index(leaf.realization_id)
+    runner_mode = _runner_mode_for_leaf(leaf)
     return {
         "schema_version": RUN_CONFIG_SCHEMA_VERSION,
         "generated_by": GENERATED_BY,
@@ -417,12 +427,19 @@ def run_config_payload(
         },
         "model_options": {
             "run_mode": "scenario_leaf",
-            "runner_mode": "annual_demand",
+            "runner_mode": runner_mode,
             "execute_simulation": False,
             "use_stochastic_cohort": False,
+            "use_stock_weighted_archetypes": runner_mode == "stock_weighted_archetypes",
             "use_climate_forcing": True,
             "use_technology_case": True,
             "write_outputs": True,
+            "runner_mode_note": (
+                "Baseline/current-stock and future frozen-stock leaves use stock_weighted_archetypes "
+                "so annual heating magnitudes are averaged over Belgian archetype stock weights. "
+                "Other technology-stress leaves remain deterministic annual leaves unless promoted "
+                "to stochastic_cohort by a dedicated output runner."
+            ),
         },
         "output": {
             "run_dir": path_for_yaml(resolved_paths["run_dir"]),

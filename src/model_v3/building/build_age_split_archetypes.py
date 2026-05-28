@@ -20,8 +20,9 @@ DEFAULT_BASE_TABLE = Path("inputs/building/archetype_parameters_merged_v2.csv")
 DEFAULT_OUTPUT_TABLE = Path("inputs/building/archetype_parameters_merged_v3.csv")
 DEFAULT_ENVELOPE_TABLE = Path("inputs/building/envelope_archetypes_v2.csv")
 DEFAULT_REPORT = Path("reports/model_v3_age_split_archetype_report.md")
+DEFAULT_RENOVATION_PREVALENCE_TABLE = Path("inputs/building/renovation_prevalence_epc_mapping.csv")
 
-VALUE_SOURCE = "statbel_2024_tabula_age_split_current_code_renovation_v1"
+VALUE_SOURCE = "statbel_2024_tabula_age_split_epc_ab_renovation_proxy_v2"
 EVIDENCE_NOTE = "DeepSearch/BE archetype split and envelope U-values.md"
 
 TYPE_STOCK_SHARES = {
@@ -99,6 +100,10 @@ EXTRA_FIELDS = [
     "u_value_package_id",
     "u_value_package_source",
     "stock_weight_source",
+    "renovation_prevalence_source",
+    "renovation_prevalence_status",
+    "renovation_prevalence_proxy",
+    "renovation_mapping_rule",
 ]
 
 
@@ -106,6 +111,38 @@ def read_csv(path: Path) -> tuple[list[str], list[dict[str, str]]]:
     with path.open(newline="", encoding="utf-8") as handle:
         reader = csv.DictReader(handle)
         return list(reader.fieldnames or []), [dict(row) for row in reader]
+
+
+@dataclass(frozen=True)
+class RenovationPrevalence:
+    renovated_share: float
+    source: str
+    status: str
+    mapping_rule: str
+
+
+def load_renovation_prevalence(path: Path, source_label: str | None = None) -> RenovationPrevalence:
+    """Load the active renovation-prevalence proxy from a versioned CSV input."""
+
+    _, rows = read_csv(path)
+    active = [row for row in rows if row.get("active_default", "").strip().lower() == "true"]
+    if len(active) != 1:
+        raise ValueError(f"Expected exactly one active_default row in {path}; found {len(active)}.")
+    row = active[0]
+    try:
+        renovated_share = float(row["renovated_share_proxy"])
+    except (KeyError, ValueError) as exc:
+        raise ValueError(f"Invalid renovated_share_proxy in active row of {path}.") from exc
+    if not 0.0 < renovated_share < 1.0:
+        raise ValueError(
+            f"Renovated share proxy in {path} must be between 0 and 1; got {renovated_share}."
+        )
+    return RenovationPrevalence(
+        renovated_share=renovated_share,
+        source=f"{source_label or path.as_posix()}::{row['row_id']}",
+        status=row.get("source_status", "implemented_proxy"),
+        mapping_rule=row.get("mapping_rule", ""),
+    )
 
 
 def _format_float(value: float, digits: int = 9) -> str:
@@ -123,16 +160,21 @@ def _base_rows_by_type_and_state(rows: list[dict[str, str]]) -> dict[tuple[str, 
     return {(row["dwelling_type"], row["renovation_state"]): row for row in rows}
 
 
-def _renovation_share_from_base(rows: list[dict[str, str]], dwelling_type: str) -> float:
-    type_rows = [row for row in rows if row["dwelling_type"] == dwelling_type]
-    total = sum(float(row["stock_weight"]) for row in type_rows)
-    renovated = sum(float(row["stock_weight"]) for row in type_rows if row["renovation_state"] == "renovated")
-    if total <= 0.0:
-        raise ValueError(f"No stock weight found for {dwelling_type}")
-    return renovated / total
+DEFAULT_RENOVATION_PREVALENCE = RenovationPrevalence(
+    renovated_share=0.159946600,
+    source="inputs/building/renovation_prevalence_epc_mapping.csv::belgium_weighted_epc_ab_proxy",
+    status="implemented_proxy",
+    mapping_rule=(
+        "Weighted regional EPC high-performance proxy; Flanders/Wallonia A+B and Brussels A+B "
+        "mapped to the single current-code/deep-renovation-like model state."
+    ),
+)
 
 
-def build_age_split_rows(base_rows: list[dict[str, str]]) -> list[dict[str, str]]:
+def build_age_split_rows(
+    base_rows: list[dict[str, str]],
+    renovation_prevalence: RenovationPrevalence = DEFAULT_RENOVATION_PREVALENCE,
+) -> list[dict[str, str]]:
     """Expand the eight-row v2 table into age-split as-is rows plus one renovated row per type."""
 
     lookup = _base_rows_by_type_and_state(base_rows)
@@ -141,7 +183,7 @@ def build_age_split_rows(base_rows: list[dict[str, str]]) -> list[dict[str, str]
     for dwelling_type, type_share in TYPE_STOCK_SHARES.items():
         as_is_base = lookup[(dwelling_type, "as_is")]
         renovated_base = lookup[(dwelling_type, "renovated")]
-        renovated_share = _renovation_share_from_base(base_rows, dwelling_type)
+        renovated_share = renovation_prevalence.renovated_share
         as_is_share = 1.0 - renovated_share
 
         for age_band in AGE_BANDS:
@@ -155,8 +197,12 @@ def build_age_split_rows(base_rows: list[dict[str, str]]) -> list[dict[str, str]
             row["u_value_package_source"] = "Belgian TABULA current-state construction-element package"
             row["stock_weight_source"] = (
                 "Statbel 2024 four-type dwelling share times Statbel 2024 type-specific "
-                "construction-period mix; existing v2 within-type renovation share preserved."
+                "construction-period mix times Belgian weighted EPC A/B renovation-prevalence proxy."
             )
+            row["renovation_prevalence_source"] = renovation_prevalence.source
+            row["renovation_prevalence_status"] = renovation_prevalence.status
+            row["renovation_prevalence_proxy"] = _format_float(renovation_prevalence.renovated_share)
+            row["renovation_mapping_rule"] = renovation_prevalence.mapping_rule
             row["cluster_reference"] = f"as_is_{age_band.period_id}"
             row["value_source"] = VALUE_SOURCE
             row["derivation_note"] = (
@@ -166,10 +212,11 @@ def build_age_split_rows(base_rows: list[dict[str, str]]) -> list[dict[str, str]
                 "and envelope U-values from Belgian TABULA current-state age packages."
             )
             row["uncertainty_note"] = (
-                "Within-type renovated share is preserved from the previous runtime table because "
-                "the research note did not provide empirical renovation shares; apartment age mix "
-                "uses building-count proxy; ACH50, ventilation, thermal mass, solar factors, and "
-                "behaviour remain archetype assumptions."
+                "Renovation prevalence is mapped from regional EPC A/B distributions to one "
+                "Belgium-wide proxy because no robust dwelling_type x construction_period x "
+                "renovation_state matrix is available; apartment age mix uses building-count "
+                "proxy; ACH50, ventilation, thermal mass, solar factors, and behaviour remain "
+                "archetype assumptions."
             )
             out.append(row)
 
@@ -180,19 +227,23 @@ def build_age_split_rows(base_rows: list[dict[str, str]]) -> list[dict[str, str]
         renovated["u_value_package_id"] = "current_code_deep_renovation"
         renovated["u_value_package_source"] = "current Flemish/Walloon EPB envelope levels"
         renovated["stock_weight_source"] = (
-            "Statbel 2024 four-type dwelling share times existing v2 within-type renovation share."
+            "Statbel 2024 four-type dwelling share times Belgian weighted EPC A/B renovation-prevalence proxy."
         )
+        renovated["renovation_prevalence_source"] = renovation_prevalence.source
+        renovated["renovation_prevalence_status"] = renovation_prevalence.status
+        renovated["renovation_prevalence_proxy"] = _format_float(renovation_prevalence.renovated_share)
+        renovated["renovation_mapping_rule"] = renovation_prevalence.mapping_rule
         renovated["cluster_reference"] = "current_code_deep_renovation"
         renovated["value_source"] = VALUE_SOURCE
         renovated["derivation_note"] = (
             "Single explicit renovated archetype: top-level dwelling-type share from Statbel 2024 "
-            "R1-R4 dwelling shares, previous runtime within-type renovated share preserved, and "
+            "R1-R4 dwelling shares, Belgian weighted EPC A/B renovation-prevalence proxy, and "
             "envelope U-values assigned to a current-code deep-renovation package."
         )
         renovated["uncertainty_note"] = (
-            "Renovation prevalence is not empirically re-estimated here; the current-code package "
-            "is a technical counterfactual renovation state, not proof that all renovated dwellings "
-            "in the stock meet current-code envelope levels."
+            "The EPC A/B prevalence proxy is a better documented high-performance-stock proxy than "
+            "the previous v2 split, but it is not proof that all mapped dwellings meet the exact "
+            "current-code envelope package."
         )
         out.append(renovated)
 
@@ -215,7 +266,12 @@ def _fieldnames(base_fieldnames: list[str]) -> list[str]:
     return fields
 
 
-def write_report(path: Path, rows: list[dict[str, str]], envelope_rows: list[dict[str, str]]) -> None:
+def write_report(
+    path: Path,
+    rows: list[dict[str, str]],
+    envelope_rows: list[dict[str, str]],
+    renovation_prevalence: RenovationPrevalence,
+) -> None:
     envelope_by_id = {row["archetype_id"]: row for row in envelope_rows}
     lines = [
         "# Model v3 age-split archetype report",
@@ -235,7 +291,12 @@ def write_report(path: Path, rows: list[dict[str, str]], envelope_rows: list[dic
         "- Age shares by type: Statbel 2024 type-specific construction-period mix from the research note.",
         "- As-is envelope U-values: Belgian TABULA current-state construction-element packages.",
         "- Renovated envelope U-values: current-code deep-renovation package, wall/roof/floor/window `0.24/0.24/0.24/1.50 W/m2K`.",
-        "- Renovation shares: previous v2 within-type as-is/renovated split preserved because no empirical renovation-share matrix was provided.",
+        (
+            "- Renovation share: Belgian weighted EPC A/B high-performance proxy "
+            f"({renovation_prevalence.renovated_share:.1%}) from "
+            f"`{renovation_prevalence.source}`."
+        ),
+        f"- Renovation mapping rule: {renovation_prevalence.mapping_rule}",
         "",
         "## Generated rows",
         "",
@@ -254,7 +315,7 @@ def write_report(path: Path, rows: list[dict[str, str]], envelope_rows: list[dic
             "## Caveats",
             "",
             "- Apartment construction-period shares use building-count age mix as a proxy for dwelling-count age mix.",
-            "- Renovation shares are preserved from the earlier runtime table, not newly estimated from Belgian renovation data.",
+            "- Renovation prevalence is source-backed but still a proxy because Belgian public evidence does not provide the full type-by-age renovation matrix needed by this archetype set.",
             "- TABULA U-values are archetype package values, not measured field observations.",
             "- Thermal bridges are represented by simple adders because the TABULA sub-typology did not include them.",
             "- The current-code renovated state is a scenario/technical package; it should not be described as the measured average renovated Belgian dwelling.",
@@ -269,10 +330,15 @@ def build_age_split_archetypes(
     base_table: Path = DEFAULT_BASE_TABLE,
     output_table: Path = DEFAULT_OUTPUT_TABLE,
     envelope_table: Path = DEFAULT_ENVELOPE_TABLE,
+    renovation_prevalence_table: Path = DEFAULT_RENOVATION_PREVALENCE_TABLE,
     report_path: Path = DEFAULT_REPORT,
 ) -> tuple[list[dict[str, str]], list[dict[str, str]]]:
     base_fieldnames, base_rows = read_csv(repo_root / base_table)
-    rows = build_age_split_rows(base_rows)
+    renovation_prevalence = load_renovation_prevalence(
+        repo_root / renovation_prevalence_table,
+        source_label=renovation_prevalence_table.as_posix(),
+    )
+    rows = build_age_split_rows(base_rows, renovation_prevalence=renovation_prevalence)
     envelope_rows = build_envelope_rows(rows)
     rows = update_archetype_rows(
         rows,
@@ -284,7 +350,7 @@ def build_age_split_archetypes(
         row["value_source"] = VALUE_SOURCE
     write_csv(repo_root / envelope_table, ENVELOPE_FIELDS, envelope_rows)
     write_csv(repo_root / output_table, _fieldnames(base_fieldnames), rows)
-    write_report(repo_root / report_path, rows, envelope_rows)
+    write_report(repo_root / report_path, rows, envelope_rows, renovation_prevalence)
     return rows, envelope_rows
 
 
@@ -294,6 +360,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--base-table", type=Path, default=DEFAULT_BASE_TABLE)
     parser.add_argument("--output-table", type=Path, default=DEFAULT_OUTPUT_TABLE)
     parser.add_argument("--envelope-table", type=Path, default=DEFAULT_ENVELOPE_TABLE)
+    parser.add_argument("--renovation-prevalence-table", type=Path, default=DEFAULT_RENOVATION_PREVALENCE_TABLE)
     parser.add_argument("--report", type=Path, default=DEFAULT_REPORT)
     parser.add_argument("--print-summary", action="store_true")
     return parser.parse_args()
@@ -306,6 +373,7 @@ def main() -> None:
         base_table=args.base_table,
         output_table=args.output_table,
         envelope_table=args.envelope_table,
+        renovation_prevalence_table=args.renovation_prevalence_table,
         report_path=args.report,
     )
     if args.print_summary:

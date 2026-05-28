@@ -90,9 +90,19 @@ ANNUAL_SPACE_HEATING_COMPARISON_COLUMNS = [
     "climate_pathway_id",
     "technology_case_id",
     "baseline_scenario_id",
+    "comparison_valid",
+    "pairing_policy",
+    "provenance_filter_policy",
+    "paired_realization_ids",
+    "excluded_baseline_realization_ids",
+    "excluded_future_realization_ids",
+    "baseline_n_successful_realizations",
+    "future_n_successful_realizations",
     "n_successful_realizations",
     "n_missing_realizations",
     "n_annual_samples",
+    "baseline_n_annual_samples",
+    "future_n_annual_samples",
     "realization_coverage_fraction",
     "annual_useful_heating_kWh_mean",
     "annual_useful_heating_kWh_median",
@@ -102,6 +112,7 @@ ANNUAL_SPACE_HEATING_COMPARISON_COLUMNS = [
     "baseline_annual_useful_heating_kWh_mean",
     "delta_annual_useful_heating_kWh_mean",
     "delta_annual_useful_heating_kWh_pct",
+    "comparison_warning",
 ]
 ANNUAL_CLIMATE_DEGREE_DAY_COMPARISON_COLUMNS = [
     "scenario_id",
@@ -268,6 +279,28 @@ def _load_yaml(path: Path) -> dict[str, Any]:
     return data
 
 
+def _run_config_runner_mode(registry_row: Mapping[str, str]) -> str:
+    config_path = _safe_text(registry_row.get("config_path"))
+    if not config_path:
+        return ""
+    path = Path(config_path)
+    if not path.exists():
+        return ""
+    config = _load_yaml(path)
+    model_options = config.get("model_options", {})
+    if not isinstance(model_options, Mapping):
+        return ""
+    return _safe_text(model_options.get("runner_mode"))
+
+
+def _skip_incompatible_runner_mode(record: ScenarioLeafRecord, registry_row: Mapping[str, str]) -> bool:
+    """Return whether a successful leaf should be excluded from standardized summaries."""
+
+    if record.technology_case_id not in {"tech_current_stock", "tech_frozen_stock"}:
+        return False
+    return _run_config_runner_mode(registry_row) not in {"stock_weighted_archetypes", "stochastic_cohort"}
+
+
 def _safe_text(value: Any) -> str:
     if value is None:
         return ""
@@ -382,7 +415,10 @@ def _build_leaf_summary_payload(
         "run_status": registry_row.get("status", ""),
         "run_attempt_id": registry_row.get("run_attempt_id", ""),
         "run_timestamp_utc": registry_row.get("timestamp_start_utc", ""),
+        "git_commit": registry_row.get("git_commit", ""),
+        "git_is_dirty": registry_row.get("git_is_dirty", ""),
         "config_hash_sha256": registry_row.get("config_hash_sha256", ""),
+        "belgian_technology_inputs_hash_sha256": registry_row.get("belgian_technology_inputs_hash_sha256", ""),
         "climate_forcing_file": str(climate_path),
         "technology_inputs_file": str(technology_path),
         "raw_outputs_dir": str(outputs_dir),
@@ -655,6 +691,9 @@ def _annual_space_heating_samples(metrics_df: pd.DataFrame) -> pd.DataFrame:
                     "climate_pathway_id": leaf["climate_pathway_id"],
                     "technology_case_id": leaf["technology_case_id"],
                     "realization_id": leaf["realization_id"],
+                    "git_commit": leaf.get("git_commit", ""),
+                    "git_is_dirty": leaf.get("git_is_dirty", ""),
+                    "belgian_technology_inputs_hash_sha256": leaf.get("belgian_technology_inputs_hash_sha256", ""),
                     "year": int(year),
                     "annual_useful_heating_kWh": integrate_power_series_kwh(
                         group["Q_heating_supplied_W"],
@@ -665,50 +704,243 @@ def _annual_space_heating_samples(metrics_df: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+_ANNUAL_HEATING_PROVENANCE_COLUMNS = [
+    "git_commit",
+    "git_is_dirty",
+    "belgian_technology_inputs_hash_sha256",
+]
+
+
+def _clean_text(value: Any) -> str:
+    if value is None:
+        return ""
+    try:
+        if pd.isna(value):
+            return ""
+    except TypeError:
+        pass
+    return str(value).strip()
+
+
+def _realization_ids(frame: pd.DataFrame) -> set[str]:
+    if frame.empty or "realization_id" not in frame.columns:
+        return set()
+    return {_clean_text(value) for value in frame["realization_id"].dropna().tolist() if _clean_text(value)}
+
+
+def _join_realization_ids(values: Iterable[str]) -> str:
+    return _join_values(sorted({_clean_text(value) for value in values if _clean_text(value)}))
+
+
+def _provenance_signatures(frame: pd.DataFrame) -> set[tuple[str, str, str]]:
+    signatures: set[tuple[str, str, str]] = set()
+    if frame.empty:
+        return signatures
+    for _, row in frame.iterrows():
+        signature = tuple(_clean_text(row.get(column, "")) for column in _ANNUAL_HEATING_PROVENANCE_COLUMNS)
+        if any(signature):
+            signatures.add(signature)
+    return signatures
+
+
+def _provenance_compatible(left: pd.DataFrame, right: pd.DataFrame) -> bool:
+    """Return whether two sample groups have matching provenance when it is available."""
+
+    left_signatures = _provenance_signatures(left)
+    right_signatures = _provenance_signatures(right)
+    if not left_signatures or not right_signatures:
+        return True
+    return bool(left_signatures.intersection(right_signatures))
+
+
+def _annual_heating_stats(values: pd.Series) -> dict[str, float]:
+    clean = pd.to_numeric(values, errors="coerce").dropna()
+    return {
+        "mean": float(clean.mean()) if len(clean) else float("nan"),
+        "median": float(clean.median()) if len(clean) else float("nan"),
+        "p50": float(clean.quantile(0.50)) if len(clean) else float("nan"),
+        "p10": float(clean.quantile(0.10)) if len(clean) else float("nan"),
+        "p90": float(clean.quantile(0.90)) if len(clean) else float("nan"),
+        "n": int(len(clean)),
+    }
+
+
+def _annual_heating_row(
+    *,
+    scenario_id: str,
+    climate_window_id: str,
+    climate_pathway_id: str,
+    technology_case_id: str,
+    scenario_rows: pd.DataFrame,
+    baseline_rows: pd.DataFrame,
+    future_realization_ids: set[str],
+    paired_realization_ids: set[str],
+    excluded_baseline_realization_ids: set[str],
+    excluded_future_realization_ids: set[str],
+    pairing_policy: str,
+    provenance_filter_policy: str,
+    comparison_warning: str,
+) -> dict[str, Any]:
+    values = pd.to_numeric(scenario_rows.get("annual_useful_heating_kWh", pd.Series(dtype=float)), errors="coerce").dropna()
+    baseline_values = pd.to_numeric(baseline_rows.get("annual_useful_heating_kWh", pd.Series(dtype=float)), errors="coerce").dropna()
+    stats = _annual_heating_stats(values)
+    baseline_stats = _annual_heating_stats(baseline_values)
+    scenario_mean = stats["mean"]
+    baseline_mean = baseline_stats["mean"]
+    delta = scenario_mean - baseline_mean if pd.notna(scenario_mean) and pd.notna(baseline_mean) else float("nan")
+    if pd.notna(delta) and pd.notna(baseline_mean) and abs(float(baseline_mean)) > 1e-12:
+        delta_pct = 100.0 * delta / float(baseline_mean)
+    else:
+        delta_pct = float("nan")
+    baseline_realizations = _realization_ids(baseline_rows)
+    scenario_realizations = _realization_ids(scenario_rows)
+    expected_realizations = future_realization_ids or scenario_realizations
+    n_missing = len(expected_realizations - paired_realization_ids)
+    coverage = (
+        float(len(paired_realization_ids) / len(expected_realizations))
+        if expected_realizations
+        else float("nan")
+    )
+    comparison_valid = bool(paired_realization_ids) and n_missing == 0 and not excluded_future_realization_ids
+    return {
+        "scenario_id": scenario_id,
+        "climate_window_id": climate_window_id,
+        "climate_pathway_id": climate_pathway_id,
+        "technology_case_id": technology_case_id,
+        "baseline_scenario_id": BASELINE_SCENARIO_ID,
+        "comparison_valid": comparison_valid,
+        "pairing_policy": pairing_policy,
+        "provenance_filter_policy": provenance_filter_policy,
+        "paired_realization_ids": _join_realization_ids(paired_realization_ids),
+        "excluded_baseline_realization_ids": _join_realization_ids(excluded_baseline_realization_ids),
+        "excluded_future_realization_ids": _join_realization_ids(excluded_future_realization_ids),
+        "baseline_n_successful_realizations": int(len(baseline_realizations)),
+        "future_n_successful_realizations": int(len(scenario_realizations)),
+        "n_successful_realizations": int(len(scenario_realizations)),
+        "n_missing_realizations": int(n_missing),
+        "n_annual_samples": stats["n"],
+        "baseline_n_annual_samples": baseline_stats["n"],
+        "future_n_annual_samples": stats["n"],
+        "realization_coverage_fraction": coverage,
+        "annual_useful_heating_kWh_mean": scenario_mean,
+        "annual_useful_heating_kWh_median": stats["median"],
+        "annual_useful_heating_kWh_p50": stats["p50"],
+        "annual_useful_heating_kWh_p10": stats["p10"],
+        "annual_useful_heating_kWh_p90": stats["p90"],
+        "baseline_annual_useful_heating_kWh_mean": baseline_mean,
+        "delta_annual_useful_heating_kWh_mean": delta,
+        "delta_annual_useful_heating_kWh_pct": delta_pct,
+        "comparison_warning": comparison_warning,
+    }
+
+
 def build_annual_space_heating_demand_comparison(metrics_df: pd.DataFrame) -> pd.DataFrame:
-    """Build the Phase 1 scenario-level annual space-heating comparison table."""
+    """Build the Phase 1 scenario-level annual space-heating comparison table.
+
+    Future rows are compared to baseline only over paired realization IDs with
+    compatible run provenance. This prevents stale or extra baseline runs from
+    contaminating future-vs-baseline annual useful-heating deltas.
+    """
 
     samples = _annual_space_heating_samples(metrics_df)
     if samples.empty:
         return pd.DataFrame(columns=ANNUAL_SPACE_HEATING_COMPARISON_COLUMNS)
 
     baseline_rows = samples[samples["scenario_id"] == BASELINE_SCENARIO_ID]
-    baseline_mean = float("nan")
-    if not baseline_rows.empty:
-        baseline_mean = float(pd.to_numeric(baseline_rows["annual_useful_heating_kWh"], errors="coerce").mean())
-
+    all_baseline_realization_ids = _realization_ids(baseline_rows)
     rows: list[dict[str, Any]] = []
+    pairable_baseline_realization_ids: set[str] = set()
+    baseline_pairing_warnings: list[str] = []
     group_cols = ["scenario_id", "climate_window_id", "climate_pathway_id", "technology_case_id"]
     for group_values, scenario in samples.groupby(group_cols, dropna=False):
-        values = pd.to_numeric(scenario["annual_useful_heating_kWh"], errors="coerce").dropna()
-        scenario_mean = float(values.mean()) if len(values) else float("nan")
-        delta = scenario_mean - baseline_mean if pd.notna(scenario_mean) and pd.notna(baseline_mean) else float("nan")
-        if pd.notna(delta) and abs(baseline_mean) > 1e-12:
-            delta_pct = 100.0 * delta / baseline_mean
-        else:
-            delta_pct = float("nan")
         scenario_id, climate_window_id, climate_pathway_id, technology_case_id = group_values
+        if scenario_id == BASELINE_SCENARIO_ID:
+            continue
 
-        row = {
-            "scenario_id": scenario_id,
-            "climate_window_id": climate_window_id,
-            "climate_pathway_id": climate_pathway_id,
-            "technology_case_id": technology_case_id,
-            "baseline_scenario_id": BASELINE_SCENARIO_ID,
-            "n_successful_realizations": int(scenario["realization_id"].nunique()),
-            "n_missing_realizations": 0,
-            "n_annual_samples": int(len(values)),
-            "realization_coverage_fraction": 1.0,
-            "annual_useful_heating_kWh_mean": scenario_mean,
-            "annual_useful_heating_kWh_median": float(values.median()) if len(values) else float("nan"),
-            "annual_useful_heating_kWh_p50": float(values.quantile(0.50)) if len(values) else float("nan"),
-            "annual_useful_heating_kWh_p10": float(values.quantile(0.10)) if len(values) else float("nan"),
-            "annual_useful_heating_kWh_p90": float(values.quantile(0.90)) if len(values) else float("nan"),
-            "baseline_annual_useful_heating_kWh_mean": baseline_mean,
-            "delta_annual_useful_heating_kWh_mean": delta,
-            "delta_annual_useful_heating_kWh_pct": delta_pct,
-        }
-        rows.append(row)
+        future_realization_ids = _realization_ids(scenario)
+        paired_realization_ids: set[str] = set()
+        excluded_future_realization_ids: set[str] = set()
+        provenance_mismatch_ids: set[str] = set()
+
+        for realization_id in sorted(future_realization_ids):
+            future_part = scenario[scenario["realization_id"].astype(str) == realization_id]
+            baseline_part = baseline_rows[baseline_rows["realization_id"].astype(str) == realization_id]
+            if baseline_part.empty:
+                excluded_future_realization_ids.add(realization_id)
+                continue
+            if not _provenance_compatible(future_part, baseline_part):
+                excluded_future_realization_ids.add(realization_id)
+                provenance_mismatch_ids.add(realization_id)
+                continue
+            paired_realization_ids.add(realization_id)
+
+        scenario_selected = scenario[scenario["realization_id"].astype(str).isin(paired_realization_ids)]
+        baseline_selected = baseline_rows[baseline_rows["realization_id"].astype(str).isin(paired_realization_ids)]
+        pairable_baseline_realization_ids.update(paired_realization_ids)
+        excluded_baseline_realization_ids = all_baseline_realization_ids - paired_realization_ids
+        warning_parts: list[str] = []
+        if excluded_future_realization_ids:
+            warning_parts.append(
+                "Unpaired or provenance-incompatible future realization(s) excluded: "
+                + _join_realization_ids(excluded_future_realization_ids)
+            )
+        if provenance_mismatch_ids:
+            warning_parts.append(
+                "Provenance mismatch for realization(s): " + _join_realization_ids(provenance_mismatch_ids)
+            )
+        if excluded_baseline_realization_ids:
+            warning_parts.append(
+                "Baseline realization(s) excluded from this paired comparison: "
+                + _join_realization_ids(excluded_baseline_realization_ids)
+            )
+        baseline_pairing_warnings.extend(warning_parts)
+        rows.append(
+            _annual_heating_row(
+                scenario_id=str(scenario_id),
+                climate_window_id=str(climate_window_id),
+                climate_pathway_id=str(climate_pathway_id),
+                technology_case_id=str(technology_case_id),
+                scenario_rows=scenario_selected,
+                baseline_rows=baseline_selected,
+                future_realization_ids=future_realization_ids,
+                paired_realization_ids=paired_realization_ids,
+                excluded_baseline_realization_ids=excluded_baseline_realization_ids,
+                excluded_future_realization_ids=excluded_future_realization_ids,
+                pairing_policy="paired_by_realization_id_intersection",
+                provenance_filter_policy="require_matching_git_dirty_and_belgian_technology_hash_when_available",
+                comparison_warning=" | ".join(warning_parts),
+            )
+        )
+
+    baseline_selected_ids = pairable_baseline_realization_ids or all_baseline_realization_ids
+    baseline_selected = baseline_rows[baseline_rows["realization_id"].astype(str).isin(baseline_selected_ids)]
+    baseline_excluded_ids = all_baseline_realization_ids - baseline_selected_ids
+    baseline_warning_parts = []
+    if baseline_excluded_ids:
+        baseline_warning_parts.append(
+            "Baseline row excludes realization(s) not used by any paired future comparison: "
+            + _join_realization_ids(baseline_excluded_ids)
+        )
+    if baseline_pairing_warnings and not pairable_baseline_realization_ids:
+        baseline_warning_parts.append("No pairable future realization set was found; baseline uses all available baseline realizations.")
+    if not baseline_rows.empty:
+        rows.append(
+            _annual_heating_row(
+                scenario_id=BASELINE_SCENARIO_ID,
+                climate_window_id=str(baseline_rows["climate_window_id"].iloc[0]),
+                climate_pathway_id=str(baseline_rows["climate_pathway_id"].iloc[0]),
+                technology_case_id=str(baseline_rows["technology_case_id"].iloc[0]),
+                scenario_rows=baseline_selected,
+                baseline_rows=baseline_selected,
+                future_realization_ids=_realization_ids(baseline_selected),
+                paired_realization_ids=_realization_ids(baseline_selected),
+                excluded_baseline_realization_ids=baseline_excluded_ids,
+                excluded_future_realization_ids=set(),
+                pairing_policy="baseline_pairable_realization_union",
+                provenance_filter_policy="baseline_subset_used_by_paired_future_comparisons",
+                comparison_warning=" | ".join(baseline_warning_parts),
+            )
+        )
     return (
         pd.DataFrame(rows, columns=ANNUAL_SPACE_HEATING_COMPARISON_COLUMNS)
         .sort_values(["climate_window_id", "climate_pathway_id", "technology_case_id", "scenario_id"])
@@ -1478,6 +1710,12 @@ def generate_summaries(
             continue
         registry_row = latest_actual_run_for_leaf(registry_rows, record.scenario_leaf_id)
         if registry_row is None:
+            continue
+        if _skip_incompatible_runner_mode(record, registry_row):
+            warnings.append(
+                f"Skipped {record.scenario_leaf_id}: latest successful current/frozen-stock run does not use "
+                "stock_weighted_archetypes or stochastic_cohort runner mode."
+            )
             continue
         try:
             run_dir = _path_from_row(dict(record.row), "run_dir", DEFAULT_EXPERIMENT_ROOT / "runs" / record.scenario_leaf_id)

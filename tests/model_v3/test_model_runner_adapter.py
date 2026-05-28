@@ -26,6 +26,12 @@ def test_runner_mode_accepts_explicit_cohort() -> None:
     assert model_runner_adapter._runner_mode(config) == "stochastic_cohort"
 
 
+def test_runner_mode_accepts_stock_weighted_archetypes() -> None:
+    config = {"model_options": {"runner_mode": "stock_weighted_archetypes"}}
+
+    assert model_runner_adapter._runner_mode(config) == "stock_weighted_archetypes"
+
+
 def test_runner_mode_rejects_unknown_mode() -> None:
     with pytest.raises(model_runner_adapter.ModelRunnerAdapterError):
         model_runner_adapter._runner_mode({"model_options": {"runner_mode": "representative_year"}})

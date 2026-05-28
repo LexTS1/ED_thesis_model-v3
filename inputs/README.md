@@ -29,6 +29,8 @@ These files are stored as real files/directories inside `inputs/`, not symlinks.
   Previous eight-row archetype table retained for provenance and as the source table for the age-split generator.
 - `building/archetype_parameters_merged_v3.csv`
   Active age-split runtime archetype table for stock identity, construction period, geometry, heat loss, thermal mass, comfort defaults, solar defaults, and airflow defaults.
+- `building/renovation_prevalence_epc_mapping.csv`
+  Source-backed EPC A/B high-performance proxy used to assign the prevalence of the single v3 renovated archetype state.
 - `building/envelope_archetypes_v1.csv`
   Reproducible envelope-area reconstruction behind the previous v2 `UA_W_per_K` and `H_W_per_K` values.
 - `building/envelope_archetypes_v2.csv`

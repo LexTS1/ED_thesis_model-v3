@@ -401,6 +401,45 @@ def test_grid_peak_kw_is_converted_to_w(tmp_path: Path) -> None:
     assert result.metrics["peak_grid_import_W"] == pytest.approx(2500.0)
 
 
+def test_stock_weighted_multi_year_profile_peak_is_annualized(tmp_path: Path) -> None:
+    timestamps = pd.date_range("2030-01-01T12:00:00", periods=730, freq="D")
+    frame = pd.DataFrame(
+        {
+            "timestamp": timestamps.astype(str),
+            "P_el_gross_actual_W": [50.0] * len(timestamps),
+            "P_el_grid_import_W": [50.0] * len(timestamps),
+            "P_el_grid_export_W": [0.0] * len(timestamps),
+            "P_gas_total_W": [0.0] * len(timestamps),
+            "Q_heating_supplied_W": [0.0] * len(timestamps),
+            "Q_dhw_demand_W": [0.0] * len(timestamps),
+            "P_pv_generation_W": [0.0] * len(timestamps),
+            "P_el_ev_charging_W": [0.0] * len(timestamps),
+        }
+    )
+    summary = {
+        "profile_representation": "stock_weighted_per_household",
+        "annual_energy_by_carrier_kWh": {
+            "electricity_gross_actual": 438.0,
+            "electricity_grid_import": 438.0,
+            "electricity_grid_export": 0.0,
+            "natural_gas": 0.0,
+            "pv_generation": 0.0,
+            "ev_charging": 0.0,
+        },
+        "space_heating_thermal_kWh": 0.0,
+        "dhw_thermal_kWh": 0.0,
+    }
+
+    result = compute_standardized_output_metrics(
+        _raw_outputs(frame, summary),
+        _technology_config(tmp_path),
+    )
+
+    assert result.metrics["peak_grid_import_W"] == pytest.approx(100.0)
+    assert result.metrics["p95_grid_import_W"] == pytest.approx(100.0)
+    assert result.policies["grid_peak_power_policy"] == "annualized_stock_weighted_profile_scaled_by_climate_window_duration"
+
+
 def test_pv_and_ev_free_cases_get_zero_policy(tmp_path: Path) -> None:
     summary = {
         "annual_energy_by_carrier_kWh": {

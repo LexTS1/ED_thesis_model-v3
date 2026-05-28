@@ -14,6 +14,7 @@ import yaml
 
 from model_v3.cohort.cohort_engine import run_cohort_simulation
 from model_v3.output.persistence import ensure_dir, write_frame_csv, write_json
+from model_v3.scenarios.stock_weighted_archetypes import run_stock_weighted_archetype_simulation
 from model_v3.simulation.annual_runner import run_annual_simulation
 from model_v3.systems.distributed_energy import value_from_range
 from model_v3.systems.technology import normalize_technology_type
@@ -29,8 +30,10 @@ class ModelRunnerAdapterError(RuntimeError):
 
 
 ANNUAL_DEMAND_MODE = "annual_demand"
+STOCK_WEIGHTED_ARCHETYPE_MODE = "stock_weighted_archetypes"
 STOCHASTIC_COHORT_MODE = "stochastic_cohort"
 _ANNUAL_MODE_ALIASES = {"annual", "annual_demand", "deterministic_annual"}
+_STOCK_WEIGHTED_ARCHETYPE_MODE_ALIASES = {"stock_weighted_archetypes", "stock_weighted_annual", "archetype_stock_weighted"}
 _COHORT_MODE_ALIASES = {"cohort", "stochastic_cohort"}
 _SUMMARY_OMIT_KEYS = {
     "profile_frame",
@@ -324,11 +327,13 @@ def _runner_mode(run_config: Mapping[str, Any]) -> str:
     raw_mode = str(model_options.get("runner_mode") or ANNUAL_DEMAND_MODE).strip().lower()
     if raw_mode in _ANNUAL_MODE_ALIASES:
         return ANNUAL_DEMAND_MODE
+    if raw_mode in _STOCK_WEIGHTED_ARCHETYPE_MODE_ALIASES:
+        return STOCK_WEIGHTED_ARCHETYPE_MODE
     if raw_mode in _COHORT_MODE_ALIASES:
         return STOCHASTIC_COHORT_MODE
     raise ModelRunnerAdapterError(
         "Unsupported model_options.runner_mode "
-        f"{raw_mode!r}; expected one of {sorted(_ANNUAL_MODE_ALIASES | _COHORT_MODE_ALIASES)}."
+        f"{raw_mode!r}; expected one of {sorted(_ANNUAL_MODE_ALIASES | _STOCK_WEIGHTED_ARCHETYPE_MODE_ALIASES | _COHORT_MODE_ALIASES)}."
     )
 
 
@@ -382,6 +387,15 @@ def _write_cohort_artifacts(output_dir: Path, results: Mapping[str, Any]) -> lis
     return written
 
 
+def _write_stock_weighted_artifacts(output_dir: Path, results: Mapping[str, Any]) -> list[str]:
+    payload = dict(results.get("stock_weighted_archetypes", {}))
+    summaries = list(payload.get("summary", []))
+    if not summaries:
+        return []
+    path = write_frame_csv(output_dir / "stock_weighted_archetype_summary.csv", pd.DataFrame(summaries))
+    return [str(path)]
+
+
 def run_model_from_config(
     config_path: Path,
     *,
@@ -404,6 +418,8 @@ def run_model_from_config(
     runner_mode = _runner_mode(run_config)
     if runner_mode == STOCHASTIC_COHORT_MODE:
         results = run_cohort_simulation(config=model_config)
+    elif runner_mode == STOCK_WEIGHTED_ARCHETYPE_MODE:
+        results = run_stock_weighted_archetype_simulation(config=model_config)
     else:
         results = run_annual_simulation(config=model_config)
     output_dir = ensure_dir(_resolve_repo_path(str(dict(run_config.get("output", {})).get("outputs_dir", "")), repo_root))
@@ -411,6 +427,8 @@ def run_model_from_config(
     cohort_paths: list[str] = []
     if runner_mode == STOCHASTIC_COHORT_MODE:
         cohort_paths = _write_cohort_artifacts(output_dir, results)
+    elif runner_mode == STOCK_WEIGHTED_ARCHETYPE_MODE:
+        cohort_paths = _write_stock_weighted_artifacts(output_dir, results)
     summary_path = write_json(output_dir / "annual_summary.json", _serialisable_summary(results))
 
     return {
