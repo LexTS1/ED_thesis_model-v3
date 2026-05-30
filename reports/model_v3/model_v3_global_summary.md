@@ -151,7 +151,7 @@ It produces the requested heating power, but does not yet apply system constrain
 - conversion of thermal heating and DHW demand into electricity
 - aggregation of all electric end uses into total demand
 
-One notable design choice is that thermal-to-electric conversion for space heating and DHW is tied back to the configured annual baseline shares through representative factors, while the annual runner later renormalises annual electricity totals to hit the literature targets exactly. The thesis config also applies `building.ua_multiplier: 1.10` as an explicit envelope/UA calibration for the selected deterministic archetype. These are calibrations to literature baselines, not independent predictions of annual electricity or envelope heat loss.
+One notable design choice is that thermal-to-electric conversion for space heating and DHW is tied back to the configured annual baseline shares through representative factors, while the annual runner later renormalises annual electricity totals to hit the literature targets exactly. The thesis config also applies `building.ua_multiplier: 0.80` as an explicit envelope/UA calibration for the selected thesis archetype configuration. These are calibrations to literature baselines, not independent predictions of annual electricity or envelope heat loss.
 
 ## Stochastic Cohort Logic
 

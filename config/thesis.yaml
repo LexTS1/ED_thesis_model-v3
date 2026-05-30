@@ -231,7 +231,13 @@ forcing:
 
 building:
   heat_loss_coefficient_W_per_C: 180.0
-  ua_multiplier: 1.00
+  ua_multiplier: 0.80
+  ua_calibration_note: >
+    Explicit thesis thermal calibration factor. The value 0.80 was selected
+    from full-horizon 2023 baseline validation to align useful space-heating
+    demand with the configured Belgian literature range while leaving annual
+    electricity and DHW calibration unchanged. Treat this as baseline thermal
+    calibration, not as an independently observed envelope parameter.
   thermal_mass_Wh_per_C: 4500.0
   tabula_archetypes_path: "config/archetypes.yaml"
   archetype_source:

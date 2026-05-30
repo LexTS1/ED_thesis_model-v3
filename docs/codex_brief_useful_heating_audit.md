@@ -12,7 +12,7 @@ direction of the HDD response across all future window × pathway
 cells.
 
 **Do not change** the model physics, control, or systems layers.
-**Do not change** `building.ua_multiplier` or any calibration knob
+The immediate diagnostic pass did not change `building.ua_multiplier` or any calibration knob
 unless the diagnostic explicitly identifies it as the root cause.
 Treat this as a **provenance and regeneration bug**, not a model
 bug, until proven otherwise.
@@ -311,7 +311,7 @@ When the acceptance test passes, update
 
 ## Out of scope for this audit
 
-- Changing `building.ua_multiplier` away from 1.10
+- Changing `building.ua_multiplier` away from the then-current value was deferred during the diagnostic pass; it was later changed explicitly as a thesis baseline thermal calibration after full-horizon validation.
 - Adding additional GCM/RCM chains
 - Implementing active cooling final energy
 - Changing the macro/synthetic/Fluvius/KU Leuven validation layers

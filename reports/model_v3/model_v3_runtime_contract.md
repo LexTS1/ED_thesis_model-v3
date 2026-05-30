@@ -10,9 +10,9 @@ PYTHONPATH=src python3 src/pipelines/run_model_v3_stochastic.py --config config/
 
 Validation runners also accept `--config`, so thesis-facing reruns should pass `config/thesis.yaml` explicitly rather than relying on defaults.
 
-The thesis config is `config/thesis.yaml`. It keeps the current calibrated baseline and cohort settings, sets `simulation.reference_year: 2023`, starts at `2023-01-01T00:00:00+01:00`, keeps `simulation.max_steps: null`, sets `climate.enabled: false`, and applies `building.ua_multiplier: 1.10`.
+The thesis config is `config/thesis.yaml`. It keeps the current calibrated baseline and cohort settings, sets `simulation.reference_year: 2023`, starts at `2023-01-01T00:00:00+01:00`, keeps `simulation.max_steps: null`, sets `climate.enabled: false`, and applies `building.ua_multiplier: 0.80`.
 
-The `building.ua_multiplier` is an explicit envelope/UA calibration factor. It raises the selected deterministic apartment archetype's heat-loss coefficient so the annual space-heating thermal demand sits inside the configured Belgian literature range. This should be cited as thermal baseline calibration, not as an independently validated envelope parameter.
+The `building.ua_multiplier` is an explicit envelope/UA calibration factor. It scales the selected archetype heat-loss coefficients so the full-horizon annual space-heating thermal demand sits inside the configured Belgian literature range. This should be cited as thermal baseline calibration, not as an independently validated envelope parameter.
 
 ## Meaningful Runtime Paths
 
