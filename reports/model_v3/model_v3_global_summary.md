@@ -15,7 +15,7 @@ This document is a repository-level interpretation of `model_v3`. It is intended
 
 The codebase is strongest when it is read as an annual household model plus a cohort realism layer built on top of that annual core. The main simulation logic lives in the annual runner and cohort engine, not in the one-step smoke-style pipeline.
 
-At the same time, some scaffold-era traces remain. A few files are still compatibility shims, and the `outputs/model_v3/` folder clearly contains artifacts from different horizons and run modes rather than one single clean benchmark state.
+At the same time, some scaffold-era design notes remain. The stale `outputs/model_v3/` artefact namespace was removed from the working tree because it contained artifacts from different horizons and run modes rather than one single clean benchmark state.
 
 ## What The Model Actually Simulates
 
@@ -248,22 +248,21 @@ The acceptance criteria are ASHRAE-style threshold checks for monthly and hourly
 
 This is the most important practical caveat in the repository.
 
-The codebase is coherent, but the historical persisted outputs are not one single synchronized benchmark set. The folders under `outputs/model_v3/` contain cached artifacts from different configs, horizons, and run modes. A report should be treated as thesis-ready only when its embedded metadata or manifest confirms the canonical thesis config, reference year, cohort size, horizon, and data provenance.
+The codebase is coherent, but historical persisted outputs were not one single synchronized benchmark set. The stale folders under `outputs/model_v3/` were removed from the canonical working tree. A report should be treated as thesis-ready only when its embedded metadata or manifest confirms the canonical thesis config, reference year, cohort size, horizon, and data provenance.
 
 Examples:
 
-- `outputs/model_v3/annual/annual_summary.json` is a cached full-year 2023 run with `8760` steps and annual totals of about `3900.0` kWh electricity, `11079.68` kWh space-heating thermal, and `2999.91` kWh DHW thermal.
-- `outputs/model_v3/stochastic/cohort_summary.json` is a cached `30`-household cohort summary with calibrated mean annual electricity near `3900.0` kWh. Because calibrated annual electricity is intentionally baseline-aligned, raw/pre-calibration diagnostics are needed to discuss stochastic annual spread.
-- `outputs/model_v3/validation/baseline_annual/validation_report_v3_baseline_annual.md` is a short-horizon run with `max steps: 24`, so its thermal totals are not a valid annual benchmark.
+- `experiments/scenario_tree/` contains the selected climate-only / stock-weighted scenario-tree runs and summaries used for the current thesis results.
+- `experiments/scenario_tree_output34/` contains the selected hourly cohort runs used for peak/grid stress, diversity, bills/emissions, and investment/adaptation outputs.
+- `outputs/validation/baseline_annual/validation_report_v3_baseline_annual.md` is the current full-horizon annual baseline validation report.
 - The separate Belgian smart-meter validation path has been removed because no reliable independent Belgian smart-meter dataset is expected for this thesis model.
-- `outputs/model_v3/validation/aggregate/validation_report_v3_aggregate.md` is a legacy LCL-normalized shape diagnostic and cannot support absolute calibration or independent-validation claims.
-- `outputs/model_v3/validation/validation_report_v3_fluvius_external.md` compares representative Fluvius profiles; it is not measured feeder validation.
-- `outputs/model_v3/validation/validation_report_v3_kuleuven_high_freq.md` is a three-household high-frequency case study, not a statistical validation claim.
+- `outputs/validation/validation_report_v3_fluvius_external.md` compares representative Fluvius profiles; it is not measured feeder validation.
+- `outputs/validation/validation_report_v3_kuleuven_high_freq.md` is a three-household high-frequency case study, not a statistical validation claim.
 
 So the right interpretation is:
 
 - trust the code and the run settings first
-- treat legacy folders such as `outputs/model_v3/annual/`, `outputs/model_v3/stochastic/`, and `outputs/model_v3/climate_uncertainty/` as cached evidence from multiple runs
+- do not cite removed legacy folders such as `outputs/model_v3/annual/`, `outputs/model_v3/stochastic/`, and `outputs/model_v3/climate_uncertainty/`
 - do not assume every report in `outputs/` reflects the same configuration state
 - prefer artifacts with an explicit `run_manifest.json` or report runtime context when identifying thesis-ready outputs
 

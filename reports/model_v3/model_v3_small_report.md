@@ -21,12 +21,12 @@ Canonical thesis runtime:
 
 ## Current Artifact Status
 
-The files under `outputs/model_v3/validation/` are cached validation artifacts. They should be treated as historical evidence unless their embedded metadata proves they were generated from the canonical thesis config and full horizon.
+The files under `outputs/validation/` and `reports/model_v3/validation/` are the current local validation artifacts. They should still be cited with their embedded metadata and report context.
 
 Current cached validation artifacts show:
 
-- `baseline_annual`: `max steps: 24`; not thesis-valid for annual thermal validation
-- `aggregate`: legacy LCL-normalized shape comparison only; not part of the thesis-facing validation evidence
+- `baseline_annual`: full-horizon annual baseline validation after the explicit `building.ua_multiplier: 0.80` calibration
+- `aggregate`: aggregate-profile diagnostic evidence, with Fluvius treated as the thesis-facing aggregate reference
 - `validation_report_v3_fluvius_external.md`: representative Fluvius aggregate-profile comparison, currently weak/failed against simple diagnostic thresholds and not measured feeder validation
 - `validation_report_v3_kuleuven_high_freq.md`: three-household high-frequency case study, not a statistical validation claim
 
@@ -34,9 +34,9 @@ Current cached validation artifacts show:
 
 The codebase supports an operational deterministic annual model and stochastic cohort workflow. The canonical thesis config uses a complete 2023 weather-driven annual horizon with a 30-household cohort and climate disabled.
 
-The cached annual output at `outputs/model_v3/annual/annual_summary.json` records a full 2023 run with `8760` steps, annual electricity near `3900` kWh, space-heating thermal demand near `11079.68` kWh, and DHW thermal demand near `2999.91` kWh. This is useful cached evidence, but it should still be cited with its artifact provenance.
+The legacy standalone annual and stochastic output folders were removed from the canonical thesis artefact set. Use `experiments/scenario_tree/`, `experiments/scenario_tree_output34/`, and `outputs/validation/baseline_annual/` for current thesis evidence.
 
-The cached stochastic output at `outputs/model_v3/stochastic/cohort_summary.json` records `30` households and calibrated mean annual electricity near `3900` kWh. Calibrated annual electricity is intentionally baseline-aligned; raw/pre-calibration diagnostics are required to discuss stochastic annual spread. The thesis config now applies `building.ua_multiplier: 0.80` as an explicit envelope/UA calibration so the full-horizon baseline space-heating thermal total sits inside the configured literature range.
+The thesis config now applies `building.ua_multiplier: 0.80` as an explicit envelope/UA calibration so the full-horizon baseline space-heating thermal total sits inside the configured literature range.
 
 The technology labels in cohort outputs now come from the Belgian carrier-stock mapping when `uncertainty.technology.use_belgian_stock_baseline` is enabled. The carrier shares are observed, but the appliance-level mapping remains an explicit assumption and should be sensitivity-tested rather than presented as a measured Belgian technology census.
 
@@ -46,7 +46,7 @@ Do not claim independent external calibration from LCL-based normalized aggregat
 
 Use Fluvius and KU Leuven as thesis-facing external checks, but keep the wording conservative: Fluvius currently exposes aggregate profile mismatch rather than proving aggregate realism, and KU Leuven provides only high-frequency event/ramp case-study evidence.
 
-Do not describe the cached `baseline_annual` report as a valid annual thermal benchmark while it records only `24` steps.
+Do not cite legacy baseline reports from the removed `outputs/model_v3/` namespace. Use the current `outputs/validation/baseline_annual/` report.
 
 All active runtime inputs are local files under `inputs/`; sibling-repository symlinks and the removed duplicate `inputs/model_v3/` namespace are not part of the core model package.
 

@@ -33,13 +33,12 @@ Annual electricity is calibrated to the configured literature baseline. That is 
 
 ## Current Validation Reading
 
-The current persisted validation artifacts are mixed cached outputs:
+The stale `outputs/model_v3/` validation namespace has been removed from the canonical working tree. Current thesis-facing validation artefacts are under `outputs/validation/` and `reports/model_v3/validation/`:
 
-- `outputs/model_v3/validation/baseline_annual/validation_report_v3_baseline_annual.md` records `max steps: 24`; it is truncated and not valid as an annual thermal benchmark.
+- `outputs/validation/baseline_annual/validation_report_v3_baseline_annual.md` is the current full-horizon annual calibration check.
 - The separate Belgian smart-meter validation path has been removed because no reliable independent Belgian smart-meter dataset is expected for this thesis model.
-- `outputs/model_v3/validation/aggregate/validation_report_v3_aggregate.md` is a legacy LCL-normalized shape diagnostic, not thesis-facing validation evidence.
-- `outputs/model_v3/validation/validation_report_v3_fluvius_external.md` compares against representative Fluvius profiles, currently fails simple aggregate-profile diagnostic thresholds, and is not measured feeder data.
-- `outputs/model_v3/validation/validation_report_v3_kuleuven_high_freq.md` is a three-household high-frequency case study, not a statistical validation claim.
+- `outputs/validation/validation_report_v3_fluvius_external.md` compares against representative Fluvius profiles, currently exposes aggregate-profile mismatch, and is not measured feeder data.
+- `outputs/validation/validation_report_v3_kuleuven_high_freq.md` is a three-household high-frequency case study, not a statistical validation claim.
 
 ## Claims Not Supported
 

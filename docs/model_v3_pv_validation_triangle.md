@@ -10,7 +10,7 @@ profile is explicitly configured.
 
 1. **PVGIS physical reference**
 
-   Source: `outputs/model_v3/validation/pvgis/Timeseries_50.803_4.334_SA3_1kWp_crystSi_14_35deg_0deg_2005_2023.csv`
+   Source: `outputs/validation/pvgis/Timeseries_50.803_4.334_SA3_1kWp_crystSi_14_35deg_0deg_2005_2023.csv`
 
    Purpose: validate the model's irradiance-to-PV conversion for a 1 kWp
    system against a PVGIS hourly PV-output export. This is currently a direct

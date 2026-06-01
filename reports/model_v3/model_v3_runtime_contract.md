@@ -46,15 +46,16 @@ This is intentional because `run_model_v3_stochastic.py` branches on `climate.en
 
 ## Expected Outputs
 
-Canonical thesis-facing runs write under `outputs/model_v3/final/` and include a `run_manifest.json` beside the artifacts. The manifest records the run mode, timestamp, config path/name, reference year, cohort size where applicable, random seeds, climate settings, key configured input paths, output artifact paths, and the git commit hash when the workspace exposes one.
+Canonical thesis-facing scenario runs now write under `experiments/`, not the removed legacy `outputs/model_v3/` namespace. Per-leaf run folders include the generated `run_config.yaml`, input manifest, outputs, logs, and run-registry provenance. The registry records run mode, timestamp, config/input hashes, scenario identifiers, cohort metadata where applicable, and the git commit hash when the workspace exposes one.
 
 The final output structure is:
 
-- `outputs/model_v3/final/annual/`: annual deterministic household profile, summary, quick-look plots, and manifest.
-- `outputs/model_v3/final/stochastic/`: stochastic cohort summary, aggregate profile, per-household annual energy, calibration diagnostics, aggregate plot, and manifest.
-- `outputs/model_v3/final/climate_uncertainty/`: climate ensemble summary, member statistics, and manifest.
+- `experiments/scenario_tree/`: selected climate-only / stock-weighted scenario-tree runs, summaries, registries, and validation reports.
+- `experiments/scenario_tree_output34/`: selected hourly cohort runs for peak/grid stress, distribution/diversity, bills/emissions, and technology-investment/adaptation outputs.
+- `outputs/validation/`: current local validation artefacts.
+- `reports/model_v3/validation/`: thesis-facing validation reports and technology-validation tables.
 
-Older folders such as `outputs/model_v3/annual/`, `outputs/model_v3/stochastic/`, and `outputs/model_v3/climate_uncertainty/` are retained for compatibility and historical inspection. They must not be treated as canonical thesis outputs unless their provenance is independently checked.
+Older folders such as `outputs/model_v3/`, `outputs/final/`, `outputs/annual/`, `outputs/stochastic/`, and `outputs/climate_uncertainty/` were removed from the working tree because they were cached scaffold-era artefacts from mixed configurations. They must not be treated as canonical thesis outputs.
 
 For the stochastic cohort path, `cohort_summary.json` is intended as the readable thesis-facing summary. It records run metadata, sampled technology and household-class counts, calibrated annual energy summaries, raw/pre-calibration calibration diagnostics summaries, peak distributions, and timing metadata without embedding full household time-series arrays.
 
