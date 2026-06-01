@@ -4,24 +4,24 @@ Architecture, Inputs, Scenario Design, Outputs, Validation, Caveats, and Usage G
 
 Repository: `model_v3`
 
-Generation date UTC: 2026-05-10T20:00:39+00:00
+Generation date UTC: 2026-06-01T05:48:44+00:00
 
-Git commit: not_available
+Git commit: 9d239a01d14a4f32c729af8825bd4047a3e2e7e4
 
-Git dirty status: not_available_not_a_git_repository
+Git dirty status: clean
 
 This document is generated from local repository metadata, scripts, configs, manifests, summaries, validation reports, and figure metadata. It is not a literature review and it does not fabricate missing results.
 
 
 # Executive summary
 
-`model_v3` is a bottom-up residential energy-demand modelling repository with a scenario-tree layer for organizing climate, technology, and stochastic uncertainty. The core model is implemented under `src/model_v3/`; the scenario-tree experiment space is under `model_v3/experiments/scenario_tree/`; the main scenario-tree configuration files are under `config/model_v3/scenario_tree/`.
+`model_v3` is a bottom-up residential energy-demand modelling repository with a scenario-tree layer for organizing climate, technology, and stochastic uncertainty. The core model is implemented under `src/model_v3/`; the scenario-tree experiment space is under `experiments/scenario_tree/`; the main scenario-tree configuration files are under `config/scenario_tree/`.
 
 For the thesis, the scenario-tree layer is useful because it separates three sources of variation that would otherwise be mixed together in output filenames: climate forcing, residential technology assumptions, and stochastic household or cohort realizations. The implemented design supports this claim in a careful form:
 
 Climate projections were organized into a structured scenario tree consisting of a historical baseline and three future climate windows under RCP2.6, RCP4.5, and RCP8.5. Each climate branch was combined with technology adoption assumptions and stochastic household realizations. This allowed climate, technology, and behavioural uncertainty to be separated and compared through consistent output metrics.
 
-The repository currently contains a configured scenario tree with 2800 enumerated scenario leaves. The audit/registry evidence available to this handbook supports 4 latest-successful scenario leaves and 4 standardized per-leaf summary rows. Therefore the framework is implemented, but execution coverage is partial. This handbook does not claim that all leaves have run.
+The repository currently contains a configured scenario tree with 2800 enumerated scenario leaves. The audit/registry evidence available to this handbook supports 37 latest-successful scenario leaves and 37 standardized per-leaf summary rows. Therefore the framework is implemented, but execution coverage is partial. This handbook does not claim that all leaves have run.
 
 Implemented components detected in the repository include scenario-tree schema files, stable scenario IDs, canonical climate windows, an explicit 2050 overlap policy, generated experiment-space manifests, per-leaf configs, a runner/provenance layer, standardized outputs, comparison definitions, generated scenario-tree figures, and audit/validation reports where present. The comparison validation report also records missing comparison groups where successful summary rows are not available.
 
@@ -32,12 +32,12 @@ For a supervisor, the short explanation is: `model_v3` simulates residential ene
 ## Implementation status by phase
 | phase | expected deliverables | detected files | status | warnings | next action |
 | --- | --- | --- | --- | --- | --- |
-| Phase 1 - scenario-tree schema | Schema, climate windows, technology cases, realization policy. | config/model_v3/scenario_tree/scenario_tree_schema.yaml; config/model_v3/scenario_tree/climate_windows.yaml; config/model_v3/scenario_tree/technology_cases.yaml; config/model_v3/scenario_tree/realization_policy.yaml | implemented | none | Validate schema before changing branch dimensions. |
-| Phase 2 - directory and naming convention | Experiment space, manifests, stable scenario and leaf paths. | model_v3/experiments/scenario_tree/manifests/scenario_tree_manifest.yaml; model_v3/experiments/scenario_tree/manifests/scenario_leaf_index.csv | implemented | none | Regenerate experiment space if the leaf index is stale. |
-| Phase 3 - scenario-leaf configs | Per-leaf run_config.yaml and inputs_manifest.yaml files. | model_v3/experiments/scenario_tree/manifests/config_validation_report.md | implemented | none | Run leaf-config validation after changing inputs or technology files. |
-| Phase 4 - runner/orchestration | Scenario-tree runner, provenance, logs, run registry. | src/model_v3/scenarios/run_scenario_tree.py; model_v3/experiments/scenario_tree/manifests/run_registry.csv | implemented | runner exists, but registry/audit supports only 4 latest-successful leaves out of 2800 enumerated leaves | Run dry-run first; execute a small pair before batch execution. |
-| Phase 5 - output standardization | Per-leaf summaries and scenario aggregate metrics. | src/model_v3/scenarios/summarize_outputs.py; model_v3/experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics.csv | implemented | none | Regenerate summaries after new successful runs. |
-| Phase 6 - comparison framework | Climate-only, technology-only, stress-case, stochastic robustness tables. | config/model_v3/scenario_tree/comparison_definitions.yaml; model_v3/experiments/scenario_tree/summaries/comparison_level/comparison_index.csv | implemented | comparison validation reports missing groups where no successful summary rows exist | Regenerate comparisons when more leaves have summaries. |
+| Phase 1 - scenario-tree schema | Schema, climate windows, technology cases, realization policy. | config/scenario_tree/scenario_tree_schema.yaml; config/scenario_tree/climate_windows.yaml; config/scenario_tree/technology_cases.yaml; config/scenario_tree/realization_policy.yaml | implemented | none | Validate schema before changing branch dimensions. |
+| Phase 2 - directory and naming convention | Experiment space, manifests, stable scenario and leaf paths. | experiments/scenario_tree/manifests/scenario_tree_manifest.yaml; experiments/scenario_tree/manifests/scenario_leaf_index.csv | implemented | none | Regenerate experiment space if the leaf index is stale. |
+| Phase 3 - scenario-leaf configs | Per-leaf run_config.yaml and inputs_manifest.yaml files. | experiments/scenario_tree/manifests/config_validation_report.md | implemented | none | Run leaf-config validation after changing inputs or technology files. |
+| Phase 4 - runner/orchestration | Scenario-tree runner, provenance, logs, run registry. | src/model_v3/scenarios/run_scenario_tree.py; experiments/scenario_tree/manifests/run_registry.csv | implemented | runner exists, but registry/audit supports only 37 latest-successful leaves out of 2800 enumerated leaves | Run dry-run first; execute a small pair before batch execution. |
+| Phase 5 - output standardization | Per-leaf summaries and scenario aggregate metrics. | src/model_v3/scenarios/summarize_outputs.py; experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics.csv | implemented | none | Regenerate summaries after new successful runs. |
+| Phase 6 - comparison framework | Climate-only, technology-only, stress-case, stochastic robustness tables. | config/scenario_tree/comparison_definitions.yaml; experiments/scenario_tree/summaries/comparison_level/comparison_index.csv | implemented | comparison validation reports missing groups where no successful summary rows exist | Regenerate comparisons when more leaves have summaries. |
 | Phase 7 - visualisation | Generated figures and figure metadata. | src/model_v3/scenarios/generate_figures.py; figures/scenario_tree/metadata/figure_metadata.yaml | implemented | none | Validate figures and caption metadata before using in thesis text. |
 | Phase 8 - documentation/audit | Traceability matrix, audit summary, methodology docs. | reports/scenario_tree_validation_report.md; reports/scenario_tree_audit_summary.yaml; docs/model_v3_scenario_tree_methodology.md | implemented | none | Rerun audit after new outputs or changed figures. |
 | Phase 9 - handbook | Generated handbook, briefing, manifest, and handbook validation. | src/model_v3/documentation/build_model_handbook.py; src/model_v3/documentation/validate_model_handbook.py | implemented | none | Run the handbook validator and update this document after regeneration. |
@@ -49,7 +49,7 @@ The thesis goal supported by this repository is to analyse residential energy de
 
 Climate uncertainty matters because outdoor temperature and solar forcing affect heating demand, PV generation, and seasonal grid stress. Technology assumptions matter because electrification, heat pumps, PV, and EV charging can change both annual energy carriers and peak electricity demand. A scenario-tree approach is useful because it keeps these dimensions separate: climate branches answer "what forcing was used?", technology branches answer "what equipment/stock assumption was active?", and realization IDs answer "which stochastic draw produced the result?".
 
-Compared with earlier model versions, the v3 repository visible here adds a modular architecture with explicit interface dataclasses in `src/model_v3/interfaces.py`, scenario-tree metadata under `config/model_v3/scenario_tree/`, reproducible run folders under `model_v3/experiments/scenario_tree/`, and standardized metrics/comparisons for thesis figures. This handbook distinguishes the general modelling concepts from repository-specific evidence.
+Compared with earlier model versions, the v3 repository visible here adds a modular architecture with explicit interface dataclasses in `src/model_v3/interfaces.py`, scenario-tree metadata under `config/scenario_tree/`, reproducible run folders under `experiments/scenario_tree/`, and standardized metrics/comparisons for thesis figures. This handbook distinguishes the general modelling concepts from repository-specific evidence.
 
 Key terms: a bottom-up model builds demand from components; a stochastic model uses controlled random draws; a physics-informed model encodes simplified physical relationships; scenario analysis compares conditional futures; uncertainty propagation follows how input and branch assumptions change output metrics.
 
@@ -64,7 +64,7 @@ The main implementation code is under `src/model_v3/`. The core data contract is
 
 The model engine is the data, physics, control, systems, and output code that simulates one configured run. The scenario-tree layer enumerates and manages combinations of climate, technology, and realization IDs. The runner is the operational entrypoint that validates and executes leaves and records provenance. Validators check schemas, configs, summaries, comparisons, figures, and traceability. A manifest records what was generated and from which sources. Summary tables are standardized CSV outputs used for comparisons and figures.
 
-The configuration layer is under `config/model_v3/`. The input layer includes `inputs/climate/processed/`, `inputs/model_v3/building/`, weather, solar, load-profile, occupancy, and end-use files where present. Climate preprocessing exists under `src/climate/` and the processed climate products are consumed by scenario leaves. Technology assumptions are encoded both qualitatively in `technology_cases.yaml` and concretely through `config/model_v3/belgian_technology_inputs.yaml`. Stochastic realization policy is encoded in `realization_policy.yaml`; cohort generation is handled by the model engine and stochastic/cohort modules rather than by the scenario-tree schema alone.
+The configuration layer is under `config/`. The input layer includes `inputs/climate/processed/`, `inputs/building/`, weather, solar, load-profile, occupancy, and end-use files where present. Climate preprocessing exists under `src/climate/` and the processed climate products are consumed by scenario leaves. Technology assumptions are encoded both qualitatively in `technology_cases.yaml` and concretely through `config/belgian_technology_inputs.yaml`. Stochastic realization policy is encoded in `realization_policy.yaml`; cohort generation is handled by the model engine and stochastic/cohort modules rather than by the scenario-tree schema alone.
 
 The runner/orchestration layer is implemented under `src/model_v3/scenarios/` and `src/model_v3/scenario_tree/`. The output standardization layer is implemented by `src/model_v3/scenarios/summarize_outputs.py`, `summary_contract.py`, and `output_reader.py`. The comparison layer is `generate_comparisons.py` plus `comparison_definitions.yaml`. The figure/documentation layer includes `generate_figures.py`, figure metadata, and this Phase 9 handbook generator.
 
@@ -88,7 +88,7 @@ The handbook generator inspected relevant inputs, configs, reports, summaries, a
 
 ## Climate inputs
 
-Processed climate forcing files are expected under `inputs/climate/processed/`. The scenario-tree config defines baseline/historical and future RCP branches in `config/model_v3/scenario_tree/climate_windows.yaml`. Temperature and solar columns are detected by summary code when climate metrics are computed. The required climate metrics are mean temperature, winter mean temperature, summer mean temperature, HDD_15, HDD_18, CDD_22, and mean_solar_W_m2.
+Processed climate forcing files are expected under `inputs/climate/processed/`. The scenario-tree config defines baseline/historical and future RCP branches in `config/scenario_tree/climate_windows.yaml`. Temperature and solar columns are detected by summary code when climate metrics are computed. The required climate metrics are mean temperature, winter mean temperature, summer mean temperature, HDD_15, HDD_18, CDD_22, and mean_solar_W_m2.
 
 | climate window | canonical start | canonical end | source-file window | type | allowed pathways |
 | --- | --- | --- | --- | --- | --- |
@@ -97,26 +97,26 @@ Processed climate forcing files are expected under `inputs/climate/processed/`. 
 | mid_century_2050_2070 | 2050-01-01 | 2070-12-31 | 2050-2070 | future | rcp_2_6, rcp_4_5, rcp_8_5 |
 | long_term_2080_2100 | 2080-01-01 | 2100-12-31 | 2080-2100 | future | rcp_2_6, rcp_4_5, rcp_8_5 |
 
-2050 policy: raw processed source files may overlap in 2050, but canonical analysis windows do not. Near-future ends on 2049-12-31. Mid-century starts on 2050-01-01. Therefore 2050 is assigned only to the mid-century canonical analysis window. This policy is encoded in `config/model_v3/scenario_tree/climate_windows.yaml`.
+2050 policy: raw processed source files may overlap in 2050, but canonical analysis windows do not. Near-future ends on 2049-12-31. Mid-century starts on 2050-01-01. Therefore 2050 is assigned only to the mid-century canonical analysis window. This policy is encoded in `config/scenario_tree/climate_windows.yaml`.
 
 ## Building and archetype inputs
 
-Building and archetype inputs were searched under `inputs/model_v3/building/` and `config/model_v3/archetypes.yaml`. The model interface includes floor/volume-like parameters, heat-loss coefficient, thermal mass, ventilation/infiltration, setpoints, glazing/orientation, occupant gains, and heat-gain fractions. Where these values are missing or simplified, the model falls back to configured defaults in the data/interface layer; such defaults should be treated as assumptions, not measurements.
+Building and archetype inputs were searched under `inputs/building/` and `config/archetypes.yaml`. The model interface includes floor/volume-like parameters, heat-loss coefficient, thermal mass, ventilation/infiltration, setpoints, glazing/orientation, occupant gains, and heat-gain fractions. Where these values are missing or simplified, the model falls back to configured defaults in the data/interface layer; such defaults should be treated as assumptions, not measurements.
 
 ## Technology inputs
 
-Technology cases are defined in `config/model_v3/scenario_tree/technology_cases.yaml`. `tech_current_stock` is baseline-only unless metadata says otherwise. Future climate-only comparisons use `tech_frozen_stock`, not future `tech_current_stock`. The Belgian technology input YAML is `config/model_v3/belgian_technology_inputs.yaml`.
+Technology cases are defined in `config/scenario_tree/technology_cases.yaml`. `tech_current_stock` is baseline-only unless metadata says otherwise. Future climate-only comparisons use `tech_frozen_stock`, not future `tech_current_stock`. The Belgian technology input YAML is `config/belgian_technology_inputs.yaml`.
 
 | technology case | label | applicable windows | interpretation |
 | --- | --- | --- | --- |
 | tech_current_stock | Current stock | baseline | Preserve the current-stock technology representation already used by model_v3 for baseline residential demand.<br> |
 | tech_frozen_stock | Frozen stock | future | Apply future climate forcing while preserving the baseline technology stock as a climate-only sensitivity case.<br> |
-| tech_moderate_electrification | Moderate electrification | future | Represent a future residential stock with heat-pump uptake and some building-envelope improvement, without assigning adoption shares in this metadata phase.<br> |
-| tech_high_electrification_pv_ev | High electrification with PV and EV | future | Represent a strongly electrified future stock including heat pumps, PV, EV charging demand, and building-envelope improvement, without assigning calibrated rates in this metadata phase.<br> |
+| tech_moderate_electrification | Moderate electrification | future | Represent a future residential stock with heat-pump uptake and some building-envelope improvement. Numerical shares are counterfactual scenario assumptions, not observed future adoption rates.<br> |
+| tech_high_electrification_pv_ev | High electrification with PV and EV | future | Represent a strongly electrified future stock including heat pumps, PV, EV charging demand, and building-envelope improvement. Numerical shares are stress-case scenario assumptions, not observed future adoption rates.<br> |
 
 ## Stochastic inputs
 
-Realizations are `seed_0000` through `seed_0099` according to `config/model_v3/scenario_tree/realization_policy.yaml`. The seed controls reproducible stochastic sampling in the model engine. Scenario uncertainty is represented by climate and technology branches; stochastic variability is represented by realization IDs and cohort draws. The policy file states that cohorts were not generated in the scenario-tree metadata phase itself.
+Realizations are `seed_0000` through `seed_0099` according to `config/scenario_tree/realization_policy.yaml`. The seed controls reproducible stochastic sampling in the model engine. Scenario uncertainty is represented by climate and technology branches; stochastic variability is represented by realization IDs and cohort draws. The policy file states that cohorts were not generated in the scenario-tree metadata phase itself.
 
 
 # Chapter 5 - Scenario-tree design
@@ -139,15 +139,15 @@ mid_century_2050_2070__rcp_8_5__tech_high_electrification_pv_ev__seed_0042
 
 Double underscores separate scenario dimensions. Individual dimension names use lowercase tokens and single underscores. Accepted abbreviations such as RCP, PV, and EV are encoded in lowercase IDs.
 
-The scenario tree answers four traceability questions: which climate forcing was used, which technology assumptions were active, which stochastic seed/cohort generated the result, and which exact model/config produced the output. The scenario-tree schema is encoded in `config/model_v3/scenario_tree/scenario_tree_schema.yaml`.
+The scenario tree answers four traceability questions: which climate forcing was used, which technology assumptions were active, which stochastic seed/cohort generated the result, and which exact model/config produced the output. The scenario-tree schema is encoded in `config/scenario_tree/scenario_tree_schema.yaml`.
 
 
 # Chapter 6 - Directory structure and experiment space
 
-The physical experiment space is rooted at `model_v3/experiments/scenario_tree/`.
+The physical experiment space is rooted at `experiments/scenario_tree/`.
 
 ```text
-model_v3/experiments/scenario_tree/
+experiments/scenario_tree/
   manifests/
   configs/
   runs/
@@ -192,8 +192,8 @@ climate:
     year_2050_assignment: mid_century_2050_2070
 technology:
   case_id: tech_current_stock
-  metadata_file: config/model_v3/scenario_tree/technology_cases.yaml
-  belgian_technology_inputs: config/model_v3/belgian_technology_inputs.yaml
+  metadata_file: config/scenario_tree/technology_cases.yaml
+  belgian_technology_inputs: config/belgian_technology_inputs.yaml
 stochastic:
   realization_id: seed_0000
   seed_index: 0
@@ -202,29 +202,35 @@ stochastic:
   cohort_generation: deferred_to_simulation_phase
 model_options:
   run_mode: scenario_leaf
+  runner_mode: stock_weighted_archetypes
   execute_simulation: false
-  use_stochastic_cohort: true
+  use_stochastic_cohort: false
+  use_stock_weighted_archetypes: true
   use_climate_forcing: true
   use_technology_case: true
   write_outputs: true
+  runner_mode_note: Baseline/current-stock and future frozen-stock leaves use stock_weighted_archetypes
+    so annual heating magnitudes are averaged over Belgian archetype stock weights.
+    Other technology-stress leaves remain deterministic annual leaves unless promoted
+    to stochastic_cohort by a dedicated output runner.
 output:
-  run_dir: model_v3/experiments/scenario_tree/runs/baseline_1981_2005__historical__tech_current_stock__seed_0000
-  outputs_dir: model_v3/experiments/scenario_tree/runs/baseline_1981_2005__historical__tech_current_stock__seed_0000/outputs
-  logs_dir: model_v3/experiments/scenario_tree/runs/baseline_1981_2005__historical__tech_current_stock__seed_0000/logs
+  run_dir: experiments/scenario_tree/runs/baseline_1981_2005__historical__tech_current_stock__seed_0000
+  outputs_dir: experiments/scenario_tree/runs/baseline_1981_2005__historical__tech_current_stock__seed_0000/outputs
+  logs_dir: experiments/scenario_tree/runs/baseline_1981_2005__historical__tech_current_stock__seed_0000/logs
 validation:
   config_complete: true
   missing_required_inputs: []
 provenance:
   phase: 3
-  scenario_tree_schema: config/model_v3/scenario_tree/scenario_tree_schema.yaml
-  climate_windows: config/model_v3/scenario_tree/climate_windows.yaml
-  technology_cases: config/model_v3/scenario_tree/technology_cases.yaml
-  realization_policy: config/model_v3/scenario_tree/realization_policy.yaml
-  scenario_leaf_index: model_v3/experiments/scenario_tree/manifests/scenario_leaf_index.csv
-  generated_at_utc: '2026-05-08T22:27:16+00:00'
+  scenario_tree_schema: config/scenario_tree/scenario_tree_schema.yaml
+  climate_windows: config/scenario_tree/climate_windows.yaml
+  technology_cases: config/scenario_tree/technology_cases.yaml
+  realization_policy: config/scenario_tree/realization_policy.yaml
+  scenario_leaf_index: experiments/scenario_tree/manifests/scenario_leaf_index.csv
+  generated_at_utc: '2026-05-28T14:27:49+00:00'
 ```
 
-Config validation checks required fields, climate file existence, technology case existence, Belgian technology input existence, baseline/future separation, canonical date windows, and the 2050 policy. The latest detected config validation report is `model_v3/experiments/scenario_tree/manifests/config_validation_report.md` if present.
+Config validation checks required fields, climate file existence, technology case existence, Belgian technology input existence, baseline/future separation, canonical date windows, and the 2050 policy. The latest detected config validation report is `experiments/scenario_tree/manifests/config_validation_report.md` if present.
 
 
 # Chapter 8 - Running the model
@@ -264,9 +270,9 @@ Run provenance includes timestamp, git commit when available, dirty working tree
 
 Raw model outputs for a successful leaf are stored under that leaf's `outputs/` directory, typically including `annual_profile.csv` and `annual_summary.json`. The standardization layer writes per-leaf standardized summaries and scenario-level aggregate metrics.
 
-Detected realization-level summary rows: 4.
+Detected realization-level summary rows: 37.
 
-Detected scenario-level aggregate rows: 2.
+Detected scenario-level aggregate rows: 10.
 
 The required standardized metrics are:
 
@@ -298,7 +304,7 @@ Annual sums are energy totals over the model output period and use kWh. Peak pow
 
 # Chapter 10 - Comparison framework
 
-The comparison framework is encoded in `config/model_v3/scenario_tree/comparison_definitions.yaml`. It consumes standardized Phase 5 summary tables and does not run simulations.
+The comparison framework is encoded in `config/scenario_tree/comparison_definitions.yaml`. It consumes standardized Phase 5 summary tables and does not run simulations.
 
 Climate-only effect: the historical current-stock baseline is compared against future RCP pathways under `tech_frozen_stock`, not future `tech_current_stock`. This is necessary because `tech_current_stock` is baseline-only in the scenario metadata. The frozen-stock branch is a counterfactual that varies climate while holding technology assumptions fixed relative to the baseline stock.
 
@@ -325,7 +331,7 @@ Validation layers detected or documented in the repository:
 
 | layer | source | what it checks |
 | --- | --- | --- |
-| scenario-tree schema | config/model_v3/scenario_tree/*.yaml | checks IDs, baseline/future rules, 2050 policy |
+| scenario-tree schema | config/scenario_tree/*.yaml | checks IDs, baseline/future rules, 2050 policy |
 | naming/path validation | scenario_leaf_index.csv and run folders | checks stable paths and identifiers |
 | config validation | config_validation_report.md | checks climate files, technology inputs, required blocks |
 | runner dry-run validation | run_scenario_tree --dry-run | plans without executing simulations |
@@ -339,21 +345,21 @@ Validation commands:
 
 ```bash
 python3 -m model_v3.scenarios.validate_summaries \
-  --experiment-root model_v3/experiments/scenario_tree \
+  --experiment-root experiments/scenario_tree \
   --print-summary
 ```
 
 ```bash
 python3 -m model_v3.scenarios.validate_comparisons \
-  --experiment-root model_v3/experiments/scenario_tree \
-  --comparison-definitions config/model_v3/scenario_tree/comparison_definitions.yaml \
+  --experiment-root experiments/scenario_tree \
+  --comparison-definitions config/scenario_tree/comparison_definitions.yaml \
   --print-summary
 ```
 
 ```bash
 python3 -m model_v3.scenarios.validate_figures \
   --figures-root figures/scenario_tree \
-  --experiment-root model_v3/experiments/scenario_tree \
+  --experiment-root experiments/scenario_tree \
   --print-summary
 ```
 
@@ -362,7 +368,7 @@ Internal consistency validation checks whether files, IDs, metrics, and reports 
 
 # Chapter 12 - Figures and interpretation guide
 
-The detected figure metadata rows are 17. The handbook includes generated schematic figures and existing generated scenario-tree figures where available. Existing figure metadata records source files, metrics, filters, generation scripts, row counts, and warnings. If a data-derived figure is missing, the handbook uses a schematic and states what source would be needed.
+The detected figure metadata rows are 24. The handbook includes generated schematic figures and existing generated scenario-tree figures where available. Existing figure metadata records source files, metrics, filters, generation scripts, row counts, and warnings. If a data-derived figure is missing, the handbook uses a schematic and states what source would be needed.
 
 ## Figures included in this handbook
 
@@ -402,7 +408,7 @@ Caption: Climate-window timeline showing the 2050 overlap policy.
 
 Explanation: Shows that source files may overlap in 2050 while canonical analysis windows do not: near-future ends in 2049 and mid-century starts in 2050.
 
-Source data or config: `config/model_v3/scenario_tree/climate_windows.yaml`.
+Source data or config: `config/scenario_tree/climate_windows.yaml`.
 
 Metrics used: not_applicable.
 
@@ -416,7 +422,7 @@ Caption: Scenario leaf ID decomposition diagram.
 
 Explanation: Explains the four fields of a scenario leaf ID and why double underscores are reserved as dimension separators.
 
-Source data or config: `config/model_v3/scenario_tree/scenario_tree_schema.yaml`.
+Source data or config: `config/scenario_tree/scenario_tree_schema.yaml`.
 
 Metrics used: not_applicable.
 
@@ -430,7 +436,7 @@ Caption: Runner and provenance workflow.
 
 Explanation: Shows how generated configs are executed by the runner and recorded in registry, logs, hashes, and output paths.
 
-Source data or config: `src/model_v3/scenarios/run_scenario_tree.py and model_v3/experiments/scenario_tree/manifests/run_registry.csv`.
+Source data or config: `src/model_v3/scenarios/run_scenario_tree.py and experiments/scenario_tree/manifests/run_registry.csv`.
 
 Metrics used: not_applicable.
 
@@ -458,7 +464,7 @@ Caption: Comparison framework diagram.
 
 Explanation: Summarizes climate-only, technology-only, combined stress-case, and stochastic robustness comparisons.
 
-Source data or config: `config/model_v3/scenario_tree/comparison_definitions.yaml`.
+Source data or config: `config/scenario_tree/comparison_definitions.yaml`.
 
 Metrics used: not_applicable.
 
@@ -472,7 +478,7 @@ Caption: Input data inventory chart.
 
 Explanation: Counts detected input, config, summary, and metadata files by file type.
 
-Source data or config: `Repository file inventory under inputs/, config/model_v3/, and scenario-tree summaries.`.
+Source data or config: `Repository file inventory under inputs/, config/, and scenario-tree summaries.`.
 
 Metrics used: not_applicable.
 
@@ -486,7 +492,7 @@ Caption: Metric taxonomy diagram.
 
 Explanation: Groups standardized metrics into energy totals, grid stress, technology metrics, climate metrics, comparisons, and uncertainty summaries.
 
-Source data or config: `model_v3/experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics_schema.yaml`.
+Source data or config: `experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics_schema.yaml`.
 
 Metrics used: not_applicable.
 
@@ -528,7 +534,7 @@ Caption: Temperature by climate window and pathway
 
 Explanation: Existing generated scenario-tree figure copied into the handbook asset directory for stable inclusion.
 
-Source data or config: `model_v3/experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv;model_v3/experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics.csv`.
+Source data or config: `experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv;experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics.csv`.
 
 Metrics used: mean_T_out_C;winter_mean_T_out_C;summer_mean_T_out_C.
 
@@ -542,7 +548,7 @@ Caption: Heating and cooling degree days by climate window and pathway
 
 Explanation: Existing generated scenario-tree figure copied into the handbook asset directory for stable inclusion.
 
-Source data or config: `model_v3/experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv;model_v3/experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics.csv`.
+Source data or config: `experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv;experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics.csv`.
 
 Metrics used: HDD_15;HDD_18;CDD_22.
 
@@ -556,13 +562,111 @@ Caption: Solar forcing by climate window and pathway
 
 Explanation: Existing generated scenario-tree figure copied into the handbook asset directory for stable inclusion.
 
-Source data or config: `model_v3/experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv;model_v3/experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics.csv`.
+Source data or config: `experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv;experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics.csv`.
 
 Metrics used: mean_solar_W_m2.
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 15: Annual electricity demand by scenario
+### Figure 15: Annual HDD and CDD by Phase 1 climate scenario
+
+![Annual HDD and CDD by Phase 1 climate scenario](docs/model_v3_handbook_assets/existing_phase1_hdd_cdd_dot_interval.png)
+
+Caption: Annual HDD and CDD by Phase 1 climate scenario
+
+Explanation: Existing generated scenario-tree figure copied into the handbook asset directory for stable inclusion.
+
+Source data or config: `experiments/scenario_tree/summaries/comparison_level/annual_climate_degree_day_comparison.csv`.
+
+Metrics used: HDD_18;CDD_22.
+
+Figure type: data-derived or copied generated figure.
+
+### Figure 16: HDD percentage change versus historical baseline
+
+![HDD percentage change versus historical baseline](docs/model_v3_handbook_assets/existing_phase1_hdd_pct_decrease_heatmap.png)
+
+Caption: HDD percentage change versus historical baseline
+
+Explanation: Existing generated scenario-tree figure copied into the handbook asset directory for stable inclusion.
+
+Source data or config: `experiments/scenario_tree/summaries/comparison_level/annual_climate_degree_day_comparison.csv`.
+
+Metrics used: delta_HDD_18_pct.
+
+Figure type: data-derived or copied generated figure.
+
+### Figure 17: CDD absolute change versus historical baseline
+
+![CDD absolute change versus historical baseline](docs/model_v3_handbook_assets/existing_phase1_cdd_abs_increase_heatmap.png)
+
+Caption: CDD absolute change versus historical baseline
+
+Explanation: Existing generated scenario-tree figure copied into the handbook asset directory for stable inclusion.
+
+Source data or config: `experiments/scenario_tree/summaries/comparison_level/annual_climate_degree_day_comparison.csv`.
+
+Metrics used: delta_CDD_22_abs.
+
+Figure type: data-derived or copied generated figure.
+
+### Figure 18: Monthly demand timing by climate scenario
+
+![Monthly demand timing by climate scenario](docs/model_v3_handbook_assets/existing_output2_monthly_demand_stacked.png)
+
+Caption: Monthly demand timing by climate scenario
+
+Explanation: Existing generated scenario-tree figure copied into the handbook asset directory for stable inclusion.
+
+Source data or config: `experiments/scenario_tree/summaries/comparison_level/monthly_demand_shift_comparison.csv;experiments/scenario_tree/summaries/comparison_level/seasonal_demand_shift_comparison.csv`.
+
+Metrics used: monthly_space_heating_useful_kWh;monthly_electricity_gross_kWh;monthly_gas_kWh.
+
+Figure type: data-derived or copied generated figure.
+
+### Figure 19: Seasonal useful heating demand shift
+
+![Seasonal useful heating demand shift](docs/model_v3_handbook_assets/existing_output2_seasonal_heating_shift.png)
+
+Caption: Seasonal useful heating demand shift
+
+Explanation: Existing generated scenario-tree figure copied into the handbook asset directory for stable inclusion.
+
+Source data or config: `experiments/scenario_tree/summaries/comparison_level/monthly_demand_shift_comparison.csv;experiments/scenario_tree/summaries/comparison_level/seasonal_demand_shift_comparison.csv`.
+
+Metrics used: seasonal_space_heating_useful_kWh.
+
+Figure type: data-derived or copied generated figure.
+
+### Figure 20: Monthly cooling-pressure indicators
+
+![Monthly cooling-pressure indicators](docs/model_v3_handbook_assets/existing_output2_monthly_cooling_pressure.png)
+
+Caption: Monthly cooling-pressure indicators
+
+Explanation: Existing generated scenario-tree figure copied into the handbook asset directory for stable inclusion.
+
+Source data or config: `experiments/scenario_tree/summaries/comparison_level/monthly_demand_shift_comparison.csv;experiments/scenario_tree/summaries/comparison_level/seasonal_demand_shift_comparison.csv`.
+
+Metrics used: monthly_CDD_22;monthly_overheating_hours;monthly_indoor_temperature_exceedance_degree_hours.
+
+Figure type: data-derived or copied generated figure.
+
+### Figure 21: Seasonal share of annual useful heating demand
+
+![Seasonal share of annual useful heating demand](docs/model_v3_handbook_assets/existing_output2_seasonal_heating_share.png)
+
+Caption: Seasonal share of annual useful heating demand
+
+Explanation: Existing generated scenario-tree figure copied into the handbook asset directory for stable inclusion.
+
+Source data or config: `experiments/scenario_tree/summaries/comparison_level/monthly_demand_shift_comparison.csv;experiments/scenario_tree/summaries/comparison_level/seasonal_demand_shift_comparison.csv`.
+
+Metrics used: seasonal_heating_share_pct.
+
+Figure type: data-derived or copied generated figure.
+
+### Figure 22: Annual electricity demand by scenario
 
 ![Annual electricity demand by scenario](docs/model_v3_handbook_assets/existing_annual_electricity_by_scenario.png)
 
@@ -570,13 +674,13 @@ Caption: Annual electricity demand by scenario
 
 Explanation: Existing generated scenario-tree figure copied into the handbook asset directory for stable inclusion.
 
-Source data or config: `model_v3/experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv`.
+Source data or config: `experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv`.
 
 Metrics used: annual_electricity_gross_kWh;annual_grid_import_kWh.
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 16: Annual gas demand by scenario
+### Figure 23: Annual gas demand by scenario
 
 ![Annual gas demand by scenario](docs/model_v3_handbook_assets/existing_annual_gas_by_scenario.png)
 
@@ -584,13 +688,13 @@ Caption: Annual gas demand by scenario
 
 Explanation: Existing generated scenario-tree figure copied into the handbook asset directory for stable inclusion.
 
-Source data or config: `model_v3/experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv`.
+Source data or config: `experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv`.
 
 Metrics used: annual_gas_kWh.
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 17: Useful heating and domestic hot-water demand by scenario
+### Figure 24: Useful heating and domestic hot-water demand by scenario
 
 ![Useful heating and domestic hot-water demand by scenario](docs/model_v3_handbook_assets/existing_annual_heat_dhw_by_scenario.png)
 
@@ -598,13 +702,13 @@ Caption: Useful heating and domestic hot-water demand by scenario
 
 Explanation: Existing generated scenario-tree figure copied into the handbook asset directory for stable inclusion.
 
-Source data or config: `model_v3/experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv`.
+Source data or config: `experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv`.
 
 Metrics used: annual_useful_heating_kWh;annual_dhw_kWh.
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 18: Peak grid import by scenario
+### Figure 25: Peak grid import by scenario
 
 ![Peak grid import by scenario](docs/model_v3_handbook_assets/existing_peak_grid_import_by_scenario.png)
 
@@ -612,13 +716,13 @@ Caption: Peak grid import by scenario
 
 Explanation: Existing generated scenario-tree figure copied into the handbook asset directory for stable inclusion.
 
-Source data or config: `model_v3/experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv`.
+Source data or config: `experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv`.
 
 Metrics used: peak_grid_import_W;winter_peak_grid_import_W;summer_peak_grid_import_W.
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 19: Annual grid import and export by scenario
+### Figure 26: Annual grid import and export by scenario
 
 ![Annual grid import and export by scenario](docs/model_v3_handbook_assets/existing_grid_import_export_by_scenario.png)
 
@@ -626,13 +730,13 @@ Caption: Annual grid import and export by scenario
 
 Explanation: Existing generated scenario-tree figure copied into the handbook asset directory for stable inclusion.
 
-Source data or config: `model_v3/experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv`.
+Source data or config: `experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv`.
 
 Metrics used: annual_grid_import_kWh;annual_grid_export_kWh.
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 20: PV generation, self-consumption, and export by scenario
+### Figure 27: PV generation, self-consumption, and export by scenario
 
 ![PV generation, self-consumption, and export by scenario](docs/model_v3_handbook_assets/existing_pv_self_consumption_export_by_scenario.png)
 
@@ -640,13 +744,13 @@ Caption: PV generation, self-consumption, and export by scenario
 
 Explanation: Existing generated scenario-tree figure copied into the handbook asset directory for stable inclusion.
 
-Source data or config: `model_v3/experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv`.
+Source data or config: `experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv`.
 
 Metrics used: pv_generation_kWh;pv_self_consumption_kWh;pv_export_fraction.
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 21: EV charging demand by scenario
+### Figure 28: EV charging demand by scenario
 
 ![EV charging demand by scenario](docs/model_v3_handbook_assets/existing_ev_charging_by_scenario.png)
 
@@ -654,13 +758,13 @@ Caption: EV charging demand by scenario
 
 Explanation: Existing generated scenario-tree figure copied into the handbook asset directory for stable inclusion.
 
-Source data or config: `model_v3/experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv`.
+Source data or config: `experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv`.
 
 Metrics used: ev_charging_kWh.
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 22: Stochastic uncertainty band for annual grid import
+### Figure 29: Stochastic uncertainty band for annual grid import
 
 ![Stochastic uncertainty band for annual grid import](docs/model_v3_handbook_assets/existing_uncertainty_band_grid_import.png)
 
@@ -668,13 +772,13 @@ Caption: Stochastic uncertainty band for annual grid import
 
 Explanation: Existing generated scenario-tree figure copied into the handbook asset directory for stable inclusion.
 
-Source data or config: `model_v3/experiments/scenario_tree/summaries/comparison_level/stochastic_robustness/stochastic_uncertainty_bands.csv`.
+Source data or config: `experiments/scenario_tree/summaries/comparison_level/stochastic_robustness/stochastic_uncertainty_bands.csv`.
 
 Metrics used: annual_grid_import_kWh.
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 23: Stochastic uncertainty band for peak grid import
+### Figure 30: Stochastic uncertainty band for peak grid import
 
 ![Stochastic uncertainty band for peak grid import](docs/model_v3_handbook_assets/existing_uncertainty_band_peak_import.png)
 
@@ -682,13 +786,13 @@ Caption: Stochastic uncertainty band for peak grid import
 
 Explanation: Existing generated scenario-tree figure copied into the handbook asset directory for stable inclusion.
 
-Source data or config: `model_v3/experiments/scenario_tree/summaries/comparison_level/stochastic_robustness/stochastic_uncertainty_bands.csv`.
+Source data or config: `experiments/scenario_tree/summaries/comparison_level/stochastic_robustness/stochastic_uncertainty_bands.csv`.
 
 Metrics used: peak_grid_import_W.
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 24: Stochastic uncertainty band for useful heating demand
+### Figure 31: Stochastic uncertainty band for useful heating demand
 
 ![Stochastic uncertainty band for useful heating demand](docs/model_v3_handbook_assets/existing_uncertainty_band_useful_heating.png)
 
@@ -696,13 +800,13 @@ Caption: Stochastic uncertainty band for useful heating demand
 
 Explanation: Existing generated scenario-tree figure copied into the handbook asset directory for stable inclusion.
 
-Source data or config: `model_v3/experiments/scenario_tree/summaries/comparison_level/stochastic_robustness/stochastic_uncertainty_bands.csv`.
+Source data or config: `experiments/scenario_tree/summaries/comparison_level/stochastic_robustness/stochastic_uncertainty_bands.csv`.
 
 Metrics used: annual_useful_heating_kWh.
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 25: Winter peak grid import versus electrification level
+### Figure 32: Winter peak grid import versus electrification level
 
 ![Winter peak grid import versus electrification level](docs/model_v3_handbook_assets/existing_winter_peak_vs_electrification.png)
 
@@ -710,13 +814,13 @@ Caption: Winter peak grid import versus electrification level
 
 Explanation: Existing generated scenario-tree figure copied into the handbook asset directory for stable inclusion.
 
-Source data or config: `model_v3/experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv`.
+Source data or config: `experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv`.
 
 Metrics used: winter_peak_grid_import_W.
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 26: Summer peak emergence relative to winter peak
+### Figure 33: Summer peak emergence relative to winter peak
 
 ![Summer peak emergence relative to winter peak](docs/model_v3_handbook_assets/existing_summer_peak_emergence.png)
 
@@ -724,13 +828,13 @@ Caption: Summer peak emergence relative to winter peak
 
 Explanation: Existing generated scenario-tree figure copied into the handbook asset directory for stable inclusion.
 
-Source data or config: `model_v3/experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv`.
+Source data or config: `experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv`.
 
 Metrics used: summer_peak_grid_import_W;winter_peak_grid_import_W.
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 27: Baseline versus combined stress-case grid peak
+### Figure 34: Baseline versus combined stress-case grid peak
 
 ![Baseline versus combined stress-case grid peak](docs/model_v3_handbook_assets/existing_combined_stress_case_grid_peak.png)
 
@@ -738,7 +842,7 @@ Caption: Baseline versus combined stress-case grid peak
 
 Explanation: Existing generated scenario-tree figure copied into the handbook asset directory for stable inclusion.
 
-Source data or config: `model_v3/experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv;model_v3/experiments/scenario_tree/summaries/comparison_level/combined_stress_case/combined_stress_case_absolute_metrics.csv`.
+Source data or config: `experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv;experiments/scenario_tree/summaries/comparison_level/combined_stress_case/combined_stress_case_absolute_metrics.csv`.
 
 Metrics used: peak_grid_import_W;winter_peak_grid_import_W;summer_peak_grid_import_W.
 
@@ -818,25 +922,25 @@ Check which phases have actually been implemented, run validation commands, gene
 Important commands:
 
 ```bash
-python3 -m model_v3.scenario_tree.validate_scenario_tree --config-root config/model_v3/scenario_tree
-python3 -m model_v3.scenario_tree.create_scenario_tree_space --config-root config/model_v3/scenario_tree --experiment-root model_v3/experiments/scenario_tree --print-summary
-python3 -m model_v3.scenario_tree.generate_leaf_configs --config-root config/model_v3/scenario_tree --experiment-root model_v3/experiments/scenario_tree --climate-processed-root inputs/climate/processed --belgian-technology-inputs config/model_v3/belgian_technology_inputs.yaml --cohort-size 100 --write-report --print-summary
-python3 -m model_v3.scenario_tree.validate_leaf_configs --experiment-root model_v3/experiments/scenario_tree --config-root config/model_v3/scenario_tree --climate-processed-root inputs/climate/processed --belgian-technology-inputs config/model_v3/belgian_technology_inputs.yaml --print-summary
+python3 -m model_v3.scenario_tree.validate_scenario_tree --config-root config/scenario_tree
+python3 -m model_v3.scenario_tree.create_scenario_tree_space --config-root config/scenario_tree --experiment-root experiments/scenario_tree --print-summary
+python3 -m model_v3.scenario_tree.generate_leaf_configs --config-root config/scenario_tree --experiment-root experiments/scenario_tree --climate-processed-root inputs/climate/processed --belgian-technology-inputs config/belgian_technology_inputs.yaml --cohort-size 100 --write-report --print-summary
+python3 -m model_v3.scenario_tree.validate_leaf_configs --experiment-root experiments/scenario_tree --config-root config/scenario_tree --climate-processed-root inputs/climate/processed --belgian-technology-inputs config/belgian_technology_inputs.yaml --print-summary
 python3 -m model_v3.scenarios.run_scenario_tree --dry-run --print-summary
-python3 -m model_v3.scenarios.summarize_outputs --experiment-root model_v3/experiments/scenario_tree --config-root config/model_v3/scenario_tree --only-successful --write-reports --print-summary
-python3 -m model_v3.scenarios.generate_comparisons --experiment-root model_v3/experiments/scenario_tree --comparison-definitions config/model_v3/scenario_tree/comparison_definitions.yaml --write-reports --print-summary
-python3 -m model_v3.scenarios.generate_figures --experiment-root model_v3/experiments/scenario_tree --figures-root figures/scenario_tree --write-metadata --write-captions --print-summary
-python3 -m model_v3.scenarios.audit_scenario_tree --experiment-root model_v3/experiments/scenario_tree --config-root config/model_v3/scenario_tree --figures-root figures/scenario_tree --write-reports --print-summary
+python3 -m model_v3.scenarios.summarize_outputs --experiment-root experiments/scenario_tree --config-root config/scenario_tree --only-successful --write-reports --print-summary
+python3 -m model_v3.scenarios.generate_comparisons --experiment-root experiments/scenario_tree --comparison-definitions config/scenario_tree/comparison_definitions.yaml --write-reports --print-summary
+python3 -m model_v3.scenarios.generate_figures --experiment-root experiments/scenario_tree --figures-root figures/scenario_tree --write-metadata --write-captions --print-summary
+python3 -m model_v3.scenarios.audit_scenario_tree --experiment-root experiments/scenario_tree --config-root config/scenario_tree --figures-root figures/scenario_tree --write-reports --print-summary
 python3 -m model_v3.documentation.build_model_handbook --repo-root . --output docs/model_v3_complete_model_handbook.pdf --write-source --write-figures --print-summary
 ```
 
 ## Common tasks
 
-List leaves by opening `model_v3/experiments/scenario_tree/manifests/scenario_leaf_index.csv`. Inspect one leaf by opening its run folder under `model_v3/experiments/scenario_tree/runs/{scenario_leaf_id}/`. Rerun a failed leaf with the runner and the same `--scenario-leaf-id`. Force rerun a successful leaf only when you intentionally want to replace or add an attempt. Find outputs under the leaf's `outputs/`, logs under `logs/`, metrics under `summaries/`, comparisons under `summaries/comparison_level/`, figures under `figures/scenario_tree/`, and audit traceability under `reports/scenario_tree_traceability_matrix.csv`.
+List leaves by opening `experiments/scenario_tree/manifests/scenario_leaf_index.csv`. Inspect one leaf by opening its run folder under `experiments/scenario_tree/runs/{scenario_leaf_id}/`. Rerun a failed leaf with the runner and the same `--scenario-leaf-id`. Force rerun a successful leaf only when you intentionally want to replace or add an attempt. Find outputs under the leaf's `outputs/`, logs under `logs/`, metrics under `summaries/`, comparisons under `summaries/comparison_level/`, figures under `figures/scenario_tree/`, and audit traceability under `reports/scenario_tree_traceability_matrix.csv`.
 
 ## Troubleshooting
 
-Missing climate forcing file: run leaf-config validation and inspect `inputs_manifest.yaml`. Ambiguous climate forcing file: check filename tokens and sidecar metadata. Missing Belgian technology input YAML: confirm `config/model_v3/belgian_technology_inputs.yaml`. Invalid scenario ID: validate against `scenario_tree_schema.yaml`. Run already successful and skipped: use registry status and `--force` only if needed. Config validation fails: inspect config validation report. Summary metric missing: inspect raw output files and `output_reader.py` mappings. Figure not generated: validate figures and check source tables. PDF build backend missing: this script uses Matplotlib PDF when Pandoc/WeasyPrint/ReportLab are unavailable.
+Missing climate forcing file: run leaf-config validation and inspect `inputs_manifest.yaml`. Ambiguous climate forcing file: check filename tokens and sidecar metadata. Missing Belgian technology input YAML: confirm `config/belgian_technology_inputs.yaml`. Invalid scenario ID: validate against `scenario_tree_schema.yaml`. Run already successful and skipped: use registry status and `--force` only if needed. Config validation fails: inspect config validation report. Summary metric missing: inspect raw output files and `output_reader.py` mappings. Figure not generated: validate figures and check source tables. PDF build backend missing: this script uses Matplotlib PDF when Pandoc/WeasyPrint/ReportLab are unavailable.
 
 
 # Chapter 16 - Supervisor presentation guide
@@ -910,7 +1014,7 @@ This chapter is a study reference. Each term includes definition, where it appea
 | technology case | A branch describing residential technology assumptions. | technology_cases.yaml | It controls heat pumps, PV, EV, gas/electric shifts. | The metadata may be qualitative unless calibrated. |
 | stress case | A high-impact comparison branch such as long-term RCP8.5 with high electrification, PV, and EV. | comparison_definitions.yaml | It probes infrastructure stress. | It is not the most likely future. |
 | bottom-up model | A model that builds demand from household/building/end-use mechanisms rather than fitting aggregate totals only. | model_v3 architecture | It links assumptions to physical and behavioural drivers. | It still needs calibration. |
-| archetype | A representative dwelling or household category with shared parameters. | inputs/model_v3/building and archetypes.yaml | It reduces complexity while preserving building diversity. | It may hide within-category variation. |
+| archetype | A representative dwelling or household category with shared parameters. | inputs/building and archetypes.yaml | It reduces complexity while preserving building diversity. | It may hide within-category variation. |
 | one-zone thermal model | A lumped building representation with one indoor temperature state. | physics_core.py and thermal_dynamics.py | It enables transparent heat-balance simulation. | It does not model room-by-room dynamics. |
 | heat balance | Accounting of heat losses, gains, and supplied heat over a timestep. | physics_core.py | It drives useful heating demand. | Simplified terms may omit detailed dynamics. |
 | thermal mass | The effective heat capacity that slows indoor temperature changes. | InputDataset, PreparedForcing, PhysicsState | It affects peaks and comfort. | It is difficult to know precisely for real dwellings. |
@@ -986,27 +1090,27 @@ This chapter is a study reference. Each term includes definition, where it appea
 
 | path | role | phase | required/optional | exists |
 | --- | --- | --- | --- | --- |
-| config/model_v3/ | expected repository artifact | Phase 1-9 | context | yes |
-| config/model_v3/scenario_tree/ | scenario-tree config, artifact, report, or figure | Phase 1-9 | context | yes |
-| config/model_v3/scenario_tree/scenario_tree_schema.yaml | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
-| config/model_v3/scenario_tree/climate_windows.yaml | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
-| config/model_v3/scenario_tree/technology_cases.yaml | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
-| config/model_v3/scenario_tree/realization_policy.yaml | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
-| config/model_v3/scenario_tree/comparison_definitions.yaml | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
-| config/model_v3/belgian_technology_inputs.yaml | expected repository artifact | Phase 1-9 | required | yes |
+| config/ | expected repository artifact | Phase 1-9 | context | yes |
+| config/scenario_tree/ | scenario-tree config, artifact, report, or figure | Phase 1-9 | context | yes |
+| config/scenario_tree/scenario_tree_schema.yaml | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
+| config/scenario_tree/climate_windows.yaml | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
+| config/scenario_tree/technology_cases.yaml | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
+| config/scenario_tree/realization_policy.yaml | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
+| config/scenario_tree/comparison_definitions.yaml | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
+| config/belgian_technology_inputs.yaml | expected repository artifact | Phase 1-9 | required | yes |
 | inputs/ | model input data | Phase 1-9 | context | yes |
 | inputs/climate/ | model input data | Phase 1-9 | context | yes |
 | inputs/climate/processed/ | model input data | Phase 1-9 | context | yes |
-| model_v3/experiments/scenario_tree/ | scenario-tree config, artifact, report, or figure | Phase 1-9 | context | yes |
-| model_v3/experiments/scenario_tree/manifests/scenario_tree_manifest.yaml | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
-| model_v3/experiments/scenario_tree/manifests/scenario_leaf_index.csv | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
-| model_v3/experiments/scenario_tree/manifests/run_registry.csv | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
-| model_v3/experiments/scenario_tree/manifests/config_validation_report.md | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
-| model_v3/experiments/scenario_tree/manifests/summary_validation_report.md | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
-| model_v3/experiments/scenario_tree/manifests/comparison_validation_report.md | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
-| model_v3/experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics.csv | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
-| model_v3/experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
-| model_v3/experiments/scenario_tree/summaries/comparison_level/comparison_index.csv | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
+| experiments/scenario_tree/ | scenario-tree config, artifact, report, or figure | Phase 1-9 | context | yes |
+| experiments/scenario_tree/manifests/scenario_tree_manifest.yaml | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
+| experiments/scenario_tree/manifests/scenario_leaf_index.csv | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
+| experiments/scenario_tree/manifests/run_registry.csv | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
+| experiments/scenario_tree/manifests/config_validation_report.md | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
+| experiments/scenario_tree/manifests/summary_validation_report.md | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
+| experiments/scenario_tree/manifests/comparison_validation_report.md | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
+| experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics.csv | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
+| experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
+| experiments/scenario_tree/summaries/comparison_level/comparison_index.csv | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
 | figures/scenario_tree/ | scenario-tree config, artifact, report, or figure | Phase 1-9 | context | yes |
 | figures/scenario_tree/metadata/figure_metadata.yaml | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
 | figures/scenario_tree/thesis_caption_drafts.md | scenario-tree config, artifact, report, or figure | Phase 1-9 | required | yes |
@@ -1028,6 +1132,17 @@ This chapter is a study reference. Each term includes definition, where it appea
 
 | path | type | purpose | temporal resolution | units | scenario dimension | required | validation status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| inputs/README.md | md | Repository configuration or metadata. | not_detected | not_detected | not_applicable | optional | see validation reports if present |
+| inputs/building/airflow_archetypes_v2.csv | csv | Building or archetype parameters used by the model input layer. | not_detected | floor_area_m2, stock_weight | building/archetype assumptions | optional | see validation reports if present |
+| inputs/building/archetype_parameters_merged_v2.csv | csv | Building or archetype parameters used by the model input layer. | not_detected | stock_weight, floor_area_m2 | building/archetype assumptions | optional | see validation reports if present |
+| inputs/building/archetype_parameters_merged_v2.md | md | Building or archetype parameters used by the model input layer. | not_detected | not_detected | building/archetype assumptions | optional | see validation reports if present |
+| inputs/building/archetype_parameters_merged_v3.csv | csv | Building or archetype parameters used by the model input layer. | not_detected | column names inspected; units not explicit | building/archetype assumptions | optional | see validation reports if present |
+| inputs/building/archetype_parameters_merged_v3.md | md | Building or archetype parameters used by the model input layer. | not_detected | not_detected | building/archetype assumptions | optional | see validation reports if present |
+| inputs/building/archetype_parameters_v1.csv | csv | Building or archetype parameters used by the model input layer. | timestamped; inspect source for exact step | heating_carrier, heating_system_class | building/archetype assumptions | optional | see validation reports if present |
+| inputs/building/envelope_archetypes_v1.csv | csv | Building or archetype parameters used by the model input layer. | not_detected | floor_area_m2 | building/archetype assumptions | optional | see validation reports if present |
+| inputs/building/envelope_archetypes_v2.csv | csv | Building or archetype parameters used by the model input layer. | not_detected | column names inspected; units not explicit | building/archetype assumptions | optional | see validation reports if present |
+| inputs/building/internal_gains_archetypes_v2.csv | csv | Building or archetype parameters used by the model input layer. | not_detected | floor_area_m2, stock_weight | building/archetype assumptions | optional | see validation reports if present |
+| inputs/building/renovation_prevalence_epc_mapping.csv | csv | Building or archetype parameters used by the model input layer. | not_detected | column names inspected; units not explicit | building/archetype assumptions | optional | see validation reports if present |
 | inputs/climate/processed/baseline/weather_baseline_historical_cnrm_cerfacs_cm5_cnrm_aladin63_r1i1p1.csv | csv | Processed climate forcing for a canonical scenario-tree branch. | timestamped; inspect source for exact step | T_out_C, I_solar_W_m2 | climate_window_id, climate_pathway_id | required_for_configured_climate_leaves | see validation reports if present |
 | inputs/climate/processed/baseline/weather_baseline_historical_cnrm_cerfacs_cm5_cnrm_aladin63_r1i1p1.metadata.json | json | Processed climate forcing for a canonical scenario-tree branch. | not_detected | not_detected | climate_window_id, climate_pathway_id | required_for_configured_climate_leaves | see validation reports if present |
 | inputs/climate/processed/long_term/weather_long_term_rcp_2_6_cnrm_cerfacs_cm5_cnrm_aladin63_r1i1p1.csv | csv | Processed climate forcing for a canonical scenario-tree branch. | timestamped; inspect source for exact step | T_out_C, I_solar_W_m2 | climate_window_id, climate_pathway_id | required_for_configured_climate_leaves | see validation reports if present |
@@ -1048,86 +1163,75 @@ This chapter is a study reference. Each term includes definition, where it appea
 | inputs/climate/processed/near_future/weather_near_future_rcp_4_5_cnrm_cerfacs_cm5_cnrm_aladin63_r1i1p1.metadata.json | json | Processed climate forcing for a canonical scenario-tree branch. | not_detected | not_detected | climate_window_id, climate_pathway_id | required_for_configured_climate_leaves | see validation reports if present |
 | inputs/climate/processed/near_future/weather_near_future_rcp_8_5_cnrm_cerfacs_cm5_cnrm_aladin63_r1i1p1.csv | csv | Processed climate forcing for a canonical scenario-tree branch. | timestamped; inspect source for exact step | T_out_C, I_solar_W_m2 | climate_window_id, climate_pathway_id | required_for_configured_climate_leaves | see validation reports if present |
 | inputs/climate/processed/near_future/weather_near_future_rcp_8_5_cnrm_cerfacs_cm5_cnrm_aladin63_r1i1p1.metadata.json | json | Processed climate forcing for a canonical scenario-tree branch. | not_detected | not_detected | climate_window_id, climate_pathway_id | required_for_configured_climate_leaves | see validation reports if present |
-| inputs/model_v3/README.md | md | Repository configuration or metadata. | not_detected | not_detected | not_applicable | optional | see validation reports if present |
-| inputs/model_v3/building/airflow_archetypes_v2.csv | csv | Building or archetype parameters used by the model input layer. | not_detected | floor_area_m2, stock_weight | building/archetype assumptions | optional | see validation reports if present |
-| inputs/model_v3/building/archetype_parameters_merged_v2.csv | csv | Building or archetype parameters used by the model input layer. | not_detected | stock_weight, floor_area_m2 | building/archetype assumptions | optional | see validation reports if present |
-| inputs/model_v3/building/archetype_parameters_merged_v2.md | md | Building or archetype parameters used by the model input layer. | not_detected | not_detected | building/archetype assumptions | optional | see validation reports if present |
-| inputs/model_v3/building/archetype_parameters_v1.csv | csv | Building or archetype parameters used by the model input layer. | timestamped; inspect source for exact step | heating_carrier, heating_system_class | building/archetype assumptions | optional | see validation reports if present |
-| inputs/model_v3/building/internal_gains_archetypes_v2.csv | csv | Building or archetype parameters used by the model input layer. | not_detected | floor_area_m2, stock_weight | building/archetype assumptions | optional | see validation reports if present |
-| inputs/model_v3/end_use/EU27_BE_household_enduse_2019.csv | csv | Repository configuration or metadata. | not_detected | column names inspected; units not explicit | not_applicable | optional | see validation reports if present |
-| inputs/model_v3/load_profiles/LCL_2013.csv | csv | Observed or representative load profile input data. | timestamped; inspect source for exact step | column names inspected; units not explicit | stochastic/end-use behaviour | optional | see validation reports if present |
-| inputs/model_v3/load_profiles/fluvius/P6269_Open_Data_EV_geen_ZP.csv | csv | Observed or representative load profile input data. | not_detected | Volume_Afname_KWh, Volume_Injectie_KWh | stochastic/end-use behaviour | optional | see validation reports if present |
-| inputs/model_v3/load_profiles/fluvius/P6269_Open_Data_EV_met_ZP.csv | csv | Observed or representative load profile input data. | not_detected | Volume_Afname_KWh, Volume_Injectie_KWh | stochastic/end-use behaviour | optional | see validation reports if present |
-| inputs/model_v3/load_profiles/fluvius/P6269_Open_Data_WP_EV_geen_ZP.csv | csv | Observed or representative load profile input data. | not_detected | Volume_Afname_KWh, Volume_Injectie_KWh | stochastic/end-use behaviour | optional | see validation reports if present |
-| inputs/model_v3/load_profiles/fluvius/P6269_Open_Data_WP_EV_met_ZP.csv | csv | Observed or representative load profile input data. | not_detected | Volume_Afname_KWh, Volume_Injectie_KWh | stochastic/end-use behaviour | optional | see validation reports if present |
-| inputs/model_v3/load_profiles/fluvius/P6269_Open_Data_WP_geen_ZP.csv | csv | Observed or representative load profile input data. | not_detected | Volume_Afname_KWh, Volume_Injectie_KWh | stochastic/end-use behaviour | optional | see validation reports if present |
-| inputs/model_v3/load_profiles/fluvius/P6269_Open_Data_WP_met_ZP.csv | csv | Observed or representative load profile input data. | not_detected | Volume_Afname_KWh, Volume_Injectie_KWh | stochastic/end-use behaviour | optional | see validation reports if present |
-| inputs/model_v3/load_profiles/fluvius/P6269_Open_Data_enkel_ZP.csv | csv | Observed or representative load profile input data. | not_detected | Volume_Afname_KWh, Volume_Injectie_KWh | stochastic/end-use behaviour | optional | see validation reports if present |
-| inputs/model_v3/load_profiles/fluvius/P6269_Open_Data_geen_ZP.csv | csv | Observed or representative load profile input data. | not_detected | Volume_Afname_KWh, Volume_Injectie_KWh | stochastic/end-use behaviour | optional | see validation reports if present |
-| inputs/model_v3/load_profiles/kul/house_1/house_1-elec.csv | csv | Observed or representative load profile input data. | timestamped; inspect source for exact step | column names inspected; units not explicit | stochastic/end-use behaviour | optional | see validation reports if present |
-| inputs/model_v3/load_profiles/kul/house_1/house_1-metadata.md | md | Observed or representative load profile input data. | not_detected | not_detected | stochastic/end-use behaviour | optional | see validation reports if present |
-| inputs/model_v3/load_profiles/kul/house_2/house_2-elec.csv | csv | Observed or representative load profile input data. | timestamped; inspect source for exact step | column names inspected; units not explicit | stochastic/end-use behaviour | optional | see validation reports if present |
-| inputs/model_v3/load_profiles/kul/house_2/house_2-metadata.md | md | Observed or representative load profile input data. | not_detected | not_detected | stochastic/end-use behaviour | optional | see validation reports if present |
-| inputs/model_v3/load_profiles/kul/house_3/house_3-elec.csv | csv | Observed or representative load profile input data. | timestamped; inspect source for exact step | column names inspected; units not explicit | stochastic/end-use behaviour | optional | see validation reports if present |
-| inputs/model_v3/load_profiles/kul/house_3/house_3-metadata.md | md | Observed or representative load profile input data. | not_detected | not_detected | stochastic/end-use behaviour | optional | see validation reports if present |
-| inputs/model_v3/occupancy/occupancy_model_spec_v1.yaml | yaml | Occupancy model specification. | not_detected | not_detected | stochastic behaviour | optional | see validation reports if present |
-| inputs/model_v3/solar/TimeseriesEAST_50.830_4.350_SA3_90deg_-90deg_2005_2023.csv | csv | Solar generation or irradiance input data. | not_detected | column names inspected; units not explicit | technology/PV and forcing | optional | see validation reports if present |
-| inputs/model_v3/solar/TimeseriesNORTH_50.830_4.350_SA3_90deg_-179deg_2005_2023.csv | csv | Solar generation or irradiance input data. | not_detected | column names inspected; units not explicit | technology/PV and forcing | optional | see validation reports if present |
-| inputs/model_v3/solar/TimeseriesSOUTH_50.830_4.350_SA3_90deg_0deg_2005_2023.csv | csv | Solar generation or irradiance input data. | not_detected | column names inspected; units not explicit | technology/PV and forcing | optional | see validation reports if present |
-| inputs/model_v3/solar/TimeseriesWEST_50.830_4.350_SA3_90deg_90deg_2005_2023.csv | csv | Solar generation or irradiance input data. | not_detected | column names inspected; units not explicit | technology/PV and forcing | optional | see validation reports if present |
-| inputs/model_v3/solar/raw_inputs/ods001.csv | csv | Solar generation or irradiance input data. | timestamped; inspect source for exact step | column names inspected; units not explicit | technology/PV and forcing | optional | see validation reports if present |
-| inputs/model_v3/solar/raw_inputs/solardata_50.847_4.352_SA3_90deg_-179deg_2023_2023.csv | csv | Solar generation or irradiance input data. | not_detected | column names inspected; units not explicit | technology/PV and forcing | optional | see validation reports if present |
-| inputs/model_v3/solar/raw_inputs/solardata_50.847_4.352_SA3_90deg_-90deg_2023_2023.csv | csv | Solar generation or irradiance input data. | not_detected | column names inspected; units not explicit | technology/PV and forcing | optional | see validation reports if present |
-| inputs/model_v3/solar/raw_inputs/solardata_50.847_4.352_SA3_90deg_0deg_2023_2023.csv | csv | Solar generation or irradiance input data. | not_detected | column names inspected; units not explicit | technology/PV and forcing | optional | see validation reports if present |
-| inputs/model_v3/solar/raw_inputs/solardata_50.847_4.352_SA3_90deg_90deg_2023_2023.csv | csv | Solar generation or irradiance input data. | not_detected | column names inspected; units not explicit | technology/PV and forcing | optional | see validation reports if present |
-| inputs/model_v3/weather/Timeseries_pvgisWEATHER_50.830_4.350_SA3_0deg_0deg_2005_2023.csv | csv | Repository configuration or metadata. | not_detected | column names inspected; units not explicit | not_applicable | optional | see validation reports if present |
-| inputs/model_v3/weather/aws_1hour_Uccle.csv | csv | Repository configuration or metadata. | timestamped; inspect source for exact step | column names inspected; units not explicit | not_applicable | optional | see validation reports if present |
-| config/model_v3/archetypes.yaml | yaml | Repository configuration or metadata. | not_detected | not_detected | not_applicable | optional | see validation reports if present |
-| config/model_v3/belgian_technology_inputs.yaml | yaml | Belgian residential technology assumptions consumed by run configs. | not_detected | not_detected | technology_case_id | required_for_scenario_runs | see validation reports if present |
-| config/model_v3/model_v3.yaml | yaml | Repository configuration or metadata. | not_detected | not_detected | not_applicable | optional | see validation reports if present |
-| config/model_v3/model_v3_thesis.yaml | yaml | Repository configuration or metadata. | not_detected | not_detected | not_applicable | optional | see validation reports if present |
-| config/model_v3/scenario_tree/climate_windows.yaml | yaml | Scenario-tree contract, dimensions, or comparison definitions. | not_detected | not_detected | scenario tree | required | see validation reports if present |
-| config/model_v3/scenario_tree/comparison_definitions.yaml | yaml | Scenario-tree contract, dimensions, or comparison definitions. | not_detected | not_detected | scenario tree | required | see validation reports if present |
-| config/model_v3/scenario_tree/realization_policy.yaml | yaml | Scenario-tree contract, dimensions, or comparison definitions. | not_detected | not_detected | scenario tree | required | see validation reports if present |
-| config/model_v3/scenario_tree/scenario_tree_schema.yaml | yaml | Scenario-tree contract, dimensions, or comparison definitions. | not_detected | not_detected | scenario tree | required | see validation reports if present |
-| config/model_v3/scenario_tree/technology_cases.yaml | yaml | Scenario-tree contract, dimensions, or comparison definitions. | not_detected | not_detected | scenario tree | required | see validation reports if present |
-| model_v3/experiments/scenario_tree/summaries/comparison_level/baseline_comparison_metrics.csv | csv | Generated standardized summary or comparison table. | not_detected | climate_window_id | outputs/metrics | optional | see validation reports if present |
-| model_v3/experiments/scenario_tree/summaries/comparison_level/climate_only/climate_only_absolute_metrics.csv | csv | Generated standardized summary or comparison table. | not_detected | column names inspected; units not explicit | outputs/metrics | optional | see validation reports if present |
-| model_v3/experiments/scenario_tree/summaries/comparison_level/climate_only/climate_only_delta_vs_baseline.csv | csv | Generated standardized summary or comparison table. | not_detected | column names inspected; units not explicit | outputs/metrics | optional | see validation reports if present |
-| model_v3/experiments/scenario_tree/summaries/comparison_level/climate_only/climate_only_diagnostics.yaml | yaml | Generated standardized summary or comparison table. | not_detected | not_detected | outputs/metrics | optional | see validation reports if present |
-| model_v3/experiments/scenario_tree/summaries/comparison_level/climate_only/climate_only_percentage_change_vs_baseline.csv | csv | Generated standardized summary or comparison table. | not_detected | column names inspected; units not explicit | outputs/metrics | optional | see validation reports if present |
-| model_v3/experiments/scenario_tree/summaries/comparison_level/climate_only/climate_only_uncertainty_bands.csv | csv | Generated standardized summary or comparison table. | not_detected | climate_window_id, technology_case_id | outputs/metrics | optional | see validation reports if present |
-| model_v3/experiments/scenario_tree/summaries/comparison_level/combined_stress_case/combined_stress_case_absolute_metrics.csv | csv | Generated standardized summary or comparison table. | not_detected | column names inspected; units not explicit | outputs/metrics | optional | see validation reports if present |
-| model_v3/experiments/scenario_tree/summaries/comparison_level/combined_stress_case/combined_stress_case_delta_vs_baseline.csv | csv | Generated standardized summary or comparison table. | not_detected | column names inspected; units not explicit | outputs/metrics | optional | see validation reports if present |
-| model_v3/experiments/scenario_tree/summaries/comparison_level/combined_stress_case/combined_stress_case_diagnostics.yaml | yaml | Generated standardized summary or comparison table. | not_detected | not_detected | outputs/metrics | optional | see validation reports if present |
-| model_v3/experiments/scenario_tree/summaries/comparison_level/combined_stress_case/combined_stress_case_percentage_change_vs_baseline.csv | csv | Generated standardized summary or comparison table. | not_detected | column names inspected; units not explicit | outputs/metrics | optional | see validation reports if present |
-| model_v3/experiments/scenario_tree/summaries/comparison_level/combined_stress_case/combined_stress_case_uncertainty_bands.csv | csv | Generated standardized summary or comparison table. | not_detected | climate_window_id, technology_case_id | outputs/metrics | optional | see validation reports if present |
-| model_v3/experiments/scenario_tree/summaries/comparison_level/comparison_index.csv | csv | Generated standardized summary or comparison table. | not_detected | row_count | outputs/metrics | optional | see validation reports if present |
-| model_v3/experiments/scenario_tree/summaries/comparison_level/comparison_index.yaml | yaml | Generated standardized summary or comparison table. | not_detected | not_detected | outputs/metrics | optional | see validation reports if present |
-| model_v3/experiments/scenario_tree/summaries/comparison_level/stochastic_robustness/stochastic_robustness_diagnostics.yaml | yaml | Generated standardized summary or comparison table. | not_detected | not_detected | outputs/metrics | optional | see validation reports if present |
-| model_v3/experiments/scenario_tree/summaries/comparison_level/stochastic_robustness/stochastic_spread_metrics.csv | csv | Generated standardized summary or comparison table. | not_detected | climate_window_id, technology_case_id | outputs/metrics | optional | see validation reports if present |
-| model_v3/experiments/scenario_tree/summaries/comparison_level/stochastic_robustness/stochastic_uncertainty_bands.csv | csv | Generated standardized summary or comparison table. | not_detected | climate_window_id, technology_case_id | outputs/metrics | optional | see validation reports if present |
-| model_v3/experiments/scenario_tree/summaries/comparison_level/technology_only/technology_only_absolute_metrics.csv | csv | Generated standardized summary or comparison table. | not_detected | column names inspected; units not explicit | outputs/metrics | optional | see validation reports if present |
+| inputs/end_use/EU27_BE_household_enduse_2019.csv | csv | Repository configuration or metadata. | not_detected | column names inspected; units not explicit | not_applicable | optional | see validation reports if present |
+| inputs/load_profiles/LCL_2013.csv | csv | Observed or representative load profile input data. | timestamped; inspect source for exact step | column names inspected; units not explicit | stochastic/end-use behaviour | optional | see validation reports if present |
+| inputs/load_profiles/fluvius/P6269_Open_Data_EV_geen_ZP.csv | csv | Observed or representative load profile input data. | not_detected | Volume_Afname_KWh, Volume_Injectie_KWh | stochastic/end-use behaviour | optional | see validation reports if present |
+| inputs/load_profiles/fluvius/P6269_Open_Data_EV_met_ZP.csv | csv | Observed or representative load profile input data. | not_detected | Volume_Afname_KWh, Volume_Injectie_KWh | stochastic/end-use behaviour | optional | see validation reports if present |
+| inputs/load_profiles/fluvius/P6269_Open_Data_WP_EV_geen_ZP.csv | csv | Observed or representative load profile input data. | not_detected | Volume_Afname_KWh, Volume_Injectie_KWh | stochastic/end-use behaviour | optional | see validation reports if present |
+| inputs/load_profiles/fluvius/P6269_Open_Data_WP_EV_met_ZP.csv | csv | Observed or representative load profile input data. | not_detected | Volume_Afname_KWh, Volume_Injectie_KWh | stochastic/end-use behaviour | optional | see validation reports if present |
+| inputs/load_profiles/fluvius/P6269_Open_Data_WP_geen_ZP.csv | csv | Observed or representative load profile input data. | not_detected | Volume_Afname_KWh, Volume_Injectie_KWh | stochastic/end-use behaviour | optional | see validation reports if present |
+| inputs/load_profiles/fluvius/P6269_Open_Data_WP_met_ZP.csv | csv | Observed or representative load profile input data. | not_detected | Volume_Afname_KWh, Volume_Injectie_KWh | stochastic/end-use behaviour | optional | see validation reports if present |
+| inputs/load_profiles/fluvius/P6269_Open_Data_enkel_ZP.csv | csv | Observed or representative load profile input data. | not_detected | Volume_Afname_KWh, Volume_Injectie_KWh | stochastic/end-use behaviour | optional | see validation reports if present |
+| inputs/load_profiles/fluvius/P6269_Open_Data_geen_ZP.csv | csv | Observed or representative load profile input data. | not_detected | Volume_Afname_KWh, Volume_Injectie_KWh | stochastic/end-use behaviour | optional | see validation reports if present |
+| inputs/load_profiles/kul/house_1/house_1-elec.csv | csv | Observed or representative load profile input data. | timestamped; inspect source for exact step | column names inspected; units not explicit | stochastic/end-use behaviour | optional | see validation reports if present |
+| inputs/load_profiles/kul/house_1/house_1-metadata.md | md | Observed or representative load profile input data. | not_detected | not_detected | stochastic/end-use behaviour | optional | see validation reports if present |
+| inputs/load_profiles/kul/house_2/house_2-elec.csv | csv | Observed or representative load profile input data. | timestamped; inspect source for exact step | column names inspected; units not explicit | stochastic/end-use behaviour | optional | see validation reports if present |
+| inputs/load_profiles/kul/house_2/house_2-metadata.md | md | Observed or representative load profile input data. | not_detected | not_detected | stochastic/end-use behaviour | optional | see validation reports if present |
+| inputs/load_profiles/kul/house_3/house_3-elec.csv | csv | Observed or representative load profile input data. | timestamped; inspect source for exact step | column names inspected; units not explicit | stochastic/end-use behaviour | optional | see validation reports if present |
+| inputs/load_profiles/kul/house_3/house_3-metadata.md | md | Observed or representative load profile input data. | not_detected | not_detected | stochastic/end-use behaviour | optional | see validation reports if present |
+| inputs/occupancy/occupancy_model_spec_v1.yaml | yaml | Occupancy model specification. | not_detected | not_detected | stochastic behaviour | optional | see validation reports if present |
+| inputs/solar/TimeseriesEAST_50.830_4.350_SA3_90deg_-90deg_2005_2023.csv | csv | Solar generation or irradiance input data. | not_detected | column names inspected; units not explicit | technology/PV and forcing | optional | see validation reports if present |
+| inputs/solar/TimeseriesNORTH_50.830_4.350_SA3_90deg_-179deg_2005_2023.csv | csv | Solar generation or irradiance input data. | not_detected | column names inspected; units not explicit | technology/PV and forcing | optional | see validation reports if present |
+| inputs/solar/TimeseriesSOUTH_50.830_4.350_SA3_90deg_0deg_2005_2023.csv | csv | Solar generation or irradiance input data. | not_detected | column names inspected; units not explicit | technology/PV and forcing | optional | see validation reports if present |
+| inputs/solar/TimeseriesWEST_50.830_4.350_SA3_90deg_90deg_2005_2023.csv | csv | Solar generation or irradiance input data. | not_detected | column names inspected; units not explicit | technology/PV and forcing | optional | see validation reports if present |
+| inputs/solar/raw_inputs/ods001.csv | csv | Solar generation or irradiance input data. | timestamped; inspect source for exact step | column names inspected; units not explicit | technology/PV and forcing | optional | see validation reports if present |
+| inputs/solar/raw_inputs/solardata_50.847_4.352_SA3_90deg_-179deg_2023_2023.csv | csv | Solar generation or irradiance input data. | not_detected | column names inspected; units not explicit | technology/PV and forcing | optional | see validation reports if present |
+| inputs/solar/raw_inputs/solardata_50.847_4.352_SA3_90deg_-90deg_2023_2023.csv | csv | Solar generation or irradiance input data. | not_detected | column names inspected; units not explicit | technology/PV and forcing | optional | see validation reports if present |
+| inputs/solar/raw_inputs/solardata_50.847_4.352_SA3_90deg_0deg_2023_2023.csv | csv | Solar generation or irradiance input data. | not_detected | column names inspected; units not explicit | technology/PV and forcing | optional | see validation reports if present |
+| inputs/solar/raw_inputs/solardata_50.847_4.352_SA3_90deg_90deg_2023_2023.csv | csv | Solar generation or irradiance input data. | not_detected | column names inspected; units not explicit | technology/PV and forcing | optional | see validation reports if present |
+| inputs/validation/pv/elia/ods032_belgium_pv_2023_pt15m.csv | csv | Repository configuration or metadata. | timestamped; inspect source for exact step | column names inspected; units not explicit | not_applicable | optional | see validation reports if present |
+| inputs/validation/pv/elia/ods032_belgium_pv_2024_pt15m.csv | csv | Repository configuration or metadata. | timestamped; inspect source for exact step | column names inspected; units not explicit | not_applicable | optional | see validation reports if present |
+| inputs/weather/Timeseries_pvgisWEATHER_50.830_4.350_SA3_0deg_0deg_2005_2023.csv | csv | Repository configuration or metadata. | not_detected | column names inspected; units not explicit | not_applicable | optional | see validation reports if present |
+| inputs/weather/aws_1hour_Uccle.csv | csv | Repository configuration or metadata. | timestamped; inspect source for exact step | column names inspected; units not explicit | not_applicable | optional | see validation reports if present |
+| config/archetypes.yaml | yaml | Repository configuration or metadata. | not_detected | not_detected | not_applicable | optional | see validation reports if present |
+| config/belgian_technology_inputs.yaml | yaml | Belgian residential technology assumptions consumed by run configs. | not_detected | not_detected | technology_case_id | required_for_scenario_runs | see validation reports if present |
+| config/model.yaml | yaml | Repository configuration or metadata. | not_detected | not_detected | not_applicable | optional | see validation reports if present |
+| config/scenario_tree/climate_windows.yaml | yaml | Scenario-tree contract, dimensions, or comparison definitions. | not_detected | not_detected | scenario tree | required | see validation reports if present |
+| config/scenario_tree/comparison_definitions.yaml | yaml | Scenario-tree contract, dimensions, or comparison definitions. | not_detected | not_detected | scenario tree | required | see validation reports if present |
+| config/scenario_tree/output5_tariffs.yaml | yaml | Scenario-tree contract, dimensions, or comparison definitions. | not_detected | not_detected | scenario tree | required | see validation reports if present |
+| config/scenario_tree/output6_technology_assumptions.yaml | yaml | Scenario-tree contract, dimensions, or comparison definitions. | not_detected | not_detected | scenario tree | required | see validation reports if present |
+| config/scenario_tree/output_emissions_factors.yaml | yaml | Scenario-tree contract, dimensions, or comparison definitions. | not_detected | not_detected | scenario tree | required | see validation reports if present |
+| config/scenario_tree/realization_policy.yaml | yaml | Scenario-tree contract, dimensions, or comparison definitions. | not_detected | not_detected | scenario tree | required | see validation reports if present |
+| config/scenario_tree/scenario_tree_schema.yaml | yaml | Scenario-tree contract, dimensions, or comparison definitions. | not_detected | not_detected | scenario tree | required | see validation reports if present |
+| config/scenario_tree/technology_cases.yaml | yaml | Scenario-tree contract, dimensions, or comparison definitions. | not_detected | not_detected | scenario tree | required | see validation reports if present |
+| config/thesis.yaml | yaml | Repository configuration or metadata. | not_detected | not_detected | not_applicable | optional | see validation reports if present |
+| config/validation/aggregate_fluvius.yaml | yaml | Repository configuration or metadata. | not_detected | not_detected | not_applicable | optional | see validation reports if present |
+| config/validation/baseline_annual.yaml | yaml | Repository configuration or metadata. | not_detected | not_detected | not_applicable | optional | see validation reports if present |
+| config/validation/kuleuven_high_frequency.yaml | yaml | Repository configuration or metadata. | not_detected | not_detected | not_applicable | optional | see validation reports if present |
+| config/validation/richardson.yaml | yaml | Repository configuration or metadata. | not_detected | not_detected | not_applicable | optional | see validation reports if present |
+| config/validation/synthetic.yaml | yaml | Repository configuration or metadata. | not_detected | not_detected | not_applicable | optional | see validation reports if present |
+| config/validation/technology_ev.yaml | yaml | Repository configuration or metadata. | not_detected | not_detected | not_applicable | optional | see validation reports if present |
+| config/validation/technology_pv.yaml | yaml | Repository configuration or metadata. | not_detected | not_detected | not_applicable | optional | see validation reports if present |
 
 
 # Appendix B - Command reference
 
 ```bash
-python3 -m model_v3.scenario_tree.validate_scenario_tree --config-root config/model_v3/scenario_tree
-python3 -m model_v3.scenario_tree.create_scenario_tree_space --config-root config/model_v3/scenario_tree --experiment-root model_v3/experiments/scenario_tree --print-summary
-python3 -m model_v3.scenario_tree.generate_leaf_configs --config-root config/model_v3/scenario_tree --experiment-root model_v3/experiments/scenario_tree --climate-processed-root inputs/climate/processed --belgian-technology-inputs config/model_v3/belgian_technology_inputs.yaml --cohort-size 100 --write-report --print-summary
-python3 -m model_v3.scenario_tree.validate_leaf_configs --experiment-root model_v3/experiments/scenario_tree --config-root config/model_v3/scenario_tree --climate-processed-root inputs/climate/processed --belgian-technology-inputs config/model_v3/belgian_technology_inputs.yaml --print-summary
+python3 -m model_v3.scenario_tree.validate_scenario_tree --config-root config/scenario_tree
+python3 -m model_v3.scenario_tree.create_scenario_tree_space --config-root config/scenario_tree --experiment-root experiments/scenario_tree --print-summary
+python3 -m model_v3.scenario_tree.generate_leaf_configs --config-root config/scenario_tree --experiment-root experiments/scenario_tree --climate-processed-root inputs/climate/processed --belgian-technology-inputs config/belgian_technology_inputs.yaml --cohort-size 100 --write-report --print-summary
+python3 -m model_v3.scenario_tree.validate_leaf_configs --experiment-root experiments/scenario_tree --config-root config/scenario_tree --climate-processed-root inputs/climate/processed --belgian-technology-inputs config/belgian_technology_inputs.yaml --print-summary
 python3 -m model_v3.scenarios.run_scenario_tree --dry-run --print-summary
 python3 -m model_v3.scenarios.run_scenario_tree --scenario-leaf-id baseline_1981_2005__historical__tech_current_stock__seed_0000 --print-summary
 python3 -m model_v3.scenarios.run_scenario_tree --scenario-leaf-id mid_century_2050_2070__rcp_8_5__tech_high_electrification_pv_ev__seed_0000 --print-summary
 python3 -m model_v3.scenarios.run_scenario_tree --all --max-workers 1 --continue-on-error --print-summary
-python3 -m model_v3.scenarios.summarize_outputs --experiment-root model_v3/experiments/scenario_tree --config-root config/model_v3/scenario_tree --only-successful --write-reports --print-summary
-python3 -m model_v3.scenarios.validate_summaries --experiment-root model_v3/experiments/scenario_tree --print-summary
-python3 -m model_v3.scenarios.generate_comparisons --experiment-root model_v3/experiments/scenario_tree --comparison-definitions config/model_v3/scenario_tree/comparison_definitions.yaml --write-reports --print-summary
-python3 -m model_v3.scenarios.validate_comparisons --experiment-root model_v3/experiments/scenario_tree --comparison-definitions config/model_v3/scenario_tree/comparison_definitions.yaml --print-summary
-python3 -m model_v3.scenarios.generate_figures --experiment-root model_v3/experiments/scenario_tree --figures-root figures/scenario_tree --write-metadata --write-captions --print-summary
-python3 -m model_v3.scenarios.validate_figures --figures-root figures/scenario_tree --experiment-root model_v3/experiments/scenario_tree --print-summary
-python3 -m model_v3.scenarios.audit_scenario_tree --experiment-root model_v3/experiments/scenario_tree --config-root config/model_v3/scenario_tree --figures-root figures/scenario_tree --write-reports --print-summary
+python3 -m model_v3.scenarios.summarize_outputs --experiment-root experiments/scenario_tree --config-root config/scenario_tree --only-successful --write-reports --print-summary
+python3 -m model_v3.scenarios.validate_summaries --experiment-root experiments/scenario_tree --print-summary
+python3 -m model_v3.scenarios.generate_comparisons --experiment-root experiments/scenario_tree --comparison-definitions config/scenario_tree/comparison_definitions.yaml --write-reports --print-summary
+python3 -m model_v3.scenarios.validate_comparisons --experiment-root experiments/scenario_tree --comparison-definitions config/scenario_tree/comparison_definitions.yaml --print-summary
+python3 -m model_v3.scenarios.generate_figures --experiment-root experiments/scenario_tree --figures-root figures/scenario_tree --write-metadata --write-captions --print-summary
+python3 -m model_v3.scenarios.validate_figures --figures-root figures/scenario_tree --experiment-root experiments/scenario_tree --print-summary
+python3 -m model_v3.scenarios.audit_scenario_tree --experiment-root experiments/scenario_tree --config-root config/scenario_tree --figures-root figures/scenario_tree --write-reports --print-summary
 python3 -m model_v3.documentation.build_model_handbook --repo-root . --output docs/model_v3_complete_model_handbook.pdf --write-source --write-figures --print-summary
 python3 -m model_v3.documentation.validate_model_handbook --handbook docs/model_v3_complete_model_handbook.pdf --source docs/model_v3_complete_model_handbook.md --manifest docs/model_v3_complete_model_handbook_manifest.yaml --print-summary
 ```
@@ -1167,4 +1271,4 @@ This appendix lists missing files, missing reports, missing figures, missing val
 | --- | --- | --- | --- |
 | none | not_applicable | No expected repository paths from the handbook checklist were missing. | No action required for this checklist. |
 
-Execution coverage gap: the registry/audit evidence supports 4 latest-successful leaves out of 2800 enumerated leaves. This prevents any claim that all scenario leaves have completed.
+Execution coverage gap: the registry/audit evidence supports 37 latest-successful leaves out of 2800 enumerated leaves. This prevents any claim that all scenario leaves have completed.
