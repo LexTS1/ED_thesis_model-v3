@@ -1,0 +1,132 @@
+% This is a style file for adding your own commands
+% It contains commands for: abbreviations, beamer, constants, formatting, nomenclature, symbols, toggles, tracking
+
+%% ABBREVIATIONS
+\newcommand{\bve}[0]{\textsc{bve}}                               % Dutch: behoud van energie
+\newcommand{\bvm}[0]{\textsc{bvm}}                               % Dutch: behoud van massa
+\newcommand{\bvme}[0]{\textsc{bvme}}                             % Dutch: balans van mechanische energie
+\newcommand{\cte}[0]{\up{c^{te}}}                                % constant
+\newcommand{\CV}[0]{\up{cv}}                                     % control volume
+\newcommand{\dutch}[1]{[Dutch: {#1}]}                            % to add Dutch translation
+\newcommand{\english}[1]{[Engels: {#1}]}                         % to add English translation
+\newcommand{\pv}[0]{$\pres\vol$-diagram}                         % pressure volume diagram
+\newcommand{\ph}[0]{$\pres h$-diagram}                           % pressure enthalpy diagram
+\newcommand{\ts}[0]{$T\!s$-diagram}                              % temperature entropy diagram
+\newcommand{\TikZ}[0]{Ti\textit{k}Z}                             % to typeset the acronym TikZ
+\newcommand{\units}[1]{\quad\left[\unit{#1}\right]}              % to add [unit] after equation, using \unit
+\newcommand{\unitschart}[1]{\;\left[\unit{#1}\right]}            % to add [unit] on axis, using \unit
+\newcommand{\ud}[0]{\up{d}}                                      % differential operator
+\newcommand{\up}[1]{\mathrm{#1}}                                 % to write upright math, shorter version of \mathrm
+
+%% BEAMER
+% chapters exist in class memoir but not in class beamer
+% that's why we made a new command \chapterOrPart that will start a new chapter in memoir
+% but in beamer, it will not start a new chapter but a new part
+\newcommand\chapterOrPart[1]{
+	\only<article>{\chapter{#1}}   % define new chapter, when using class memoir
+	\only<presentation>{\part{#1}} % define new part, when using class beamer, because chapters do not exist in beamer
+	\mode*}                        % \mode* = neglect all content that is not inside frame environments in beamer
+\newcommand{\vspacebeamer}[1][0.5cm]{\only<presentation>{\vspace{#1}}} % add vertical space in beamer, default is 0.5cm
+\newcommand\textbeamer[4]{\only<presentation>{\begin{textblock*}{#1}(#2,#3)\small #4\end{textblock*}}}
+\newcommand\frameVisible[0]{\iftoggle{showResults}{all}{presentation=0}}% to include a slide, only when showResults = TRUE
+\newcommand\smallbeamer[0]{\only<presentation>{\small}}                 % set font size to small,        when using beamer, but not in memoir
+\newcommand\largebeamer[0]{\only<presentation>{\large}}                 % set font size to large,        when using beamer, but not in memoir
+\newcommand\Largebeamer[0]{\only<presentation>{\Large}}                 % set font size to Large,        when using beamer, but not in memoir
+\newcommand\footnotesizebeamer[0]{\only<presentation>{{\footnotesize}}} % set font size to footnotesize, when using beamer, but not in memoir
+\newcommand\scriptsizebeamer[0]{\only<presentation>{\scriptsize}}       % set font size to scriptsize,   when using beamer, but not in memoir
+\newcommand\tinybeamer[0]{\only<presentation>{\tiny}}                   % set font size to tiny,         when using beamer, but not in memoir
+
+%% CONSTANTS
+\newcommand{\boltzvalue}[0]{\qty{5.67e-8}{\W\per\square\m\per\K\tothe{4}}} % Boltzmann
+\newcommand{\cpairvalue}[0]{\qty{1.00}{\kJ\per\kg\per\K}}                  % specific heat capacity air
+\newcommand{\cpwatervalue}[0]{\qty{4.18}{\kJ\per\kg\per\K}}                % specific heat capacity liquid water
+\newcommand{\cwatervapvalue}[0]{\qty{1.86}{\kJ\per\kg\per\K}}              % specific heat capacity water vapour
+\newcommand{\cvwatervalue}[0]{\qty{4.18}{\kJ\per\kg\per\K}}                % specific heat capacity liquid water
+\newcommand{\gvalue}[0]{\qty{9.81}{\m\per\second\squared}}                 % gravitational accelaration
+\newcommand{\normaldensityvalue}[0]{\qty{1.29}{\kg/{N\cubic\m}}}           % normal density air
+\newcommand{\rhowatervalue}[0]{\qty{1000}{\kg\per\cubic\m}}                % density liquid water
+\newcommand{\Runivvalue}[0]{\qty{8.31}{\J\per\mole\per\K}}                 % universal gas constant
+\newcommand{\Rluchtvalue}[0]{\qty{287}{\J\per\kg\per\K}}                   % specific gas constant air
+
+
+%% FORMATTING
+\newcommand{\carg}[1]{\texttt{\{#1\}}}           % typeset {...}
+% \newcommand{\csbegin}[1]{\cs{begin}\carg{#1}}  % typeset \begin{...}
+% \newcommand{\csend}[1]{\cs{end}\carg{#1}}      % typeset \end{...}
+\newcommand{\pkg}[1]{\textsf{#1}}                % typeset package name
+% some commands already available in class memoir
+% \cmd                                           % typeset command
+\mode<presentation>{\newcommand{\cs}[1]{\texttt{\textbackslash #1}}} % typeset \... in beamer
+% \cs                                            % typeset \...
+% \meta                                          % typeset <...>
+% \oarg                                          % typeset [<...>]
+% \marg                                          % typeset {<...>}
+
+%% NOMENCLATURE
+% the command \IfLanguageName will add entries in the nomenclature in English or Dutch,
+% depending on the document language
+\IfLanguageName{english} % 
+    { % write explanations in English in nomenclature = use #3
+        \newcommand{\acronym}[3]{#1 & #3 \\} % #3 = English explanation
+        \newcommand{\dimensionlessnumber}[4]{$\up{#1}$ & #3 & $#4$\\}
+        \newcommand{\nomenclature}[4]{$#1$ & #3 & \unit[per-mode=symbol]{#4}\\} % symbol, ENG, unit
+        %\newcommand{\nomenclature}[4]{$#1$ & #3 & $\up{#4}$\\} % symbol, ENG, unit
+        \newcommand{\nomenclaturesubscript}[3]{#1 & #3\\}
+    } 
+    { % write explanations in Dutch in nomenclature = use #2
+        \newcommand{\acronym}[3]{#1 & #2 \\} % #2 = Dutch explanation
+        \newcommand{\dimensionlessnumber}[4]{$\up{#1}$ & #2 & $#4$\\}
+        \newcommand{\nomenclature}[4]{$#1$ & #2 & \unit[per-mode=symbol]{#4}\\} % symbol, DUTCH, unit
+        \newcommand{\nomenclaturesubscript}[3]{#1 & #2\\}
+    }
+
+%% SYMBOLS
+% Using commands for frequently used symbols in your thesis offers two significant advantages:
+%  1 Employing custom commands ensures the consistent usage of the same symbol throughout your thesis
+%  2 If it is required to modify a symbol across your entire document, you can achieve this effortlessly
+%    by modifying the definition within the \newcommand
+\newcommand{\abshum}[0]{\ensuremath{x}}                % absolute humidity
+\newcommand{\cv}[0]{\ensuremath{c_v}}                  % specific heat capacity at cte volume
+\newcommand{\cp}[0]{\ensuremath{c_p}}                  % specific heat capacity at cte pressure
+\newcommand{\hevap}[0]{\Delta h_\up{evap}}             % enthalpy of evaporation
+\newcommand{\masf}[0]{\ensuremath{y}}                  % mass fraction 
+\newcommand{\mdot}[0]{\ensuremath{\dot{m}}}            % mass flow rate 
+\newcommand{\molf}[0]{\ensuremath{Y}}                  % mole fraction 
+\newcommand{\pres}[0]{\ensuremath{p}}                  % pressure 
+\newcommand{\psat}[0]{\ensuremath{\pres_\up{sat}}}     % saturation pressure
+\newcommand{\qdot}[0]{\ensuremath{\dot{Q}}}            % thermal power
+\newcommand{\relhum}[0]{\ensuremath{\varphi}}          % relative humidity
+\newcommand{\rpm}[0]{$\ensuremath{N}$}                 % rotaional speed
+\newcommand{\thermcond}[0]{\ensuremath{\lambda}}       % thermal conductivity
+\newcommand{\vdot}[0]{\ensuremath{\dot{\mathcal{V}}}}  % volume flow rate
+\newcommand{\vel}[0]{\ensuremath{V}}                   % velocity
+\newcommand{\vol}[0]{\ensuremath{\mathcal{V}}}         % volume
+\newcommand{\specvol}[0]{\ensuremath{{v}}}             % specific volume
+\newcommand{\tdb}[0]{\ensuremath{T_\up{DB}}}           % dry bulb temperature
+\newcommand{\tnb}[0]{\ensuremath{T_\up{NB}}}           % wet bulb temperature
+\newcommand{\viscodyn}[0]{\ensuremath{\mu}}            % dynamic viscosity
+\newcommand{\viscokin}[0]{\ensuremath{\nu}}            % kinematic viscosity
+\newcommand{\wdot}[0]{\ensuremath{\dot{W}}}            % mechanical power
+\newcommand{\Nusselt}[0]{\up{N\!u}}                    % Nusselt number
+\newcommand{\Prandtl}[0]{\up{Pr}}                      % Prandtl number
+\newcommand{\Reynolds}[0]{\up{Re}}                     % Reynolds number
+
+%% TOGGLES
+% you can create so-called toggles. These are BOOLEANS that you can set to TRUE or FALSE
+% they can then be used in conjuction with \iftoggle
+% see section \newtoggle in appendices/usefulCommands.tex
+
+% create toggle 'showResults'
+\newtoggle{showResults}   
+\togglefalse{showResults} % set toggle showResults to FALSE
+%\toggletrue{showResults} % set toggle showResults to TRUE
+
+% create toggle 'explain'
+\newtoggle{explain}   
+\toggletrue{explain}  %  set toggle explain to TRUE
+
+%% TRACKING
+\renewcommand\CancelColor{\color{red}}           % cancel colour in equations
+\newcommand\attention[1]{\textcolor{green} {#1}} % to highlight text
+
+

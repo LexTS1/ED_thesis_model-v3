@@ -1,0 +1,47 @@
+\begin{tikzpicture}[scale=1]
+        % define pump constants, using \def
+        \def\rin{1.5}                                   % inner radius
+        \def\rout{3.7}                                  % outer radius
+        \def\bin{60}                                    % inner beta, degrees
+        \def\bout{30}                                   % outer beta, degrees
+        \def\bladepos{90}                               % blade position angle, degrees
+        \def\bladecurve{60}                             % blade curve angle, degrees
+        \def\uin{1.5}                                   % inner rotational velocity
+        \def\cin{2.6}                                   % inner absolute velocity
+        
+        % calculate velocities and angles, using \pgfmathsetmacro for math operations
+        \pgfmathsetmacro\uout{\uin*\rout/\rin}          % outer rotational velocity
+        \pgfmathsetmacro\coutrad{\cin*\rin/\rout}       % outer absolute radial velocity
+        \pgfmathsetmacro\wout{\coutrad/sin{\bout}}      % outer relative velocity
+        \pgfmathsetmacro\couttan{\uout-\wout*cos(\bout)}% outer absolute tangential velocity
+        \pgfmathsetmacro\tana{\coutrad/\couttan}        % outer absolute tangential velocity
+        \pgfmathsetmacro\aout{atan(\tana)}              % outer alpha, degrees
+        \pgfmathsetmacro\cout{\coutrad/sin(\aout)}      % outer absolute radial velocity
+        
+        % draw pump
+        \drawcentrifugalpumpcircles{\rin}{\rout}; % draw pump circles
+        
+        % draw blade
+        {\drawcentrifugalpumpblade{\rin}{\rout}{\bladepos}{\bladecurve}{\bin}{\bout}};
+ 
+        % draw velocity triangle at inlet
+        \draw [rotation,->] (root) -- +(0:\uin) node [right] {$u_1$};
+        \draw [absolute,->] (root) -- +(90:\cin) node [right] {$c_1=c_\up{1r}$};
+        \draw [relative,->] (root) -- +(-\uin,\cin) node [right] {$w_1$};
+        
+        % draw velocity triangle at outlet
+        \draw [rotation,->] (tip) -- +(\bladecurve:\uout) coordinate (U2) node [left] {$u_2$};
+        \draw [relative,->] (tip) -- +(180+\bladecurve-\bout:\wout) coordinate (W2) node [left] {$w_2$};
+        \draw [absolute,->] (tip) -- +(90+\bladecurve:\coutrad) node [left] {$c_\up{2r}$};
+        \coordinate (C2) at ($(U2)   +({180+\bladecurve-\bout}:{\wout})$);
+        \draw [absolute,->] (tip) -- (C2) node [right] {$c_\up{2}$};
+        \draw [axis] (W2) -- (C2);  % connect end of w2, c2r, c2
+        
+        % draw angles: location, angle1, angle2, label, arc radius, label pos, left/right
+        \drawangle{root}{180}{180-\bin}{$\beta_1$}{0.4cm}{0.5}{left};                         % beta 1
+        \drawangle{tip}{180+\bladecurve}{180+\bladecurve-\bout}{$\beta_2$}{1cm}{0.1}{left};   % beta 2
+        \drawangle{root}{0}{90}{$\alpha_1$}{0.4cm}{0.5}{right};                               % alpha 1
+        \drawangle{tip}{\bladecurve}{\bladecurve +\aout}{$\alpha_2$}{1cm}{0.4}{above}         % alpha 2
+\end{tikzpicture}
+
+

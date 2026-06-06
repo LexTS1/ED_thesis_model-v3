@@ -1,0 +1,29 @@
+% This file was created with the script capacityfactor.py
+\mode* % only put content inside frame environments on slides
+
+\begin{table}\centering
+    \caption{Example of a table generated in Python}\label{tab:pythontable}
+    \begin{tabular}{lrl}  
+        \toprule
+        parameter               &  value            & unit              \\[1ex]
+        \textit{inputs:}        &                   &                   \\
+        nominal power           &  \num{39}       & \unit{kW}         \\
+        electricity produced    &  \num{90.4}       & \unit{MWh/year}   \\[1ex]
+        \textit{calculated:}    &                   &                   \\
+        capacity factor         &  \num{26.5}       & \unit{\percent}   \\
+        equiv. full load hours  &  \num{2318}       & \unit{\h}         \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{frame}<presentation>{Example of a slide generated in Python (with script capacityfactor.py)}
+An engine with a nominal power of \qty{39}{\kW} produces \qty{90.4}{\MWh} of electricity in a year.
+Calculate the capacity factor (CF) and the number of equivalent full load hours (EFLH).
+
+\begin{align*}
+    \intertext{The capacity factor}
+    &\up{CF} = \frac{\qty{90}{\MWh\per\yr}}{\qty{39}{\kW}\cdot\qty{8760}{\h\per\yr}}=\qty{26.5}{\percent} 
+    \intertext{Equivalent hours of full load operation}
+    &\up{EFLH} = \frac{\qty{90}{\MWh\per\yr}}{\qty{39}{\kW}}=\qty{2318}{\h} 
+\end{align*}
+\end{frame}

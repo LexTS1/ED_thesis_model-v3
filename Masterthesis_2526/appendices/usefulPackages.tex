@@ -1,0 +1,470 @@
+\chapterOrPart{Useful packages}\label{ch:usefulpackages}
+This chapter contains an alphabetic list of some useful packages. All the packages that are mentioned here are loaded in this template. 
+
+\section{beamerarticle}\label{sec:beamerarticle}
+This package is essential when you want to create both a presentation and a corresponding report or article from the same source file. When you compile such a dual-purpose document using the \pkg{beamer} class, as in the first line of \texttt{mainSlides}, all content within frame environments will be placed on slides, resulting in a PDF for a presentation. For more information on creating slides in \LaTeX, refer to \cref{sec:slides}.
+
+However, if you compile the same document using the \pkg{memoir} class to create a PDF of a report, as in the first line of \texttt{mainReport}, the frame environments become irrelevant and are not recognized as valid commands by \pkg{memoir}. The \pkg{beamerarticle} package addresses this issue by ensuring that commands specific to the \pkg{beamer} class are ignored. This is why \pkg{beamerarticle} is the first package loaded in \texttt{MainReport}. So do not remove it.
+
+More info at \href{https://ctan.org/pkg/beamer?lang=EN}{CTAN: package beamer}.
+
+\section{biblatex}\label{sec:biblatex}
+This package is used for citing and formatting the bibliography. It is a complete implementation of the bibliographic facilities provided by \LaTeX. BibLaTeX provides several standard citations styles, as for example: \verb|authoryear|, \verb|numeric| and \verb|alphabetic| amongst many other non-standard citation styles that are popular in different journals.
+
+You can inspect the current options that are loaded for the BibLaTeX package in the style file \verb|styles/myBibSettings|. Some common styles and sorting options are shown in \cref{tab:biblatex}. 
+
+\begin{table}\centering
+    \caption{Some examples of citing styles and sorting options in BibLaTeX}\label{tab:biblatex}
+        \begin{tabular}{lllll}
+        \toprule
+        \verb|style|& \verb|sorting| & \verb|\cite| example  & cite number         & order in bibliography  \\[+1.5ex]
+        authoryear  & nyt            & Rees, 2017 &                     & by name, year, title \\
+        authoryear  & none           & Rees, 2017 &                     & by cite order \\
+        numeric     & nyt            & [8]        &  as in bibliography & by name, year, title \\
+        numeric     & none           & [1]        &  as order in text   & by cite order  \\
+        alphabetic  & nyt            & [Ree17]    &                     & by name, year, title \\
+        alphabetic  & none           & [Ree17]    &                     & by cite order  \\
+        \bottomrule
+        \end{tabular}
+\end{table}
+
+\begin{table}\centering
+    \caption{Some examples of other cite commands}\label{tab:cites}
+        \begin{tabular}{rlllll}
+        \toprule
+            \verb|style|: 	            &	current	style           &	authoryear	&	numeric	    &	alphabetic	\\[+1.5ex]
+            \verb|\cite{Rees2017}| 	    &	\cite{Rees2017}	        &	Rees, 2017	&	[1]	        &	[Ree17]	    \\
+            \verb|\textcite{Rees2017}| 	&	\textcite{Rees2017}	    &	Rees (2017)	&	Rees [1]	&	Rees [Ree17]\\
+            \verb|\parencite{Rees2017}| &	\parencite{Rees2017}	&	(Rees, 2017)&	[1]	        &	[Ree17]	    \\
+            \verb|\citeauthor{Rees2017}|&	\citeauthor{Rees2017}	&	Rees	    &	Rees	    &	Rees	    \\
+        \bottomrule
+        \end{tabular}
+\end{table}
+
+Is is good practice to keep your bibliographic references in a separate file, a so-called bibliographic information file, recognised by the extension \verb|.bib|. In this template, this file can be found here: \verb|bib/myBibliography.bib|.
+
+This file is imported with the command \verb|\addbibresource{bib/myBibliography.bib}| in the style file \verb|styles/myBibSettings|. 
+
+It is convenient and recommended to use separate software to collect and manage your references. A well-known free tool to manage your references is \href{https://www.mendeley.com/}{Mendeley Reference Manager}. It works well together with \href{https://www.mendeley.com/reference-management/web-importer}{Mendeley Web Importer}. This is a browser extension to import reference material that you are watching in your browser into your Mendeley database.  Other well-known free tools are \href{https://www.zotero.org/}{Zotero} and \href{https://www.jabref.org/}{JabRef}, but there exist many others.
+
+Every reference in the bib file must have a unique identifier, a so-called a \verb|BibTeX key|. You can choose this key yourself. An often-used approach to construct this key is to combine the name of the first author and the year of publishing. You can then refer to a BibTeX key with commands such as \verb|\cite|, \verb|\textcite|, \verb|\parencite|, \verb|\citeauthor| or \verb|\fullcite|. 
+
+See \cref{tab:cites} for some examples of these cite commands. The second column in this table shows the results for the style that is currently loaded in BibLaTeX. \verb|\cite| is used in sentences where the reference is part of the sentence, and the year is there to identify what is being cited. \verb|\parencite| is used to put the citation between parentheses. It is used when the sentence is already complete, and the citation is being added in support. \verb|\textcite| is used in sentences where the name of the author is part of the sentence, and the year is there to identify what is being cited. With \verb|\citeauthor| only the name of the author is shown without a hyperlink to the reference in the bibliography. 
+
+\textcite{Rees2017} made a good overview of the available commands and options in  \href{https://tug.ctan.org/info/biblatex-cheatsheet/biblatex-cheatsheet.pdf}{this cheat sheet}.
+
+More info at \href{https://ctan.org/pkg/biblatex?lang=en}{CTAN: package BibLaTeX} and at \href{https://www.overleaf.com/learn/latex/Articles/Getting_started_with_BibLaTeX}{Overleaf: getting started with BibLaTeX}.
+
+\section{cancel}\label{sec:cancel}
+With this package you can easily show which terms are canceled in equations. For instance, the command \verb|$\cancel{x}$| will produce $\cancel{x}$ and \verb|$\cancelto{0}{z}$| will produce $\cancelto{0}{z}$.
+
+Both commands are also demonstrated in an equation below.
+\begin{frame}{With the package \pkg{cancel}, you can cancel terms in equations}
+    \begin{align}
+    % the command \intertext is handy to put text between equations in the align environment.
+    \intertext{For example, for a stationary \dutch{stilstaand} process:}
+    &\Delta E_\CV=\Delta U_\CV + \cancel{\Delta\up{KE}_\CV}\quad +\quad\cancelto{\qty{0}{J}}{\Delta\up{PE}_\CV} \\
+    \intertext{and the first law for a closed and stationary system simplifies to}
+    &\Delta E_\CV=\Delta U_\CV =Q+W\units{J}.
+    \end{align}
+\end{frame}
+
+More info at \href{https://ctan.org/pkg/cancel?lang=en}{CTAN: package cancel}.
+
+\section{chemformula}\label{sec:chemformula}
+This package can typeset chemical formulas and reactions with an intuitive syntax. Consider for instance the formula $\ch{H2O}$ for water. In \cref{tab:writingwater} you will see some bad and good ways to write it in \LaTeX.
+
+\begin{frame}[fragile]{Some good and bad ways to write a chemical formula}\smallbeamer
+% option [fragile] needed when using verbatim on slide with \verb|something|
+    \begin{table}\centering
+        \caption{Various attempts to write the chemical formula of water}\label{tab:writingwater}
+        \begin{tabular}{lll}
+            \toprule
+            \LaTeX\ command & result & remark \\[+1.5ex]
+            \verb|H2O|              & H2O       & not correct, 2 not in subscript \\
+            \verb|H_2O|             & error     & underscore not allowed outside math mode \\
+            \verb|$H_2O$|           & $H_2O$    & bad practice to write chemicals in italics\\
+            \verb|$\mathrm{H_2O}$|  & $\mathrm{H_2O}$ & correct, but heavy syntax\\
+            \verb|\ch{H2O}|         & \ch{H2O}        & correct and easy syntax\\
+            \bottomrule
+            \end{tabular}
+    \end{table}
+\end{frame}
+
+Writing chemical reactions is also possible. For instance:
+
+\verb|\ch{H2O + CO3^2- <=> OH- + HCO3-}|\quad produces: \ch{H2O + CO3^2- <=> OH- + HCO3-}
+
+Or for instance this combustion equation:
+
+\ch{C_aH_bO_cN_d  + e [ 0.21 O2 + 0.79 N2 + $\dfrac{\abshum}{0.622}$ H2O ] -> f CO2 + g H2O + h O2 + i N2}
+
+More info at \href{https://ctan.org/pkg/chemformula?lang=EN}{CTAN: package chemformula}.
+
+\section{circuitikz}\label{sec:circuitikz}
+The package \pkg{circuitikz} extends the capabilities of the package \pkg{\TikZ}. It allows users to  draw electrical and electronic circuit diagrams in their \LaTeX\ documents. It provides a wide range of components, symbols, and styles to create professional-looking circuit diagrams. An example is shown in \cref{fig:circuitikz}. Inspect the source code to see how this electronic circuit diagram is defined. 
+
+\begin{figure}\centering
+    \begin{circuitikz}[american, scale=0.8, transform shape]
+        \draw (0,0) node[nmos,](Q1){\killdepth{Q1}};
+        \draw (Q1.S) to[R, l2^=$R_\up S$ and \qty{5}{k\ohm}]++(0,-3) node[vee](VEE){$V_\up{EE}=\qty{-10}{V}$};
+        \draw (Q1.D) to[R, l2_=$R_\up D$ and \qty{10}{k\ohm}]++(0,3) node[vcc](VCC){$V_\up{CC}=\qty{10}{V}$};
+        \draw (Q1.S) to[short] ++(2,0) to[C=$C_1$]++(0,-1.5) node[ground](GND){};
+        \draw (Q1.G) to[short] ++(-1,0)\coord (in) to[R, l2^=$R_\up G$ and \qty{1}{M\ohm}] (in |- GND) node[ground]{};
+        \draw (in) to[C, l_=$C_2$,*-o]++(-1.5,0) node[left](vi1){$v_i=v_{i1}$};
+    \end{circuitikz}
+    \caption{Example of an electric circuit drawn with \pkg{circuitikz} \parencite[adapted from][p. 25]{circuitikz}}\label{fig:circuitikz}
+\end{figure}
+
+Additional examples that are relevant for students in the Engineering technology program \dutch{opleiding Industriële wetenschappen} can be found on pages 25--29 of the \pkg{circuitikz} user manual \parencite{circuitikz}. More info at \href{https://ctan.org/pkg/circuitikz}{CTAN: package circuitikz}.
+
+\section{cleveref}\label{sec:cleveref}
+The \pkg{cleveref} package enhances \LaTeX's cross-referencing features. It automatically formats cross-references depending on what they refer to (chapter, section, table, figure, equation,\dots). The normal procedure in \LaTeX\ is to use the \verb|\ref| command preceded by the type of object that is being referred to. With the \verb|\cref| command, this is no longer necessary because the type of object will be automatically detected. This will make your cross-references more consistent. In \cref{tab:cref} you will see the difference. For instance, in the case of figures, you don't have to explicitly write \verb|fig.| in front of every reference to a figure. For references at the beginning of a sentence, that thus must be capitalized, the \verb|\Cref| command must be used. 
+
+\begin{table}\centering
+    \caption{Some examples of cross-referencing with \texttt{\textbackslash cref} and \texttt{\textbackslash Cref}}\label{tab:cref}
+        \begin{tabular}{lll}
+        \toprule
+        command                         & old syntax with \verb|\ref|           & result \\[+2ex]
+        \verb|\cref{ch:conclusions}|    & \verb|chapter~\ref{ch:conclusions}|   & \cref{ch:conclusions} \\
+        \verb|\cref{sec:siunitx}|       & \verb|section~\ref{sec:siunitx}|      & \cref{sec:siunitx} \\
+        \verb|\cref{fig:psat}|          & \verb|fig.~\ref{fig:psat}|            & \cref{fig:psat} \\
+        \verb|\cref{tab:mathsymbols}|   & \verb|table~\ref{tab:mathsymbols}|    & \cref{tab:mathsymbols} \\
+        \verb|\cref{eq:newton}|         & \verb|eq.~(\ref{eq:newton})|          & \cref{eq:newton} \\
+        \verb|\cref{list:factorial}|    & \verb|listing~(\ref{list:factorial})| & \cref{list:factorial} \\[+3ex]
+        %\midrule
+        \verb|\Cref{ch:conclusions}|    & \verb|Chapter~\ref{ch:conclusions}|   & \Cref{ch:conclusions} \\
+        \verb|\Cref{sec:siunitx}|       & \verb|Section~\ref{sec:siunitx}|      & \Cref{sec:siunitx} \\
+        \verb|\Cref{fig:psat}|          & \verb|Figure~\ref{fig:psat}|          & \Cref{fig:psat} \\
+        \verb|\Cref{tab:mathsymbols}|   & \verb|Table~\ref{tab:mathsymbols}|    & \Cref{tab:mathsymbols} \\
+        \verb|\Cref{eq:newton}|         & \verb|Equation~(\ref{eq:newton})|     & \Cref{eq:newton} \\
+        \verb|\Cref{list:factorial}|    & \verb|Listing~(\ref{list:factorial})| & \Cref{list:factorial} \\
+        \bottomrule
+        \end{tabular}
+\end{table}
+
+The format for each cross-reference type (chapter, section, figure, table and equation) can be customised in the style file \verb|styles/myPackages|. 
+
+More info at \href{https://ctan.org/pkg/cleveref}{CTAN: package cleveref}.
+
+\section{csquotes}\label{sec:csquotes}
+Quotations must be appropriately formatted with quotation marks. The required quotation marks depend on the language of the document. With this package, you can focus on the content of the quote; the appropriate quotation style will automatically be employed based on the specified language option in \cs{documentclass}. The package can format both inline and display quotations. It provides several commands, such as \cs{enquote} for simple inline quotes, \cs{textquote} for inline quotes that also mention the author and the \cs{displayquote} environment that will separate the quote from the main text.
+
+Here is an example of a quote from Rudolf Clausius that will appear inline in the text with quotations marks that are in agreement with the document language: \enquote{The energy of the universe is constant}. The next inline quote also mentions the author: \textquote[William Wright, 1888]{Absence of evidence is not the evidence of absence}. The example below is a quote that is separated from the main text.
+\begin{displayquote}[Richard Feynman]
+The best scientists are open to the possibility that they may be wrong, and they are willing to change their minds in the face of new evidence.
+\end{displayquote}
+
+More info at \href{https://ctan.org/pkg/csquotes}{CTAN: package csquotes}.
+
+\section{draftwatermark}\label{sec:draftwatermark}
+The package \pkg{draftwatermark} will put a watermark on the pages of your report when it is loaded with the \texttt{stamp} option as: \cs{usepackage}\verb|[stamp]{draftwatermark}|. You can customize the watermark text to suit your needs. For example, you can use watermarks like 'draft', 'confidential', or 'under NDA'. Additionally, you can adjust the size, lightness, and angle of the watermark. See the example in the style file \texttt{styles/myPackages}.
+
+In this template, no watermark is applied because the package is loaded with the \texttt{nostamp} option as: \cs{usepackage}\verb|[nostamp]{draftwatermark}|. More info can be found at \href{https://ctan.org/pkg/draftwatermark}{CTAN: package draftwatermark}.
+
+\section{fontawesome}\label{sec:fontawesome}
+The package \pkg{fontawesome} allows you to incorporate icons into your \LaTeX\ document. It provides a large number of web-related icons in the form of a font. Each icon has its unique command. They can be used in text mode, in math mode and in your drawings made with \TikZ. Here are some examples: file \faFileO, wifi \faWifi, folder \faFolderO, GitHub \faGithub, image \faImage, industry \faIndustry\ and lock \faLock. Check the source code to see the syntax. You can also customize their size and color, as you would do with other fonts. The same folder icon, but now in a larger font size and in blue looks like this:
+
+\textcolor{blue}{\Huge\faFolderO}
+
+The complete list of available icons can be consulted at \href{https://ctan.org/pkg/fontawesome}{CTAN: package fontawesome}.
+
+\section{hyperref}\label{sec:hyperref}
+With this package you can add hyperlinks in your document. For instance, the command:
+\verb|\href{https://canvas.vub.be/}{Canvas learning platform}| will produce this clickable link: \href{https://canvas.vub.be/}{Canvas learning platform}. More info can be found at \href{https://ctan.org/pkg/hyperref}{CTAN: package hyperref}.
+
+\section{listings}\label{sec:listing}
+With the package \pkg{listings} you can typeset source code in your document. The proper typesetting of your code will make it easier to read. General info about typesetting source code in \LaTeX\ can be found in the \href{https://www.overleaf.com/learn/latex/Code_listing}{Overleaf help pages}. You will read that the package \pkg{listings} is well suited for this propose. The package provides the \texttt{lstlisting} environment as shown in the \textquote{Hello world!} example in \cref{list:hello}. 
+
+\begin{verbatim}
+    \begin{lstlisting}[language=Matlab,label={list:hello},
+    caption={Hello world in Matlab}]
+        disp('Hello, World!');    
+    \end{lstlisting}
+\end{verbatim}
+
+As can be seen in the source code of this example, you can specify the language your code is written in, specify a caption and add a label for cross-referencing. The result is shown in \cref{list:hello}. Many programming languages can be typeset with this package. The names of the recognised languages can be consulted in \href{https://mirror.lyrahosting.com/CTAN/macros/latex/contrib/listings/listings.pdf}{Table 1 in the package documentation}.
+
+\begin{lstlisting}[language=Matlab,label={list:hello},caption={Hello world in Matlab}]
+disp('Hello world!');  
+\end{lstlisting}
+
+The typesetting of code in this document is customised in the style file \verb|styles/myListings|.
+
+Another example, this time in Python, is shown in \cref{list:factorial}. Many typesetting properties (such as: font, font size, indents, colours, \dots) can be specified. The package settings in this template can be consulted and adapted in the style file \texttt{styles/myListings}.
+
+\begin{frame}[fragile]{Listings of code can be easily formatted and displayed}
+\begin{lstlisting}[
+    language=Python,
+    caption={Python code to calculate factorial, adapted from \href{https://www.programiz.com/python-programming/examples/factorial-recursion}{programiz}},
+    label={list:factorial}]
+# Factorial of a number via recursion
+def factorial_recursive(n):
+   if n == 1:
+       return n
+   else:
+       return n*factorial_recursive(n-1)
+
+num = int(input("Enter a number: "))
+if num < 0:    # check if the number is negative
+   print("Sorry, factorial does not exist for negative numbers")
+elif num == 0: # check if the number is zero
+   print("The factorial of 0 is 1")
+else:
+   print("The factorial of", num, "is", factorial_recursive(num))
+\end{lstlisting}
+\end{frame}
+
+It is also possible to import source code from a file (that you maybe are still working on). Importing for example the first 18 lines from a Python script would look like this:
+
+\cs{lstinputlisting}\verb|[language=Python, linerange={1-18}]{|\meta{filename}\verb|.py}|.
+
+More info at \href{https://ctan.org/pkg/listings?lang=en}{CTAN: package listings}.
+
+\section{longtable}
+With this package you can make tables that are larger than one page and continue to the next page(s).
+
+More info can be found at \href{https://ctan.org/pkg/longtable?lang=en}{CTAN: package longtable}.
+
+\section{pdfpages}
+The package \pkg{pdfpages} provides the command \cs{includepdf}\oarg{key=val}\marg{filename} to insert pages from an external PDF document into your \LaTeX\ document. \meta{key=val} stands for a comma separated list of options using the \meta{key}=\meta{value} syntax. Consult the package documentation to learn about the available options. Here are some examples:\\
+include page 3 and 7: \cs{includepdf}\verb|[pages={3,7}]|\marg{filename}\\
+include page 1 to 4: \cs{includepdf}\verb|[pages={1-4}]|\marg{filename}\\
+2 x 2 and add frames: \cs{includepdf}\verb|[pages={1-4},nup=2x2,frame=true]|\marg{filename}
+
+See examples in \cref{ch:pdf}. More info can be found at \href{https://ctan.org/pkg/pdfpages}{CTAN: package pdfpages}.
+
+\section{pfdicons}\label{sec:pfdicons}
+The package \pkg{pfdicons} provides drawings for elements used in process flow diagrams (PFDs) and instrumentation diagrams (PIDs), such as a valve, pump, compressor, turbine, heat exchanger, reactor, vessel and column. See example in \cref{sec:processflowdiagram}. More info can be found at \href{https://ctan.org/pkg/pfdicons}{CTAN: package pfdicons}.
+
+\section{pgfplots}
+With this package you can make high-quality plots in normal or logarithmic scaling. They are typically drawn in the \verb|axes| environment and plots are added with the command \verb|\addplot|. See for instance \cref{fig:analyticalfunctions} with some plots of analytical functions and \cref{fig:thermalpower} with a plot of external data from a file. See \href{http://pgfplots.sourceforge.net/gallery.html}{this gallery for many more examples}.
+
+More info can be found at \href{https://ctan.org/pkg/pgfplots}{CTAN: package pgfplots}.
+
+\section{siunitx}\label{sec:siunitx}
+This package correctly formats numbers and units, according to the rules and style convention from the International system of units (SI) \parencite[section 5]{SI}. The package can handle different types of numbers as well as complex units with ease, including units that contain fractions, exponents in superscript and/or descriptors in subscript.
+
+To typeset units with superscripts and subscripts, without using macros provided by this package, you would typically need to switch to math mode. However, in math mode, everything is displayed in italics by default, unless specified otherwise. Since units always have to be written upright, you would have to employ the \cs{mathrm} command to ensure their upright appearance, which results in cumbersome syntax. This is illustrated in \cref{tab:unitstrungle} where, as an example, various attempts are shown to properly format the unit of mass density. The final row in this table demonstrates the simplified syntax achievable by employing the \cs{unit} macro from this package.
+
+Below you will find the most important macros the \pkg{siunitx} package provides. These macros can be used in text mode as well as in math mode.
+
+\begin{table}\centering
+    \caption{Various attempts to correctly format a unit, illustrated with the unit for mass density, because it contains both a fraction and an exponent}\label{tab:unitstrungle}
+    \renewcommand{\arraystretch}{1.7} % Default value: 1
+    \begin{tabular}{lll}
+        \toprule
+        \LaTeX\ command                    & result                        & remark \\[+1.5ex]
+        \verb|kg/m3|                       & kg/m3                         & not correct: 3 not in superscript\\
+        \verb|kg/m^3|                      & error                         & \^{} not allowed outside math mode \\
+        \verb|$kg/m^3$|                    & $kg/m^3$                      & bad practice to write units in italics\\
+        \verb|$\mathrm{kg/m^3}$|           & $\mathrm{kg/m^3}$             & correct but heavy syntax, no horizontal bar\\
+        \verb|$\mathrm{\frac{kg}{m^3}}$|   & $\mathrm{\frac{kg}{m^3}}$     & correct but heavy syntax, font too small \\
+        \verb|\unit{\kg\per\cubic\m}|      & \unit{\kg\per\cubic\m}        & correct and easy syntax, font size ok \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{\textbackslash num}
+Besides the \cs{num} macro to format numbers, the package also provides macros to format lists of numbers, number ranges, products of numbers, angles and complex numbers. It can group digits for better readability, format numbers in scientific notation and numbers with uncertainties. See the examples in \cref{tab:num}. In this table, the option \texttt{separate-uncertainty} and \texttt{range-phrase} have been set locally just for demonstration purposes. Normally, such options are set globally in the preamble, to ensure their uniform application throughout the entire document. More info on global options can be found in \cref{siunitxglobal}.
+
+\begin{table}\centering
+    \caption{Examples of macros to format numbers}
+    \renewcommand{\arraystretch}{1.3} % Default value: 1
+    \begin{tabular}{ll}
+        \toprule
+        \LaTeX\ command                                         & result \\[+1ex]
+        \verb|\num{23000}|                                      & \num{23000} \\ 
+        \verb|\num{4.5(1)}|                                     & \num{4.5(1)} \\ 
+        \verb|\num[separate-uncertainty=true]{4.5(1)}|          & \num[separate-uncertainty=true]{4.5(1)}\\
+        \verb|\num{6.02E23}|                                    & \num{6.02E23} \\
+        \verb|\numlist{50;70;90}|                               & \numlist{50;70;90}\\ 
+        \verb|\numrange{50}{70}|                                & \numrange{50}{70}\\ 
+        \verb|\numrange[range-phrase = --]{50}{70}|             & \numrange[range-phrase = --]{50}{70}\\ 
+        \verb|\numproduct{5 x 7 x 9}|                           & \numproduct{5 x 7 x 9}\\ 
+        \verb|\ang{50;7;33}|                                    & \ang{50;7;33}\\
+        \verb|\complexnum{3+-2i}|                               & \complexnum{3+-2i}\\
+        \bottomrule
+    \end{tabular}\label{tab:num}
+\end{table}
+
+\subsection{\textbackslash unit}
+Units can be formatted using the \cs{unit} macro. To obtain the symbol for a unit, there are three possible approaches, as illustrated in \cref{tab:macroversusliteral}. If you choose to use unit macros (preceded by a backslash), the package will automatically typeset your units in accordance with the SI rules. If you prefer to use literal units, you will need to format them correctly yourself.
+
+\begin{table}\centering
+    \caption{Unit macro versus literal units}\label{tab:macroversusliteral}
+    \renewcommand{\arraystretch}{1.3} 
+    \begin{tabular}{ll}
+        \toprule
+        approach                          & example     \\[+1.5ex]
+        unit name macro                   & \cs{joule}  \\
+        unit abbreviation macro           & \cs{J}      \\
+        literal unit                      & \texttt{J}  \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+If you follow the instructions listed below, the \cs{unit} macro will typeset your unit in accordance with the SI rules and style conventions. Examples are shown in \cref{tab:unitmacros}.
+\begin{enumerate}
+    \item Write the units as you would pronounce them, for instance \verb|\joule\per\kilogram|.
+    \item Use unit macros by preceding all unit names with a backslash, as in \cs{joule} or \cs{kilogram}. The package will automatically substitute the correct symbol for each unit. Alternatively, you can use unit abbreviations, such as \cs{J} or \cs{kg}, with the same output result\footnote{Table 5 in the \href{https://mirrors.ircam.fr/pub/CTAN/macros/latex/contrib/siunitx/siunitx.pdf}{user manual of siunitx} contains all available abbreviations}. 
+    \item Use \cs{per} to put units in the denominator.
+    \item Use \cs{of} to refer to descriptors.
+    \item Use \cs{square} for exponent 2, \cs{cubic} for exponent 3 and \cs{tothe} for other exponents.
+    \item Use SI prefixes such as \cs{mega}, \cs{giga}, \dots
+\end{enumerate}
+
+\begin{table}\centering
+    \caption{Examples of unit abbreviation macros and unit name macros}\label{tab:unitmacros}
+    \renewcommand{\arraystretch}{1.6} % Default value: 1
+    \begin{tabular}{lc}
+        \toprule
+        unit abbreviation macros                       & result                   \\[+1.5ex]
+        \verb|\unit{\celsius}|                              & \unit{\celsius}\\ 
+        \verb|\unit{\um}|                                   & \unit{\um}\\ 
+        \verb|\unit{\kg\per\s}|                             & \unit{\kg\per\s} \\
+        \verb|\unit{\MPa}|                                  & \unit{\MPa} \\
+        % \verb|\unit{square\m}| or \verb|\unit{\m\squared}|  & \unit{\square\m} \\
+        % \verb|\unit{cubic\m}| or \verb|\unit{\m\cubed}|     & \unit{\cubic\m}\\
+        \verb|\unit{\kg\of{vap}\per\cubic\m\of{air}}|       & \unit{\kg\of{vap}\per\cubic\m\of{air}} \\
+        \verb|\unit{\W\per\square\m\per\K\tothe{4}}|        & \unit{\W\per\square\m\per\K\tothe{4}} \\
+        \midrule
+        unit name macros                                    & result                   \\[+1.5ex]
+        \verb|\unit{\degreeCelsius}|                        & \unit{\degreeCelsius}\\ 
+        \verb|\unit{\degree}|                               & \unit{\degree}\\ 
+        \verb|\unit{\micro\meter}|                          & \unit{\micro\meter}\\ 
+        \verb|\unit{\kilogram\per\second}|                  & \unit{\kilogram\per\second} \\
+        \verb|\unit{\mega\pascal}|                          & \unit{\mega\pascal} \\
+        \verb|\unit{\kilogram\of{vap}\per\cubic\meter\of{air}}|  & \unit{\kilogram\of{vap}\per\cubic\meter\of{air}} \\
+        \verb|\unit{\watt\per\square\meter\per\kelvin\tothe{4}}| & \unit{\watt\per\square\meter\per\kelvin\tothe{4}} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{per-mode}
+Units that are placed in the denominator with the \cs{per} macro can be displayed as reciprocal powers (the default) or as fraction or as symbol, depending om the setting of the \texttt{per-mode} switch, as illustrated in \cref{tab:displayunits}. In the examples in this table, the \texttt{per-mode} switch is given as a local option for demonstration purposes. Normally, it is set globally in the preamble, as was done in the style file \texttt{styles/myPackages} where the package \pkg{siunitx} is loaded. Such a global setting makes more sense because it will give consistent formatting of units throughout your document.
+
+It is also straightforward to modify the formatting of your units within your manuscript at a later time by adjusting this switch, eliminating the necessity to modify the source code of every unit throughout the document.
+
+It is even possible to configure the \texttt{per-mode} switch separately for units written in display mode (such as stand alone equations) using \texttt{display-per-mode} and for units written in inline text using \texttt{inline-per-mode}.
+
+The \texttt{per-mode} switch only functions in conjunction with unit macros; it has no impact on literal units. Refer to \cref{tab:literalunit} for examples of literal units. As you can observe in this table, it is your responsibility to format literal units correctly to prevent ambiguity.
+
+\begin{table}\centering
+    \caption{Three modes to display units in the denominator}\label{tab:displayunits}
+    \renewcommand{\arraystretch}{1.4} % Default value: 1
+    \begin{tabular}{lll}
+        \toprule
+        per-mode                                              & result                                      & display method \\[+1.5ex]
+        \verb|\unit[per-mode=power   ]{\kJ\per\kg\per\K}|     & \unit[per-mode=power]   {\kJ\per\kg\per\K}  & reciprocal powers \\
+        \verb|\unit[per-mode=fraction]{\kJ\per\kg\per\K}|     & \unit[per-mode=fraction]{\kJ\per\kg\per\K}  & horizontal bar\\
+        \verb|\unit[per-mode=symbol  ]{\kJ\per\kg\per\K}|     & \unit[per-mode=symbol]  {\kJ\per\kg\per\K}  & forward slash \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}\centering
+    \caption{Examples of literal units}\label{tab:literalunit}
+    \renewcommand{\arraystretch}{1.4} % Default value: 1
+    \begin{tabular}{lll}
+        \toprule
+        example                   & result             & remark \\[+1.5ex]
+        \verb|\unit{whatev3r}|    & \unit{whatev3r}    & string appears as written\\
+        \verb|\unit{N.m}|         & \unit{N.m}         & dots are converted to inter-unit products\\
+        \verb|\unit{wha^tev_3r}|  & \unit{wha^tev_3er} & superscripts and subscripts can be specified\\
+        \verb|\unit{kJ/kgK}|       & \unit{kJ/kgK}      & space between kg and K missing\\
+        \verb|\unit{kJ/kg.K}|      & \unit{kJ/kg.K}     & ambiguous use of dot in denominator \\
+        \verb|\unit{kJ/(kg.K)}|    & \unit{kJ/(kg.K)}   & literal unit correctly specified\\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{\textbackslash qty}
+The macro \cs{qty} is used to format a number and its unit simultaneously; it is a combination of \cs{num} and \cs{unit}. For instance \qty{4.18}{\kJ\per\kg\per\K}. You will find more examples in \cref{tab:siunitx}.
+
+\begin{table}\centering
+    \caption{Examples of the use of \cs{qty} macros}
+    \renewcommand{\arraystretch}{1.3} % Default value: 1
+    \begin{tabular}{ll}
+        \toprule
+        macro                                            & result \\[+1ex]
+        \verb|\qty{9.81}{\m\per\s\squared}|              & \qty{9.81}{\m\per\s\squared} \\
+        \verb|\qty{9.81}{m/s^2}|                         & \qty{9.81}{m/s^2} \\ 
+        \verb|\qty{4}{\euro\per\kg}|                     & \qty{4}{\euro\per\kg} \\
+        \verb|\qty{2E-4}{\mol\per\square\cm\per\s}|      & \qty{2E-4}{\mol\per\square\cm\per\s} \\
+        \verb|\qtylist{50;70;90}{\cm}|                   & \qtylist{50;70;90}{\cm}\\ 
+        \verb|\qtyrange{50}{70}{\celsius}|               & \qtyrange{50}{70}{\celsius}\\ 
+        \verb|\qtyproduct{5 x 7 x 9}{\m}|                & \qtyproduct{5 x 7 x 9}{\m}\\ 
+        \bottomrule
+    \end{tabular}\label{tab:siunitx}
+\end{table}
+
+\subsection{Defining your own units}
+You can define your own units with the command \cs{DeclareSIUnit}. This makes sense if you often use a unit in your manuscript that is not yet available in \pkg{siunitx}. Some extra units are defined in this template. You will find them in \verb|styles/mypackages| where the package \pkg{siunitx} is loaded. For example:\\ \verb|\DeclareSIUnit\kWh{kWh}|\\
+\verb|\DeclareSIUnit\emission{\ch{CO2}eq}|
+
+They can then be used as in this example: \qty{85}{\gram\emission\per\kWh}.
+
+\subsection{Aligning numbers in tables}
+The package also introduces a column type \texttt{S} to align numbers in tables at the decimal separator. Inspect the source code of \cref{tab:tabledemo} to see the application of these column types. Column \texttt{unit} is centred and uses the command \cs{unit} to write the units. The columns indicating the initial end final state are of type \texttt{S}.
+
+\begin{frame}{Formatting numbers and units in tables with \texttt{siunitx}}
+    \begin{table}[b]\centering
+    	\caption{Example of a property table with type \texttt{S} columns to align numbers at decimal separator}
+    			\only<presentation>{\footnotesize}
+    	\begin{tabular}{ccScSl} % column types: centre, centre, S, centre, S, left align
+    		% column type s for units, column type S for values aligned at decimal separator
+                \toprule
+                 property & unit            & {initial state}       & process & {end state}         & comment   \\[+1.5ex]
+                 $m$      & \unit{\kilogram}  &  1.0                  &  $=$    &      1.0            & closed      \\
+                 $T$      & \unit{\celsius}   &  25.0                 &  $=$    &     25.0            & isotherm    \\
+                 $\vol$   & \unit{m^3}        &  1.00                 &  $>$    &     0.83            & compression \\
+                \bottomrule
+    	\end{tabular}\label{tab:tabledemo}
+    \end{table}
+\end{frame}
+
+\subsection{Global settings}\label{siunitxglobal}
+Many other global settings can be made, for instance settings related to the rounding of numbers, the formatting of the exponential notation, the displaying of digits, to name a few. All additional info can be found in the user guide \href{https://mirror.lyrahosting.com/CTAN/macros/latex/contrib/siunitx/siunitx.pdf}{siunitx.pdf}. You will also find some examples in \verb|styles/mypackages| where the package \pkg{siunitx} is loaded.
+
+More info can be found at \href{https://ctan.org/pkg/siunitx?lang=en}{CTAN: package siunitx}.
+
+\subsection{Older versions}
+The commands \cs{si}, \cs{SI}, \cs{SIlist} and \cs{SIrange} from version 2 of \pkg{siunitx} remain available, but are not recommended for use in new documents. Use the new commands instead.
+
+\section{tikz}\label{sec:tikz}
+\pkg{\TikZ} is a powerful package for creating high-quality graphics and diagrams within \LaTeX\ documents. With it, you can design and draw a wide range of visual elements, including geometric shapes, graphs, charts, and illustrations. It comes with an extensive library of predefined styles and shapes and is often used in scientific publications by anyone who needs precise graphics in \LaTeX\ documents.
+
+Here are useful links to learn more
+\begin{itemize}
+    \item \href{https://www.overleaf.com/learn/latex/TikZ_package}{Overleaf documentation on \TikZ}
+    \item \href{https://cremeronline.com/LaTeX/minimaltikz.pdf}{A very minimal introduction to \TikZ}
+    \item \href{https://www.math.uni-leipzig.de/~hellmund/LaTeX/pgf-tut.pdf}{PGF/\TikZ\  Graphics for \LaTeX} 
+    \item \href{http://siam.cs.kuleuven.be/sites/siam.cs.kuleuven.be/files/events/tikz_workshop/tikz_introduction.pdf}{A very short introduction to \TikZ} 
+    \item \href{http://csweb.ucc.ie/~dongen/LAF/TikZ.pdf}{Creating Diagrams with \TikZ}
+\end{itemize}
+
+You can make simple inline drawings with the command \verb|\tikz{ }|. For instance the command \verb|\tikz{\draw[VUBblue] (0,0) rectangle (2mm,2mm)}| and the command\\ \verb|\tikz{\draw[VUBorange] (0,0) circle (2mm)}| will produce \tikz{\fill[VUBblue] (0,0) rectangle (2mm,2mm)} and \tikz{\fill[VUBorange] (0,0) circle (1mm)} respectively.
+
+You can also define your own drawing commands. For example: the command \verb|\drawpumpicon|, defined in \verb|extra/myDrawingStuff|, will draw a pump icon at a given location with a given name tag. Below is an example of a drawing of two pumps, named A and B, placed side by side with the single \TikZ\ command \verb|\tikz{\drawpumpicon{0}{0}{A};\drawpumpicon{3}{0}{B}}|.
+
+\tikz{\drawpumpicon{0}{0}{A};\drawpumpicon{3}{0}{B}}
+
+More complex drawings are better made within the \verb|tikzpicture| environment. See \cref{ch:drawing} in this document for some examples. Many more examples can be found on \href{http://www.texample.net/tikz/examples/}{TeXample.net}.
+
+More info can be found at \href{https://ctan.org/pkg/tikz?lang=en}{CTAN: package \TikZ}.
+
+\section{todonotes}\label{sec:todonotes}
+The \pkg{todonotes} package provides the command \cs{todo} to insert to-do items in your document. For instance the command \verb|\todo{example of a margin note}| renders to the note in the right margin of the PDF. \todo{example of a margin note}
+
+The package also provides the \cs{missingfigure} command to create a placeholder for a picture you still need to add. For example: \verb|\missingfigure{Search for better picture}|
+
+\missingfigure{Search for better picture}
+
+At any point in your document, a list of all the inserted to–do items and missing figures can be listed with the \cs{listoftodos} command. In this template, the \cs{listoftodos} command can be found at the last line of \texttt{mainReport.tex} and thus you will find the list of to do's at the last page of this PDF.
+
+If you wish to temporarily hide all the to-do items in your document, you can utilize the \texttt{disable} option when loading the package as follows: \verb|\usepackage[disable]{todonotes}|. This option allows you to work on your document without the distraction of to-do notes until you decide to enable them again. More info can be found at \href{https://ctan.org/pkg/todonotes?lang=en}{CTAN: package todonotes}.
+
+% more info on \mode<all> in section 21.3 of beameruserfile.pdf
+\mode<all>

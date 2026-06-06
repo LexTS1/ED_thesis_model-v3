@@ -1,0 +1,24 @@
+% This file creates a bibliography with all the entry types in bib/entrytypes.bib
+
+
+% start a new refsection that only uses entries from bib/entrytypes.bib
+\begin{refsection}[bib/entrytypes.bib]  
+
+    % define the prenote. This is text to be printed after the heading but before the list of references.
+    \defbibnote{bibexplain}{\itshape\color{blue}
+    This demo bibliography shows the content of the file \texttt{bib/entrytypes.bib} which contains common entry types. It serves two purposes:
+    \begin{enumerate}
+        \item In the file \texttt{bib/entrytypes.bib}, you can inspect how these entry types are specified.
+        \item In this printed bibliography, you can see how they appear.
+    \end{enumerate}
+    
+    The entry type fields are filled with fictitious information, except for the \texttt{title} field, which contains an explanation of the use of that entry type.
+    
+    Do not forget to remove this demo bibliography from your final document. You can do this by commenting out the line \cs{input\{bib/entrytypes\}} in your main file.}
+
+    % include all entries in this bib file
+    \nocite{*} 
+
+    % print the prenote and then the bibliography
+    \printbibliography[title=Demo bibliography with common entry types,prenote=bibexplain] 
+\end{refsection}

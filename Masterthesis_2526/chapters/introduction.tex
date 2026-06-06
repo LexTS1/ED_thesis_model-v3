@@ -1,0 +1,65 @@
+\chapterOrPart{Introduction}\label{ch:introduction}
+
+% \begin{explanation}
+%     A thesis typically contains an introduction. A possible structure is provided below. 
+%     \begin{itemize}
+%         \item Context: situate your work within a broader background and explain the relevance of the problem your work addresses
+%         \item Topic: define the topic and scope of your work
+%         \item Research question: list the research question(s) that your work aims to answer; a master thesis and a PhD must have research questions
+%         \item Objectives: list the objectives of your work
+%         \item Thesis structure: briefly describe the thesis structure
+%     \end{itemize}
+% \end{explanation}
+
+\section{Context}
+
+Residential energy demand is becoming a more difficult object to model because two transitions are occurring at the same time. Climate change alters the weather conditions that drive space-heating and cooling pressure, while residential technologies such as heat pumps, photovoltaic (PV) systems and electric vehicles (EVs) change the carriers, timing and coincidence of household electricity demand. For Belgium this interaction is especially relevant because the residential stock remains strongly heating-dominated and still relies substantially on fossil heating carriers, while electrified end uses are expected to become more prominent \cite{eurostat_disaggregated_nodate,JRC2022HeatPumpBelgium,Statbel2025EV}.
+
+The technical challenge is not only to estimate annual energy consumption. Future residential demand also depends on the temporal structure of demand, the conversion of useful heat into gas or electricity, PV self-consumption and export, EV charging, and the diversity of household behaviour. Bottom-up modelling is useful in this setting because it can represent dwellings, end uses, weather forcing, technology assumptions and stochastic household differences explicitly rather than treating residential demand as a single aggregate time series \cite{Richardson2010CRESTElectricity,McKenna2015}. Climate-impact modelling adds a further requirement: weather and climate scenarios must be propagated through the demand model in a way that keeps the difference between climate forcing, technology assumptions and stochastic variation visible \cite{IPCC2021,DeWilde2014,Jacob2014EuroCordex}.
+
+\section{Problem Statement}
+
+Many residential demand assessments treat climate sensitivity, technology uptake and behavioural diversity as separate modelling problems. This is limiting for an electrifying residential system. A warmer climate can reduce useful space-heating demand, but electrified heating can simultaneously increase winter electricity peaks. PV can reduce net grid import at some hours, but its value depends on temporal overlap with household demand. EV charging can add annual electricity demand, but its impact on grid stress depends on when charging occurs and how coincident it is across households. A model that reports only annual energy can therefore miss the system-relevant part of the transition.
+
+The knowledge gap addressed in this thesis is the combined treatment of climate forcing and residential technology-stock assumptions in a traceable Belgian bottom-up demand model. The model must distinguish useful thermal demand from final energy carriers, preserve household-to-household variation, report grid import and export at the active timestep, and state clearly which claims are supported by validation evidence. The aim is not to produce a calibrated national forecast of Belgian residential demand, but to build and evaluate a reproducible scenario framework that can show how climate and technology assumptions shape residential final energy, carrier use and peak electricity load under stated conditions.
+
+\newpage
+\section{Research Question}
+
+The central research question is:
+
+\begin{quote}\itshape
+How do climate forcing and residential technology-stock assumptions interact to shape future Belgian household final energy demand, carrier use, and peak electricity load?
+\end{quote}
+
+This question is operationalised through four supporting questions. First, the thesis asks how climate forcing affects residential space-heating demand and overheating indicators under a frozen technology stock. Second, it asks how electrification, PV and EV technology cases change final-energy carrier use and grid import/export profiles. Third, it asks how large stochastic household-to-household variability is relative to climate- and technology-driven differences. Fourth, it asks to what extent the model can reproduce Belgian residential demand patterns against macro, synthetic, smart-meter, PV and EV validation references.
+
+\section{Research Objective}
+
+The objective is to develop and evaluate a stochastic, physics-informed bottom-up model for Belgian residential energy demand under climate and technology uncertainty. The model combines Belgian dwelling and technology-stock assumptions, occupancy-conditioned stochastic demand generation, a reduced-order thermal balance, heat-pump and carrier-conversion logic, PV and EV modules, and a scenario-tree layer that records provenance for each executed scenario leaf. The output of interest is not one forecast year, but a set of conditional comparisons across climate windows, RCP pathways, technology cases and stochastic realisations.
+
+The scope is deliberately bounded. The model represents residential demand at the dwelling-meter boundary and reports final energy, carrier use, PV generation, grid import/export, peak import, heating and cooling pressure indicators, and selected economic and emissions post-processing outputs. It does not model distribution-network power flow, endogenous technology adoption, active cooling final electricity demand, embodied emissions, or a multi-model climate ensemble. Future climate results are therefore interpreted as conditional scenario results under the configured CORDEX chain rather than as probabilistic forecasts.
+
+\section{Thesis Structure}
+
+\Cref{ch:literature} reviews residential energy demand, bottom-up modelling, uncertainty, climate forcing and validation approaches. \Cref{ch:materialsmethods} defines the model scope, input data, scenario-tree system, demand model, technology modules, output ledger and validation strategy. \Cref{ch:results} reports the executed model configurations, validation evidence and climate-scenario results. \Cref{ch:discussion} interprets the results for adaptation, electrification, limitations and future work. \Cref{ch:conclusions} closes the thesis by answering the research question directly from the results.
+
+\mode<all> % do not remove
+
+
+
+
+% % \begin{explanation}
+% % It is recommended to use action verbs to formulate objectives. It will make them actionable and easier to assess for progress. Examples of action verbs are: to analyze, assess, build, construct, create, demonstrate, design, develop, evaluate, enhance, implement, improve, increase, investigate, measure, optimize, produce, reduce, test, validate.
+
+% % Try to formulate \href{https://en.wikipedia.org/wiki/SMART_criteria}{SMART} objectives that are specific, measurable, achievable, relevant, and time-bound. This approach will help make your objectives clearer, easier to track, realistic, aligned with your research question and defined within a specific time frame for completion.
+
+
+
+% % Example of a SMART objective: "To measure the PM emissions from a multiheat wood pellet boiler with an ELPI+ during 24 hours of continuous operation at 100\% load in December 2025."
+
+% % The non-SMART version: "Study boiler emissions"
+% % \end{explanation}
+
+% \section{Thesis structure} 
+\mode<all> % do not remove

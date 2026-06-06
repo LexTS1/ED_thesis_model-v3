@@ -1,0 +1,163 @@
+% set names in nomenclature according to document language
+\IfLanguageName{english} %
+    { % English chapter/section names in Nomenclature
+        \def\nomenclatureName{Nomenclature}
+        \def\acronymSection{Acronyms}
+        \def\greekSection{Greek symbols}
+        \def\romanSection{Roman symbols}
+    }
+    { % non-English chapter/section names in Nomenclature, here: Dutch version
+        \def\nomenclatureName{Nomenclatuur}
+        \def\acronymSection{Acroniemen}
+        \def\greekSection{Griekse symbolen}
+        \def\romanSection{Romeinse symbolen}
+    }
+
+\chapterOrPart{\nomenclatureName}\label{sec:nomenclature}
+
+% set the column widths used in the tables of the nomenclature
+\def\widthA{3.0cm} \def\widthB{6.6cm} \def\widthC{4.2cm}
+
+\section*{\acronymSection}
+\begin{supertabular}{p{\widthA}p{\widthB}}
+    \acronym{ACH}{}{Air Changes per Hour}
+    \acronym{ADMD}{}{After Diversity Maximum Demand}
+    \acronym{AI}{}{Artificial Intelligence}
+    \acronym{ASHRAE}{}{American Society of Heating, Refrigerating and Air-Conditioning Engineers}
+    \acronym{AWS}{}{Automatic Weather Station}
+    \acronym{BEV}{}{Battery Electric Vehicle}
+    \acronym{CAPEX}{}{Capital Expenditure}
+    \acronym{CDD}{}{Cooling Degree Days}
+    \acronym{CDA}{}{Conditional Demand Analysis}
+    \acronym{CF}{}{Capacity Factor}
+    \acronym{COP}{}{Coefficient of Performance}
+    \acronym{CORDEX}{}{Coordinated Regional Climate Downscaling Experiment}
+    \acronym{CREST}{}{Centre for Renewable Energy Systems Technology}
+    \acronym{CVRMSE}{}{Coefficient of Variation of the Root Mean Squared Error}
+    \acronym{DHW}{}{Domestic Hot Water}
+    \acronym{DNO}{}{Distribution Network Operator}
+    \acronym{DSO}{}{Distribution System Operator}
+    \acronym{EAN}{}{European Article Number}
+    \acronym{EPC}{}{Energy Performance Certificate}
+    \acronym{EPB}{}{Energy Performance of Buildings}
+    \acronym{EU}{}{European Union}
+    \acronym{EV}{}{Electric Vehicle}
+    \acronym{GCM}{}{General Circulation Model}
+    \acronym{GDP}{}{Gross Domestic Product}
+    \acronym{GHG}{}{Greenhouse Gas}
+    \acronym{GWP}{}{Global Warming Potential}
+    \acronym{HDD}{}{Heating Degree Days}
+    \acronym{HP}{}{Heat Pump}
+    \acronym{HRV}{}{Heat Recovery Ventilation}
+    \acronym{HVAC}{}{Heating, Ventilation and Air Conditioning}
+    \acronym{IEA}{}{International Energy Agency}
+    \acronym{IPCC}{}{Intergovernmental Panel on Climate Change}
+    \acronym{IPMVP}{}{International Performance Measurement and Verification Protocol}
+    \acronym{ISO}{}{International Organization for Standardization}
+    \acronym{JRC}{}{Joint Research Centre}
+    \acronym{LDC}{}{Load Duration Curve}
+    \acronym{MAE}{}{Mean Absolute Error}
+    \acronym{MAPE}{}{Mean Absolute Percentage Error}
+    \acronym{MBE}{}{Mean Bias Error}
+    \acronym{NMBE}{}{Normalized Mean Bias Error}
+    \acronym{O\&M}{}{Operation and Maintenance}
+    \acronym{PLR}{}{Part-Load Ratio}
+    \acronym{POA}{}{Plane of Array}
+    \acronym{PPH}{}{Persons per Household}
+    \acronym{PV}{}{Photovoltaic}
+    \acronym{PVGIS}{}{Photovoltaic Geographical Information System}
+    \acronym{RCM}{}{Regional Climate Model}
+    \acronym{RCP}{}{Representative Concentration Pathway}
+    \acronym{RES}{}{Renewable Energy Sources}
+    \acronym{RMI}{}{Royal Meteorological Institute of Belgium}
+    \acronym{RMSE}{}{Root Mean Squared Error}
+    \acronym{SC}{}{Space Cooling}
+    \acronym{SCR}{}{Self-Consumption Ratio}
+    \acronym{SH}{}{Space Heating}
+    \acronym{SoC}{}{State of Charge}
+    \acronym{SPF}{}{Seasonal Performance Factor}
+    \acronym{SSP}{}{Shared Socio-economic Pathway}
+    \acronym{SSR}{}{Self-Sufficiency Ratio}
+    \acronym{TABULA}{}{Typology Approach for Building Stock Energy Assessment}
+    \acronym{WP}{}{Warmtepomp}
+    \acronym{YAML}{}{YAML Ain't Markup Language}
+    \acronym{ZP}{}{Zonnepanelen}
+\end{supertabular}
+
+\section*{\greekSection}
+\begin{supertabular}{p{\widthA}p{\widthB}l}
+    \nomenclature{\Delta}{verandering ten opzichte van referentie}{change relative to a reference case}{}
+    \nomenclature{\Delta t}{tijdstapduur}{timestep duration}{\hour}
+    \nomenclature{\Delta T}{temperatuurbenadering of temperatuurverschil}{temperature approach or difference}{\kelvin}
+    \nomenclature{\delta}{thermostaatdodeband}{thermostat deadband}{\celsius}
+    \nomenclature{\eta_{\text{HRV}}}{warmteterugwinrendement}{heat-recovery ventilation effectiveness}{}
+    \nomenclature{\eta_{\mathrm{PL}}}{ondergrensfactor voor deellast}{part-load lower-bound efficiency factor}{}
+    \nomenclature{\eta_{\text{PV}}}{PV-module-efficiëntie}{PV module efficiency}{}
+    \nomenclature{\lambda(t)}{verwachte eventintensiteit}{expected event-generator intensity}{\per\hour}
+    \nomenclature{\rho}{luchtdichtheid}{air density}{\kilogram\per\cubic\metre}
+    \nomenclature{\sigma}{spreidingsparameter}{dispersion parameter}{}
+    \nomenclature{\sigma_h}{huishoudelijk random-effect standaardafwijking}{household random-effect standard deviation}{}
+    \nomenclature{\theta_{\text{trig}}}{raamopenings-triggeroffset}{window-opening trigger temperature offset}{\celsius}
+\end{supertabular}
+
+\section*{\romanSection}
+\begin{supertabular}{p{\widthA}p{\widthB}l}
+    \nomenclature{A_{\text{PV}}}{actieve PV-module-oppervlakte}{active PV module area}{\square\metre}
+    \nomenclature{a_{\mathrm{sink}}}{COP-correctiecoëfficiënt voor sinktemperatuur}{COP sink-temperature correction coefficient}{\per\kelvin}
+    \nomenclature{a_{\mathrm{src}}}{COP-correctiecoëfficiënt voor brontemperatuur}{COP source-temperature correction coefficient}{\per\kelvin}
+    \nomenclature{C}{effectieve thermische capaciteit}{effective thermal capacitance}{\joule\per\kelvin}
+    \nomenclature{c_p}{soortelijke warmtecapaciteit van lucht}{specific heat capacity of air}{\joule\per\kilogram\per\kelvin}
+    \nomenclature{d}{ontdooiverliesfactor}{defrost loss factor}{}
+    \nomenclature{d_{\text{day}}}{dagelijkse rijafstand}{daily driven distance}{\kilo\metre\per\day}
+    \nomenclature{e_{\text{km}}}{EV-elektriciteitsverbruik per kilometer}{EV electricity consumption per kilometre}{\kilo\watt\hour\per\kilo\metre}
+    \nomenclature{E_{\text{EV,day}}}{dagelijkse EV-laadenergie}{daily EV charging energy}{\kilo\watt\hour}
+    \nomenclature{E_{\text{load,total}}}{totale elektrische belasting}{total electrical load energy}{\kilo\watt\hour}
+    \nomenclature{E_{\text{PV,self-consumed}}}{zelfverbruikte PV-energie}{self-consumed PV energy}{\kilo\watt\hour}
+    \nomenclature{E_{\text{PV,total}}}{totale PV-opwek}{total PV generation}{\kilo\watt\hour}
+    \nomenclature{F_{\mathrm{def}}}{ontdooifactor}{defrost factor}{}
+    \nomenclature{F_{\mathrm{PL}}}{deellastfactor}{part-load factor}{}
+    \nomenclature{f_T(t)}{weerafhankelijke sinktemperatuurfractie}{weather-curve sink-temperature fraction}{}
+    \nomenclature{G_{\text{POA}}}{instraling in het paneelvlak}{plane-of-array irradiance}{\watt\per\square\metre}
+    \nomenclature{H_{\text{ve}}}{ventilatie- en infiltratiewarmteverliescoëfficiënt}{ventilation-and-infiltration heat-transfer coefficient}{\watt\per\kelvin}
+    \nomenclature{m_{\text{class}}}{gedragsklasse-multiplier}{behavioural-class multiplier}{}
+    \nomenclature{m_t}{modelwaarde op tijdstip t}{modelled value at time step t}{}
+    \nomenclature{n}{aantal uitgelijnde tijdstappen}{number of aligned time steps}{}
+    \nomenclature{N}{cohortgrootte}{cohort size}{}
+    \nomenclature{n_{\text{occ}}}{aantal bewoners}{number of occupants}{}
+    \nomenclature{n_{\text{ref}}}{referentiehuishoudgrootte}{reference household size}{}
+    \nomenclature{p}{aantal gefitte kalibratieparameters}{number of fitted calibration parameters}{}
+    \nomenclature{P_{\mathrm{el,HP}}}{elektrisch vermogen van de warmtepomp}{heat-pump electrical power}{\watt}
+    \nomenclature{P_{\text{el,gross}}}{bruto huishoudelijke elektriciteitsvraag}{gross household electricity demand}{\watt}
+    \nomenclature{P_{\text{el,grid,export}}}{netexport naar het net}{grid export power}{\watt}
+    \nomenclature{P_{\text{el,grid,import}}}{netimport uit het net}{grid import power}{\watt}
+    \nomenclature{P_{\text{pv}}}{PV-opwekvermogen}{PV generation power}{\watt}
+    \nomenclature{Q_{\mathrm{cap}}}{beschikbare verwarmingscapaciteit}{available heating capacity}{\watt}
+    \nomenclature{Q_{\mathrm{useful}}}{nuttige warmtevraag of warmtelevering}{useful heat demand or delivery}{\watt}
+    \nomenclature{Q_{\text{heat}}}{ruimteverwarmingsvermogen}{space-heating power}{\watt}
+    \nomenclature{Q_{\text{heat,demand}}}{gevraagde nuttige ruimteverwarming}{requested useful space-heating demand}{\watt}
+    \nomenclature{Q_{\text{int}}}{interne warmtewinsten}{internal heat gains}{\watt}
+    \nomenclature{Q_{\text{sol}}}{zonnewarmtewinsten}{solar heat gains}{\watt}
+    \nomenclature{\dot Q_{\text{useful}}}{nuttige warmtestroom}{useful heat-flow rate}{\watt}
+    \nomenclature{r_t}{referentiewaarde op tijdstip t}{reference value at time step t}{}
+    \nomenclature{\bar r}{gemiddelde referentiewaarde}{mean reference value}{}
+    \nomenclature{s}{stochastisch seednummer}{stochastic seed identifier}{}
+    \nomenclature{T}{temperatuur}{temperature}{\celsius}
+    \nomenclature{T_{\mathrm{design}}}{ontwerpbuitentemperatuur}{design outdoor temperature}{\celsius}
+    \nomenclature{T_{\mathrm{mild}}}{milde-weersreferentietemperatuur}{mild-weather reference temperature}{\celsius}
+    \nomenclature{T_{\mathrm{sink}}}{warmtepomp-sinktemperatuur}{heat-pump sink temperature}{\celsius}
+    \nomenclature{T_{\mathrm{src}}}{warmtepomp-brontemperatuur}{heat-pump source temperature}{\celsius}
+    \nomenclature{T_{\text{free}}}{vrij-zwevende binnentemperatuur}{free-float indoor temperature}{\celsius}
+    \nomenclature{T_{\text{in}}}{binnentemperatuur}{indoor temperature}{\celsius}
+    \nomenclature{T_{\text{out}}}{buitentemperatuur}{outdoor temperature}{\celsius}
+    \nomenclature{T_{\text{set}}}{thermostaatinstelpunt}{thermostat setpoint}{\celsius}
+    \nomenclature{T_{\text{H}}}{absolute sinktemperatuur in COP-afleiding}{absolute sink temperature in COP derivation}{\kelvin}
+    \nomenclature{T_{\text{L}}}{absolute brontemperatuur in COP-afleiding}{absolute source temperature in COP derivation}{\kelvin}
+    \nomenclature{UA}{gebouwschil-warmteverliescoëfficiënt}{building-envelope heat-loss coefficient}{\watt\per\kelvin}
+    \nomenclature{u}{huishoudelijk random effect}{household random effect}{}
+    \nomenclature{U}{warmtedoorgangscoëfficiënt van bouwdeel}{building-element heat-transfer coefficient}{\watt\per\square\metre\per\kelvin}
+    \nomenclature{\dot V_{\text{eff}}}{effectief luchtvolumedebiet}{effective air-volume flow rate}{\cubic\metre\per\second}
+    \nomenclature{\dot V_{\text{inf}}}{infiltratievolumedebiet}{infiltration air-volume flow rate}{\cubic\metre\per\second}
+    \nomenclature{\dot V_{\text{vent}}}{ventilatievolumedebiet}{ventilation air-volume flow rate}{\cubic\metre\per\second}
+\end{supertabular}
+
+\mode<all> % do not remove

@@ -1,0 +1,60 @@
+% This style file performs the page setup
+% There is a separate page setup for a report/thesis and for slides, explained in the table below
+% Read section 21.3 of ctan.org/pkg/beamer documentation for more info on 'modes'
+%
+% ----------------------------------------------
+%  output PDF      LaTeX class    mode
+%
+%  report/thesis   memoir         <article>
+%  slides          beamer         <presentation>
+% ----------------------------------------------
+
+%% PAGE SETUP FOR A REPORT/THESIS
+\mode<article>{% mode <article> is active in class memoir
+    %\setstocksize{24cm}{17cm}                       % set stock size of paper, see section 2.3 in ctan.org/pkg/memoir
+    %\settrimmedsize{\stockheight}{\stockwidth}{*}   % make page size same as stocksize
+	\setlrmarginsandblock{3.5cm}{3cm}{*}             % set left & right margin, textwidth = 21cm(A4)-3.5cm-3cm=14.5cm
+	\setulmarginsandblock{3cm}{3cm}{*}               % set top and bottom margin
+	\checkandfixthelayout                            % required! to process page settings in class memoir
+	\chapterstyle{lyhne}                             % chapter style: lyhne, southall, more styles in appendix B in ctan.org/pkg/memoir
+	\renewcommand*{\cftchapterfont}{\normalfont}     % font for chapter entries in TOC
+	\renewcommand*{\cftchapterpagefont}{\normalfont} % font for page numbers of chapters in TOC
+	%\pagestyle{simple}                              % page style, alternatives: ruled, companion
+	%\openright                                      % useful for recto verso
+	\linespread{1.1}                                 % line spacing, 1.1
+	\setlength{\parindent}{0ex}                      % indentation of first line of new paragraph, ex = height letter x, 2ex
+	\setlength{\parskip}{1.5ex}                      % space between paragraphs, 1.5ex
+	\setlength{\mathindent}{4ex}                     % indent math equations, ex = height letter x, 4ex
+	\def\labelitemi{--}                              % replace bullets with dash in itemize
+	\def\labelsubitemi{-}                            % replace bullets with dash in itemize
+	\settocdepth{subsubsection}                      % depth of TOC numbering
+	\setsecnumdepth{subsubsection}                   % depth of section numbering
+	\setsecheadstyle{\large\scshape\raggedright\color{VUBblue}} % define the style of the section header
+	\setsubsecheadstyle{\scshape\raggedright\color{VUBblue}}    % define the style of the subsection header	
+    \setsubsubsecheadstyle{\raggedright\color{VUBblue}}         % define the style of the subsubsection header
+	\captionnamefont{\small\bfseries}                % fig. & table small and bold
+	\captiontitlefont{\small}                        % make caption small
+	\nouppercaseheads                                % disable automatic capitalization of headings in document
+    \setlist[description]{leftmargin=0cm}            % align descriptions with left text margin
+	\setbeamertemplate{frametitle}{}                 % hide frametitles in report/thesis
+} 
+
+%% PAGE SETUP FOR SLIDES
+\mode<presentation>{% mode <presentation> is active in class beamer
+	\setbeamertemplate{navigation symbols}{}                    % switch navigation symbols off
+	\setbeamercolor{normal text}{fg=black!70}                   % set forground color of text to black 70% opaque
+	\setbeamertemplate{blocks}[rounded][shadow=true]            % round corners of blocks + shadow
+	\setbeamerfont{frametitle}{size=\normalsize}                % set size of title on slide
+	\addtobeamertemplate{frametitle}{}{\vspace{0mm}}            % decrease space between title and text
+	\setbeamersize{text margin left=10mm,text margin right=5mm} % set margins for text on slide
+	\setbeamertemplate{footline}[frame number]                  % show frame number
+	\setbeamertemplate{caption}[numbered]                       % number the figures
+	\setbeamertemplate{section in toc}[square]                  % square bullets for section entries in TOC
+	\setlength{\leftmargini}{1cm}                               % left margin in itemize
+	\setlength{\mathindent}{3mm}                                % indent math equations 3 mm
+	%\let\Tiny=\tiny                                            % to avoid font size warnings
+	\usetheme{default}      % or try Darmstadt, Madrid, Warsaw, Copenhagen, Boadilla, Antibes
+	\usecolortheme{default} % or try albatross, beaver, crane, ...
+	\usefonttheme{default}  % or try serif, structurebold, ...
+} 
+

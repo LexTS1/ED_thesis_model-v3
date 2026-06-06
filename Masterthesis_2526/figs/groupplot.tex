@@ -1,0 +1,32 @@
+\begin{tikzpicture}\tinybeamer
+	\begin{groupplot}[group style={group size=2 by 2,vertical sep=1em,horizontal sep=2ex,x descriptions at=edge bottom,y descriptions at=edge left},
+	xmin=-2.7,xmax = 11.2,ymin=0,ymax=100,
+	xlabel={$\qdot_\up{exchanged}\unitschart{kW}$},
+	ylabel= {$T\unitschart{\SI{}{\celsius}}$},
+	height=0.45\textheight,width=0.55\textwidth]
+    	\nextgroupplot	\def\Q{1.3}; % Q in kW
+    	\draw [blue,deco=0.5] (axis cs: 0,20) -- (axis cs: \Q,20+\Q/0.2/1) node [right] {\SI{26}{\celsius}};
+    	\draw [red,deco=0.5](axis cs: \Q,90)  -- (axis cs: 0,90-\Q/0.03/4.18)  node [left] {\SI{80}{\celsius}};
+    	\draw[helpline] (axis cs: 0,90-\Q/0.03/4.18) -- (0,0) (\Q,0) -- (\Q,90);
+    	\draw[measure,<->] (axis cs: 0,10) -- (axis cs: \Q,10) node [right]{\Q~kW};
+    	\node at (axis cs: 5,70) [right,align=left]{$A=\SI{0.68}{m^2}$};
+    	\nextgroupplot \def\Q{2.5}; % Q in kW
+    	\draw [blue,deco=0.5] (axis cs: 0,20) -- (axis cs: \Q,20+\Q/0.2/1) node [right] {\SI{33}{\celsius}};
+    	\draw [red,deco=0.5](axis cs: \Q,90)  -- (axis cs: 0,90-\Q/0.03/4.18)  node [left] {\SI{70}{\celsius}};
+    	\draw[helpline] (axis cs: 0,90-\Q/0.03/4.18) -- (0,0) (\Q,0) -- (\Q,90);
+    	\draw[measure,<->] (axis cs: 0,10) -- (axis cs: \Q,10) node [right]{\Q~kW};
+    	\node at (axis cs: 5,70) [right,align=left]{$A=\SI{1.6}{m^2}$};
+    	\nextgroupplot \def\Q{3.8}; % Q in kW
+    	\draw [blue,deco=0.5] (axis cs: 0,20) -- (axis cs: \Q,20+\Q/0.2/1) node [right] {\SI{39}{\celsius}};
+    	\draw [red,deco=0.5](axis cs: \Q,90)  -- (axis cs: 0,90-\Q/0.03/4.18)  node [left] {\SI{60}{\celsius}};
+    	\draw[helpline] (axis cs: 0,90-\Q/0.03/4.18) -- (0,0) (\Q,0) -- (\Q,90);
+    	\draw[measure,<->] (axis cs: 0,10) -- node [above]{\Q~kW} (axis cs: \Q,10);
+    	\node at (axis cs: 5,70) [right,align=left]{$A=\SI{2.8}{m^2}$};
+    	\nextgroupplot \def\Q{8.8}; % Q in kW
+    	\draw [blue,deco=0.5] (axis cs: 0,20) -- (axis cs: \Q,20+\Q/0.2/1)  node [right] {\SI{64}{\celsius}};
+    	\draw [red,deco=0.5](axis cs: \Q,90) -- (axis cs: 0,90-\Q/0.03/4.18) node [left] {\SI{20}{\celsius}};
+    	\draw[helpline] (axis cs: 0,90-\Q/0.03/4.18) -- (0,0) (\Q,0) -- (\Q,90);  
+    	\draw[measure,<->] (axis cs: 0,10) -- node [above]{\Q~kW $=\qdot_\up{max}$} (axis cs: \Q,10); 
+    	\node at (axis cs: -2,70) [right,align=left]{$A=\infty~\up{m^2}$};
+	\end{groupplot}
+\end{tikzpicture}

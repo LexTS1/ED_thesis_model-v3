@@ -1,0 +1,34 @@
+% This style file loads the package biblatex - ctan.org/pkg/biblatex
+% It is a package for managing and formatting bibliographic references
+% You can specify citation styles, bibliography sorting, and various citation and bibliography formatting options
+% more info at:
+%  tug.ctan.org/info/biblatex-cheatsheet/biblatex-cheatsheet.pdf
+%  www.overleaf.com/learn/latex/Biblatex_citation_styles
+
+% \usepackage[
+%     sorting=nyt,     % sort bibliography by author name, publication year and title. Or: none, see section 3.1.2 in biblatex.pdf
+%     mincitenames=1,  % minimum number of authors displayed in citations
+%     maxcitenames=2,  % maximum number of authors displayed in citations
+%     maxbibnames=10,  % maximum number of authors displayed in bibliography
+%     style=authoryear,% or: alphabetic, numeric, numeric-comp, ...
+%     natbib=true,     % compatibility with older natbib package
+%     giveninits=true, % show author initials instead of full first names
+%     doi=true,        % true, false: show doi  in bibliography
+%     isbn=true,       % true, false: show isbn in bibliography
+%     url=true,        % true, false: show url  in bibliography
+%     uniquename=init, % display author initials for authors with the same last name
+%     backend=biber]{biblatex} 
+
+\usepackage[
+  backend=biber,
+  style=numeric,
+  citestyle=numeric,
+  sorting=none
+]{biblatex}
+    
+\DeclareNameAlias{sortname}{family-given}        % authors in bibliography formatted as: surname, initials
+%\renewcommand{\mkbibnamefamily}[1]{\textsc{#1}} % surname in all caps in bibliography
+
+% if more than one bib file, load them separately
+\addbibresource{bib/myBibliography.bib}          % my bibliography
+% \addbibresource{bib/entrytypes.bib}              % entry type examples

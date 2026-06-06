@@ -1,0 +1,96 @@
+% This style file loads the package ctan.org/pkg/listings
+% You can specify code formatting, syntax highlighting, and various options for displaying programming code in your document
+
+\usepackage{listings} % this package must be loaded before the package cleveref is loaded
+\usepackage{xcolor}
+
+% define new color names to be used in listings
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backgroundcolour}{rgb}{0.98,1,0.98}
+
+% Define colors (Python-like palette)
+\definecolor{pyblue}{RGB}{0, 0, 180}
+\definecolor{pygreen}{RGB}{0, 128, 0}
+\definecolor{pygray}{RGB}{120, 120, 120}
+\definecolor{pystring}{RGB}{163, 21, 21}
+\definecolor{pybg}{RGB}{248, 248, 248}
+\definecolor{lightblack}{RGB}{180,180,180}
+
+% more color definitions can be found at https://latexcolor.com
+
+% style for code
+\lstdefinestyle{myliststyle}{
+    backgroundcolor     = \color{white},   % neutral background
+    commentstyle        = \color{codegreen},
+    keywordstyle        = \color{magenta},
+    numberstyle         = \tiny\color{codegray},
+    stringstyle         = \color{codepurple},
+    basicstyle          = \ttfamily\footnotesize,
+    breakatwhitespace   = false,         
+    breaklines          = true,                 
+    captionpos          = t, % t: caption on top, b: below
+    frame               = tb, % top rule, bottom rule
+    keepspaces          = true,                 
+    numbers             = left,                    
+    numbersep           = 5pt,                  
+    showspaces          = false,                
+    showstringspaces    = false,
+    showtabs            = false,                  
+    tabsize             = 2
+}
+
+% style for latex
+\lstdefinestyle{latexstyle}{
+    backgroundcolor     = \color{white},   % neutral background
+    commentstyle        = \color{codegreen},
+    keywordstyle        = \color{blue}\bfseries,
+    numberstyle         = \tiny\color{codegray},
+    stringstyle         = \color{codepurple},
+    basicstyle          = \ttfamily\normalsize,
+    breakatwhitespace   = false,         
+    breaklines          = true,                 
+    captionpos          = t,    % t: caption on top, b: below
+    frame               = tb,   % t b
+    keepspaces          = true,                 
+    numbers             = none,                    
+    numbersep           = 5pt,                  
+    showspaces          = false,                
+    showstringspaces    = false,
+    showtabs            = false,  
+    string              = [b]{"}, % define string char
+    escapeinside        = **      % LaTeX code can be inserted between * ... *
+}
+
+% Python style
+\lstdefinestyle{mypython}{
+    language=Python,
+    backgroundcolor=\color{pybg},
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{pyblue}\bfseries,
+    commentstyle=\color{pygreen}\itshape,
+    stringstyle=\color{pystring},
+    numberstyle=\tiny\color{pygray},
+    numbers=left,
+    numbersep=8pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    breaklines=true,
+    breakatwhitespace=false,
+    frame=single,
+    rulecolor=\color{black!30},
+    tabsize=4,
+    keepspaces=true,
+    captionpos=b,
+    morekeywords={self,True,False,None,range,len,print,np,array,zeros,where,copy,concatenate}
+}
+% define new language
+\lstdefinelanguage{latexcode}{
+  language     = TeX,
+  morekeywords = {begin,end,documentclass}, % add keywords to recognize
+}
+
+% set listing style to be used, unless specified otherwise locally
+\lstset{style=myliststyle}

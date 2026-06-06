@@ -1,0 +1,48 @@
+\documentclass[10pt,a4paper,oneside,fleqn,english]{memoir} 
+\usepackage{beamerarticle}           % do not remove! 
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usepackage{listings}
+\usetikzlibrary{positioning,shapes,arrows.meta}
+\usetikzlibrary{positioning, matrix, calc, trees}
+\tikzset{out/.style={draw, rectangle, rounded corners, fill=blue!10, minimum height=8mm, minimum width=20mm, align=center}}
+% \usepackage[backend=biber]{biblatex}
+% \bibliography{bib/mainBiblio}
+\input{styles/myStyleFiles}          % load my style files
+\input{extra/titleInfo}              % define title page content for VUB, BRUFACE, ULB
+\hideExplanations                   % hide all blue explanations in the output pdf
+%\includeonly{filename}              % compile this file only, see usefulCommands.tex
+
+
+\begin{document}
+    \maketitleVUB                    % title page VUB     - comment out if not wanted
+    % \maketitleBRUFACE                % title page BRUFACE - comment out if not wanted
+    % \maketitleULB                    % title page ULB     - comment out if not wanted
+\frontmatter  
+    %\include{extra/projectplan}      % project plan, exclude in  (see added inal manuscript
+    \include{extra/acknowledgements} % thank people/organisations
+    \include{extra/abstract}         % abstract in English, Dutch and French
+    \include{extra/disclosureAI}     % disclosure of the use of AI
+    \tableofcontents\newpage         % table of contents
+    \listoffigures\newpage           % list of figures
+    \listoftables\newpage            % list of tables
+    \lstlistoflistings               % list of source code listings
+    \include{extra/nomenclature}     % nomenclature
+\mainmatter 
+    \include{chapters/introduction}
+    \include{chapters/literature}
+    \include{chapters/materialsmethods}
+    \include{chapters/results}
+    \include{chapters/discussion}
+    \include{chapters/conclusions}
+    %\include{chapters/futurework}
+\appendix
+    \include{chapters/sourceCode}
+\backmatter
+    % \nocite{*}            % include all entries from .bib file in bibliography
+    \printbibliography     % bibliography
+    %\input{bib/entrytypes}% demo bibliography with common entry types
+    %\listoftodos           % list of todos
+\end{document}

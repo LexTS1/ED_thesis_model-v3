@@ -1,0 +1,79 @@
+% This style file sets the VUB house style, huisstijl.vub.ac.be 
+
+% logos
+\newcommand{\logovub}     {\includegraphics[width=5.6cm]{figs/logoVUB}}
+\newcommand{\logovubslide}{\includegraphics[width=3.5cm]{figs/logoVUB}}
+
+% coulours
+\definecolor{VUBorange}{cmyk}{0.00, .78, 1.00, 0.00} 
+\definecolor{VUBblue}  {cmyk}{1.00, .80, 0.16, 0.03} 
+
+% fonts
+\newcommand{\vubfontTitle}{\sffamily \Huge\selectfont \color{ULBblue}}
+\newcommand{\vubfontSubtitle}{\sffamily \LARGE \selectfont \color{ULBblue}}
+\newcommand{\vubfontText}{\sffamily \selectfont}
+\newcommand{\vubfontColor}{\sffamily \selectfont \color{ULBblue}}
+
+% VUB font
+\newcommand*{\vubtitlepagefont}{\fontfamily{qag}\selectfont} % vub title page font: TeX Gyre Adventor
+
+% VUB triangle
+\newcommand\putVUBtriangleonVUBpage{
+    % width / height = TAN (90°- 69.25°) = 0.3789
+    % width = 10 mm -> height = 26.4 mm
+    \fill[VUBorange](current page.north east) ++(-10mm,-19mm) % upper right corner
+    -- ++(0,-26.4mm) -- ++(-10mm,26.4mm)--cycle;}
+    
+\newcommand\putVUBtriangleonVUBslide{
+	% width / height = TAN (90°- 69.25°) = 0.3789
+	% width = 10 mm -> height = 26.4 mm
+	\fill[VUBorange](current page.north east) ++(-5mm,-9mm) % upper right corner
+	-- ++(0,-13mm) -- ++(-5mm,13mm)--cycle;}
+
+% logos for VUB title page & title slide  
+\newcommand\putVUBlogoonVUBpage{
+    \node[xshift=2cm,yshift=-1.9cm,below right] at (current page.north west) 
+    {\includegraphics[width=5.6cm]{figs/logoVUB}}}
+
+\newcommand\putVUBlogoonVUBslide{
+	\node[xshift=5mm,yshift=-8mm,below right] at (current page.north west) 
+	{\includegraphics[width=3.5cm]{figs/logoVUB}}}
+
+% VUB title page
+\newcommand\maketitleVUB{
+\begin{titlingpage}
+    \vubtitlepagefont % change font to title page font vub
+    \begin{tikzpicture}[remember picture,overlay,text width=14cm,VUBblue]
+        \putVUBtriangleonVUBpage; % put VUB triangle in top right corner
+        \putVUBlogoonVUBpage; % put vub logo in top left corner
+        \tikzstyle{every node}=[xshift=4.6cm,below right] % left margin
+        \node[yshift= -10cm] at (current page.north west) [VUBorange]  {\small\vubpretitle};
+        \node[yshift= -12cm] at (current page.north west)              {\LARGE\MakeUppercase\vubtitle \\ \vubsubtitle};
+        \node[yshift=  14cm] at (current page.south west) [VUBorange]  {\Large\vubstudent};
+        \node[yshift=   8cm] at (current page.south west)              {\Large\vubyear};
+        \node[yshift=   6cm] at (current page.south west) [red]        {\Large\vubNDA};
+        \node[yshift= 4.2cm] at (current page.south west) [VUBorange]  {\Large\vubpromoters};
+        \node[yshift= 3.6cm] at (current page.south west) [VUBorange]  {\Large\vubsupervisors};
+        \node[yshift= 2.5cm] at (current page.south west)              {\Large\MakeUppercase\vubfaculty};
+    \end{tikzpicture}
+\end{titlingpage}}
+
+\newcommand\maketitleslideVUB{
+\begin{frame}[noframenumbering,plain]
+    \vubtitlepagefont % change font to title page font vub
+    \def\leftindent{2.5cm}
+        \begin{tikzpicture}[remember picture,overlay,text width=9.5cm,VUBblue]
+        \putVUBtriangleonVUBslide; % put VUB triangle in top right corner
+        \putVUBlogoonVUBslide; % put vub logo in top left corner
+        \tikzstyle{every node}=[below right,font=\scriptsize] % left margin
+        \node[xshift=\leftindent, yshift= -3.5cm,text width=10cm] at (current page.north west) (title) [font=\large] {\MakeUppercase\vubtitle};
+        %\node[yshift=   0cm,above right] at (title.north west) [VUBorange] {\vubpretitle}; % uncomment to see the pretitle
+        \node[yshift=  -0.0cm] at (title.south west)  {\vubsubtitle}; 
+        \node[yshift=  -1.0cm] at (title.south west) [VUBorange] {\vubstudent};
+        \node[yshift=  -1.5cm] at (title.south west) {\vubpresentationdate};
+        \node[yshift=   1.0cm] at (current page.south) [red] {\vubNDA};
+
+        \node[xshift=\leftindent,yshift=1cm] at (current page.south west)(faculty) {\MakeUppercase\vubfaculty};
+        \node[yshift=  0.5cm] at (faculty.north west) [VUBorange] {\vubpromoters}; % comment to hide the promoter
+    \end{tikzpicture}
+\end{frame}}

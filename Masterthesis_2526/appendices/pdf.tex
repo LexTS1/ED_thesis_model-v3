@@ -1,0 +1,22 @@
+\chapterOrPart{How to include a PDF file}\label{ch:pdf}
+
+\begin{explanation}
+This appendix contains an included page from an external PDF file. Inspect the source code to see the syntax. More examples can be found in the comments. Uncomment and recompile to make them appear.
+\end{explanation}
+
+% include page 3 of a PDF file
+\includepdf[pages={3}]{figs/dummy.pdf}
+
+% more examples in the comments below,
+% uncomment to see them appear in your PDF
+
+% include page 2 and 4 of a PDF file and add frames
+%\includepdf[pages={2,4},frame=true]{figs/dummy.pdf}
+
+% include page 1 to 4 of a PDF file, place them 2 x 2 and add frames
+%\includepdf[pages={1-4},nup=2x2,frame=true]{figs/dummy.pdf}
+
+% consult https://ctan.org/pkg/pdfpages to learn about other options
+
+% more info on \mode<all> in section 21.3 of beameruserfile.pdf
+\mode<all>

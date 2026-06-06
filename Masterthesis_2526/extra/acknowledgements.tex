@@ -1,0 +1,24 @@
+% set name according to document language
+\IfLanguageName{english} % 
+    { % English
+        \def\AcknowledgementsName{Acknowledgements}
+    } 
+    { % non-English, here: Dutch
+        \def\AcknowledgementsName{Dankwoord}
+    }
+
+\chapter*{\AcknowledgementsName}\addcontentsline{toc}{chapter}{\AcknowledgementsName}
+
+\begin{explanation}
+    Here you can thank certain people, companies and/or organisations.
+\end{explanation}
+
+% Write your acknowledgements below
+
+\vspace{7 cm} % empty vertical space, remove this space once the acknowledgements are written
+
+\hfill \vubstudent % or \ulbstudent or \brufacestudent
+
+\hfill\textit{Brussels \today}
+
+\mode<all> % do not remove

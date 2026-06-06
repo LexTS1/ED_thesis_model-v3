@@ -1,0 +1,96 @@
+% This style file sets the ULB house style (BRUFACE and non-BRUFACE)
+
+% logos
+
+\newcommand{\logobruface}       {\includegraphics[height = 3cm ] {figs/logoBRUFACE}}
+\newcommand{\logobrufaceslide}  {\includegraphics[width  = 5cm ] {figs/logoBRUFACE}}
+\newcommand{\logopolytech}      {\includegraphics[scale  = 0.35] {figs/logo_polytech_FR.pdf}}
+\newcommand{\logopolytechslide} {\includegraphics[width  = 5cm ] {figs/logo_polytech_FR.pdf}}
+\newcommand{\logoulb}           {\includegraphics[scale  = 1.1 ] {figs/logo_ULB2.pdf}}
+\newcommand{\logoulbslide}      {\includegraphics[height = 7cm] {figs/logo_ULB2.pdf}}
+
+% coulours
+\definecolor{ULBblue}{rgb}{0,0.2196,0.5765} % change definition if wanted
+
+% BRUFACE title page
+\newcommand\maketitleBRUFACE{ 
+    \begin{titlingpage}
+    \begin{tikzpicture}[remember picture,overlay,font=\sffamily\Large] % text width=15cm
+        \tikzstyle{every node}=[below right];
+        \node [xshift= 4mm,yshift= -21mm,below,align=center] at (current page.north)                 {\logobruface}; % Bruface logo
+        \node [xshift= 4cm,yshift=-12cm] at (current page.north west) (T) [ULBblue, text width=14cm] {\LARGE\brufacetitle};
+        \node [yshift= 1cm]   at (T.north west) [above right,text width=14cm]                        {\brufacepretitle};
+        \node [yshift=-0.2cm] at (T.south west) (S) [ULBblue,text width=14cm]                        {\brufacesubtitle}; 
+        \node [yshift=-2.0cm]   at (S.south west) (A)                                                  {\bfseries\brufacestudent}; 
+        \node [xshift=4cm,yshift=4cm]  at (current page.south west) (Y)[ULBblue]                     {\large Academic year};
+        \node at (Y.south west) {\brufaceyear}; 
+        \node [xshift=-2cm,yshift=6cm] at (current page.south east) (P)[ULBblue,left] {\large\brufacetypeofwork};
+        \node at (P.south west) {\brufacesupervisors}; 
+        \node [yshift=-2cm] at (P.west) (D) [ULBblue]{\large\brufacedegree};
+        \node at (D.south west) [align=left]{\brufaceprogram}; 
+        \draw[ULBblue,thick] (T.north west) ++(-0.5,1)    -- +(0,-8); % vertical line
+        \draw[ULBblue,thick] (S.south west) ++(-0.5,-0.5) -- +(14,0); % horizontal line
+    \end{tikzpicture}
+\end{titlingpage}}
+
+% ULB title page
+\newcommand\maketitleULB{ 
+\begin{titlingpage} %\setlength{\unitlength}{1mm}
+    \begin{tikzpicture}[remember picture,overlay,font=\sffamily] % text width=15cm
+        \node[xshift= 29mm,yshift=-19mm,below right] at (current page.north west) {\logopolytech};
+        \node[xshift=175mm,yshift=-19mm,below right] at (current page.north west) {\logoulb};
+        \node[xshift= 35mm,yshift=174mm,      right] at (current page.south west) [ULBblue] {\Huge\ulbtitleA};   
+        \node[xshift= 35mm,yshift=164mm,      right] at (current page.south west) [ULBblue] {\Huge\ulbtitleB}; 
+        \node[xshift= 35mm,yshift=154mm,      right] at (current page.south west) [ULBblue] {\LARGE\ulbsubtitle}; 
+        \node[xshift= 35mm,yshift=139mm,      right] at (current page.south west) {Mémoire présenté en vue de l’obtention du diplôme}; 
+        \node[xshift= 35mm,yshift=134mm,      right] at (current page.south west) {\ulbdiploma}; 
+        \node[xshift= 35mm,yshift= 96mm,      right] at (current page.south west) {\textbf{\large\ulbstudent}}; 
+        \node[xshift= 35mm,yshift= 63mm,      right] at (current page.south west) [ULBblue] {Directeur}; 
+        \node[xshift= 35mm,yshift= 58mm,      right] at (current page.south west) {\ulbpromA}; 
+        \node[xshift= 35mm,yshift= 50mm,      right] at (current page.south west) [ULBblue] {Co-Promoteur}; 
+        \node[xshift= 35mm,yshift= 45mm,      right] at (current page.south west) {\ulbpromB}; 
+        \node[xshift= 35mm,yshift= 37mm,      right] at (current page.south west) [ULBblue] {Superviseur}; 
+        \node[xshift= 35mm,yshift= 32mm,      right] at (current page.south west) {\ulbsupervisor}; 
+        \node[xshift= 35mm,yshift= 24mm,      right] at (current page.south west) [ULBblue] {Service}; 
+        \node[xshift= 35mm,yshift= 19mm,      right] at (current page.south west) {\ulbdept}; 
+        \node[xshift=172mm,yshift= 24mm,      right] at (current page.south west) [ULBblue]{Année académique}; 
+        \node[xshift=172mm,yshift= 19mm,      right] at (current page.south west) {\ulbyear}; 
+        \coordinate (vline) at ($(current page.south west)+ (30mm, 92mm)$);
+        \coordinate (hline) at ($(current page.south west)+ (30mm,146mm)$);
+        \fill[ULBblue](vline) rectangle +( 0.7mm,   87mm);
+        \fill[ULBblue](hline) rectangle +( 145mm,  0.7mm);
+    \end{tikzpicture}
+\end{titlingpage}}
+
+% BRUFACE title slide
+\newcommand\maketitleslideBRUFACE{ 
+\begin{frame}[noframenumbering,plain]
+    \def\leftindent{2cm}
+    \begin{tikzpicture}[remember picture,overlay,text width=9.5cm]
+        \node [xshift= 0mm,yshift= -5mm,below,align=center] at (current page.north)                 {\logobrufaceslide};
+        \tikzstyle{every node}=[below right,font=\normalsize] 
+        \node[xshift=\leftindent, yshift= -3.5cm,text width=10cm] at (current page.north west) (title) [ULBblue,font=\large] {\brufacetitle};
+        \node[yshift=   0cm,above right] at (title.north west)[font=\scriptsize] {\brufacepretitle}; % uncomment to see the pretitle
+        \node[yshift=  -0.0cm] at (title.south west) [ULBblue][font=\scriptsize] {\brufacesubtitle}; 
+        \node[yshift=  -1.0cm] at (title.south west) {\brufacestudent};
+        \node[yshift=  -1.7cm] at (title.south west) {\brufacepresentationdate};
+        \node[yshift=   1.5cm, xshift=\leftindent] at (current page.south west) (Y)[ULBblue] {Supervision: \brufacesupervisors};
+    \end{tikzpicture}
+\end{frame}}
+
+% ULB title slide
+\newcommand\maketitleslideULB{ 
+\begin{frame}[noframenumbering,plain]
+    \def\leftindent{2cm}
+    \begin{tikzpicture}[remember picture,overlay,text width=9.5cm]
+        \node [xshift= 0mm, yshift= -5mm,below,align=center] at (current page.north){\logopolytechslide};
+        \node [xshift= -10mm,yshift= -5mm,below,align=center] at (current page.north east){\logoulbslide};
+        \tikzstyle{every node}=[below right,font=\normalsize] 
+        \node[xshift=\leftindent, yshift= -3.5cm,text width=10cm] at (current page.north west) (title) [ULBblue,font=\large] {\ulbtitleA\\ \ulbtitleB};
+        \node[yshift=  -0.0cm] at (title.south west) [ULBblue,font=\scriptsize] {\ulbsubtitle}; 
+        \node[yshift=  -1.0cm] at (title.south west) {\ulbstudent};
+        \node[yshift=  -1.7cm] at (title.south west) {\ulbpresentationdate};
+        \node[xshift=\leftindent,yshift=   1.0cm] at (current page.south west) (faculty) [] {\textcolor{ULBblue}{Service:} \ulbdept};
+        \node[yshift=   0.5cm] at (faculty.north west) [] {\textcolor{ULBblue}{Superviseur:} \ulbsupervisor};
+    \end{tikzpicture}
+\end{frame}}
