@@ -1,6 +1,6 @@
 # Canonical Thesis Artefacts
 
-This repository contains code, ignored generated outputs, validation artefacts, and thesis figures. The canonical thesis model is frozen at tag `thesis-model-freeze-2026-06-01`, which points to commit `9d239a01`.
+This repository contains code, ignored generated outputs, validation artefacts, and thesis figures. The canonical thesis model code is frozen at tag `thesis-model-freeze-2026-06-01`, which points to commit `9d239a01`. The final expanded selected thesis outputs were rerun cleanly at commit `a1564ed6` with `git_is_dirty=false`.
 
 ## Keep And Cite
 

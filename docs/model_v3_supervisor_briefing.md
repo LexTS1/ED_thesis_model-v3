@@ -1,6 +1,6 @@
 # Model v3 supervisor briefing
 
-Generated UTC: 2026-06-01T05:48:44+00:00
+Generated UTC: 2026-06-07T02:33:50+00:00
 
 ## 1. What the model does
 

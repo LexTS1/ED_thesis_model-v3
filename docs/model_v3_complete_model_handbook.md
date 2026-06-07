@@ -4,11 +4,11 @@ Architecture, Inputs, Scenario Design, Outputs, Validation, Caveats, and Usage G
 
 Repository: `model_v3`
 
-Generation date UTC: 2026-06-01T05:48:44+00:00
+Generation date UTC: 2026-06-07T02:33:50+00:00
 
-Git commit: 9d239a01d14a4f32c729af8825bd4047a3e2e7e4
+Git commit: a1564ed608dc03d96b2eea876e27812770946ad8
 
-Git dirty status: clean
+Git dirty status: dirty
 
 This document is generated from local repository metadata, scripts, configs, manifests, summaries, validation reports, and figure metadata. It is not a literature review and it does not fabricate missing results.
 
@@ -21,7 +21,7 @@ For the thesis, the scenario-tree layer is useful because it separates three sou
 
 Climate projections were organized into a structured scenario tree consisting of a historical baseline and three future climate windows under RCP2.6, RCP4.5, and RCP8.5. Each climate branch was combined with technology adoption assumptions and stochastic household realizations. This allowed climate, technology, and behavioural uncertainty to be separated and compared through consistent output metrics.
 
-The repository currently contains a configured scenario tree with 2800 enumerated scenario leaves. The audit/registry evidence available to this handbook supports 37 latest-successful scenario leaves and 37 standardized per-leaf summary rows. Therefore the framework is implemented, but execution coverage is partial. This handbook does not claim that all leaves have run.
+The repository currently contains a configured scenario tree with 2800 enumerated scenario leaves. The audit/registry evidence available to this handbook supports 37 latest-successful scenario leaves and 100 standardized per-leaf summary rows. Therefore the framework is implemented, but execution coverage is partial. This handbook does not claim that all leaves have run.
 
 Implemented components detected in the repository include scenario-tree schema files, stable scenario IDs, canonical climate windows, an explicit 2050 overlap policy, generated experiment-space manifests, per-leaf configs, a runner/provenance layer, standardized outputs, comparison definitions, generated scenario-tree figures, and audit/validation reports where present. The comparison validation report also records missing comparison groups where successful summary rows are not available.
 
@@ -227,7 +227,7 @@ provenance:
   technology_cases: config/scenario_tree/technology_cases.yaml
   realization_policy: config/scenario_tree/realization_policy.yaml
   scenario_leaf_index: experiments/scenario_tree/manifests/scenario_leaf_index.csv
-  generated_at_utc: '2026-05-28T14:27:49+00:00'
+  generated_at_utc: '2026-06-07T00:07:18+00:00'
 ```
 
 Config validation checks required fields, climate file existence, technology case existence, Belgian technology input existence, baseline/future separation, canonical date windows, and the 2050 policy. The latest detected config validation report is `experiments/scenario_tree/manifests/config_validation_report.md` if present.
@@ -270,7 +270,7 @@ Run provenance includes timestamp, git commit when available, dirty working tree
 
 Raw model outputs for a successful leaf are stored under that leaf's `outputs/` directory, typically including `annual_profile.csv` and `annual_summary.json`. The standardization layer writes per-leaf standardized summaries and scenario-level aggregate metrics.
 
-Detected realization-level summary rows: 37.
+Detected realization-level summary rows: 100.
 
 Detected scenario-level aggregate rows: 10.
 

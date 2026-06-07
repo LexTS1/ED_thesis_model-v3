@@ -55,8 +55,8 @@ Three execution sets are used; as listed in \Cref{tab:canonical_configurations}.
       & stochastic cohort, $N=30$ \\
     Executed evidence
       & full-horizon validation artefacts
-      & $37$ latest-successful leaves
-      & $48$ latest-successful leaves \\
+      & $100$ latest-successful leaves
+      & $80$ latest-successful leaves \\
     Technology coverage
       & current thesis stock
       & current/frozen stock
@@ -69,7 +69,7 @@ Three execution sets are used; as listed in \Cref{tab:canonical_configurations}.
 \label{sec:experimentalCoverage}
 
 The scenario-tree schema enumerates $100$ historical baseline leaves and
-$2700$ future leaves, for $2800$ leaves in total. The current thesis evidence consists of $85$ distinct latest-successful scenario leaves: $37$ leaves from the main \texttt{scenario\_tree} registry and $48$ leaves from the \texttt{scenario\_tree\_output34} registry. The main registry covers the baseline current-stock case and frozen-stock future controls across all three RCP pathways and all future climate windows. The \texttt{output34} registry adds selected design-year stochastic cohort runs, including moderate and high electrification technology cases.
+$2700$ future leaves, for $2800$ leaves in total. The current thesis evidence consists of $180$ distinct latest-successful scenario leaves: $100$ leaves from the main \texttt{scenario\_tree} registry and $80$ leaves from the \texttt{scenario\_tree\_output34} registry. The main registry covers the baseline current-stock case and frozen-stock future controls across all three RCP pathways and all future climate windows with ten realizations per scenario group. The \texttt{output34} registry adds selected design-year stochastic cohort runs, including moderate and high electrification technology cases with five realizations per design-year group.
 \newline The remaining leaves are part of the reproducible experiment design but are not used as executed evidence. Scenario results are therefore interpreted as a targeted exploration of climate and technology contrasts.
 
 % \begin{table}[ht]
@@ -83,14 +83,14 @@ $2700$ future leaves, for $2800$ leaves in total. The current thesis evidence co
 %       \textbf{Latest-successful leaves} & \textbf{Role in thesis} \\
 %     \midrule
 %     \texttt{scenario\_tree}
-%       & $2800$ leaves & $37$
+%       & $2800$ leaves & $100$
 %       & full-window climate-only comparison \\
 %     \texttt{scenario\_tree\_output34}
-%       & targeted design-year subset & $48$
+%       & targeted design-year subset & $80$
 %       & peak, diversity, and technology-stress comparison \\
 %     \midrule
 %     Combined executed evidence
-%       & -- & $85$
+%       & -- & $180$
 %       & basis for scenario results reported in this chapter \\
 %     \bottomrule
 %   \end{tabular}
@@ -170,7 +170,7 @@ The resulting validation posture is mixed. Annual calibration and the PV and EV 
 \section{Climate Scenario Results}
 \label{sec:climateScenarioResults}
 
-This section reports the executed subset of the scenario tree. Climate-pressure and annual heating-change results draw on the 37 successful full-window leaves (daily cadence); peak-load and grid-stress results draw on the 48 successful design-year leaves in \texttt{scenario\_tree\_output34}, which run hourly 30-household stochastic cohorts. Neither ledger includes active cooling final energy, so cooling is treated as a demand-pressure indicator only.
+This section reports the executed subset of the scenario tree. Climate-pressure and annual heating-change results draw on the 100 successful full-window leaves (daily cadence; ten realizations per scenario group); peak-load and grid-stress results draw on the 80 successful design-year leaves in \texttt{scenario\_tree\_output34}, which run hourly 30-household stochastic cohorts with five realizations per design-year group. Neither ledger includes active cooling final energy, so cooling is treated as a demand-pressure indicator only.
 
 
 \subsection{Physical Impact}
@@ -261,16 +261,16 @@ Peak-grid results are taken from the hourly design-year runs because peak import
     \textbf{Hours > threshold} \\
     & & (kWh/hh/yr) & (kWh/hh/yr) & (kW) & (\%) & (h/yr) \\
     \midrule
-    \texttt{current\_stock} & baseline / historical & 3667 & 18870 & 17.53 & +0.0 & 143 \\
-    \texttt{frozen\_stock} & 2080--2100 / RCP 8.5 & 3549 & 13433 & 17.54 & +0.1 & 115 \\
-    \texttt{moderate\_electrification} & 2080--2100 / RCP 8.5 & 13164 & 7939 & 87.00 & +396.4 & 8700 \\
-    \texttt{high\_electrification\_pv\_ev} & 2080--2100 / RCP 8.5 & 33593 & 1837 & 184.15 & +950.7 & 8760 \\
+    \texttt{current\_stock} & baseline / historical & 5845 & 19406 & 30.80 & +0.0 & 1968 \\
+    \texttt{frozen\_stock} & 2080--2100 / RCP 8.5 & 5249 & 13934 & 30.58 & -0.7 & 1424 \\
+    \texttt{moderate\_electrification} & 2080--2100 / RCP 8.5 & 18497 & 9063 & 106.45 & +245.6 & 6985 \\
+    \texttt{high\_electrification\_pv\_ev} & 2080--2100 / RCP 8.5 & 34285 & 1894 & 188.40 & +511.7 & 8760 \\
     \bottomrule
   \end{tabular}}
 \end{table}
 
 \subsubsection*{Peak grid import}
-Across the executed design-year subset, technology choice dominates climate forcing for peak grid import. Under frozen stock, long-term RCP\,8.5 leaves the cohort peak almost unchanged ($17.53$ to $17.54$ kW), whereas switching the technology case under the same forcing lifts it to $87.00$ kW under moderate electrification and $184.15$ kW under high electrification with PV and EV.
+Across the executed design-year subset, technology choice dominates climate forcing for peak grid import. Under frozen stock, long-term RCP\,8.5 leaves the cohort peak almost unchanged ($30.80$ to $30.58$ kW), whereas switching the technology case under the same forcing lifts it to $106.45$ kW under moderate electrification and $188.40$ kW under high electrification with PV and EV.
 
 \subsubsection*{Threshold exceedance}
 The threshold-hour metric is a stress diagnostic relative to the configured cohort threshold rather than a prediction of distribution-grid failure. It remains informative: under the current threshold definition, the electrified cases exceed the historical stress band for most or all hours of the design year.
@@ -282,16 +282,16 @@ The threshold-hour metric is a stress diagnostic relative to the configured coho
 The economic and emissions figures are conditional accounting outputs under the configured tariff, CAPEX and emission-factor assumptions, and should not be read as policy forecasts. 
 
 \subsubsection*{Economics}
-In the cold-design-year long-term RCP\,8.5 case, the dynamic-tariff bill falls from about € 3345 per household in the historical current-stock baseline to € 2762 under frozen stock, because gas demand falls with heating pressure. The same tariff raises bills to about € 5172 under moderate electrification and € 10741 under the high-electrification PV--EV case. Across the executed tariff scenarios, electrification remains more expensive under the current tariff, export-credit and capex assumptions; the current outputs therefore should not be framed as showing favourable electrification economics.
+In the cold-design-year long-term RCP\,8.5 case, the dynamic-tariff bill falls from about € 4082 per household in the historical current-stock baseline to € 3351 under frozen stock, because gas demand falls with heating pressure. The same tariff raises bills to about € 6892 under moderate electrification and € 10965 under the high-electrification PV--EV case. Across the executed tariff scenarios, electrification remains more expensive under the current tariff, export-credit and capex assumptions; the current outputs therefore should not be framed as showing favourable electrification economics.
 
 \subsubsection*{Emissions}
-Operational emissions use a fixed electricity-emission factor. Under that assumption, frozen stock falls to about $3246$ kgCO$_2$/household/year ($-25.6\,\%$), moderate electrification falls to about $3578$ kgCO$_2$/household/year ($-18.0\,\%$), and the high-electrification PV--EV case rises to about $5410$ kgCO$_2$/household/year ($+24.0\,\%$). This result is sensitive to the fixed electricity factor and should be interpreted as a scenario-accounting result, not as a general decarbonisation conclusion.
+Operational emissions use a fixed electricity-emission factor. Under that assumption, frozen stock falls to about $3602$ kgCO$_2$/household/year ($-24.9\,\%$), moderate electrification falls slightly to about $4605$ kgCO$_2$/household/year ($-4.0\,\%$), and the high-electrification PV--EV case rises to about $5525$ kgCO$_2$/household/year ($+15.2\,\%$). This result is sensitive to the fixed electricity factor and should be interpreted as a scenario-accounting result, not as a general decarbonisation conclusion.
 
 
 \subsection{Sensitivity and Uncertainty}
 \label{sec:sensitivityStochasticRobustness}
 
-The executed scenario results contain three stochastic seeds per design-year scenario, and the comparison files report P10/P50/P90 bands across those seeds.
+The executed design-year scenario results contain five stochastic seeds per selected scenario/design-year group, and the comparison files report P10/P50/P90 bands across those seeds. The full-window climate-only results use ten paired realizations per scenario group.
 
 The EV annual-energy sensitivity exists in the validation artifacts and shows that the base EV profile uses about $1491$ kWh per active EV per year versus a Fluvius-derived reference of about $2626$ kWh/year ($-43.2\,\%$), while the $2600$ kWh/year sensitivity closes the annual gap to about $-1.0\,\%$ without changing the mean-daily timing correlation. Scenario results involving \texttt{tech\_high\_electrification\_pv\_ev} should therefore be read as conditional on the configured EV charging magnitude.
 
