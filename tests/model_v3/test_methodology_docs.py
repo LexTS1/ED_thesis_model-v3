@@ -18,8 +18,11 @@ def test_assumptions_document_exists() -> None:
     assert (REPO_ROOT / "docs/model_v3_scenario_tree_assumptions.md").exists()
 
 
-def test_thesis_subsection_draft_exists() -> None:
-    assert (REPO_ROOT / "docs/thesis_methodology_scenario_tree_subsection.md").exists()
+def test_documentation_index_references_canonical_methodology() -> None:
+    text = _read("docs/model_v3_scenario_tree_documentation_index.md")
+
+    assert "docs/model_v3_scenario_tree_methodology.md" in text
+    assert "docs/thesis_methodology_scenario_tree_subsection.md" not in text
 
 
 def test_2050_overlap_policy_is_explicitly_mentioned() -> None:

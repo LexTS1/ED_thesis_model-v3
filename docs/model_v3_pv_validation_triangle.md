@@ -1,111 +1,89 @@
 # Model v3 PV Validation Triangle
 
-This note documents the PV validation workflow implemented in
-`src/model_v3/validation/technology/pv/run_pv_validation_triangle.py`.
-It does not run scenario-tree simulations. It ingests external PV reference
-datasets and compares them with model outputs only when a matching model
-profile is explicitly configured.
+This guide documents the PV validation workflow implemented in
+`src/model_v3/validation/technology/pv/run_pv_validation_triangle.py`. It does
+not run scenario-tree simulations. Each leg compares a persisted model profile
+with a different reference layer; the three legs answer different questions and
+must not be collapsed into one pass/fail claim.
 
-## Validation legs
+## Validation Legs
 
 1. **PVGIS physical reference**
 
-   Source: `outputs/validation/pvgis/Timeseries_50.803_4.334_SA3_1kWp_crystSi_14_35deg_0deg_2005_2023.csv`
+   Reference: `outputs/validation/pvgis/Timeseries_50.803_4.334_SA3_1kWp_crystSi_14_35deg_0deg_2005_2023.csv`.
 
-   Purpose: validate the model's irradiance-to-PV conversion for a 1 kWp
-   system against a PVGIS hourly PV-output export. This is currently a direct
-   model-reference comparison because the runner calls
-   `model_v3.systems.distributed_energy.pv_generation_from_irradiance`.
+   Model profile: `outputs/validation/technology_pv/model_capacity_factor_2023.csv`.
 
-2. **Elia ODS032 Belgian PV generation**
+   Purpose: check the irradiance-to-PV conversion for a representative 1 kWp
+   system. The current canonical report is a `model_reference_comparison`, but
+   records that it reused the existing alignment artifact because the raw PVGIS
+   file was not resolved during that run.
 
-   Source cache:
-   `inputs/model_v3/validation/pv/elia/ods032_belgium_pv_2024_pt15m.csv`
+2. **Elia ODS032 Belgian generation**
 
-   Purpose: ingest Belgian 2024 quarter-hourly measured/upscaled PV generation
-   and monitored capacity. Until a matched 2024 model capacity-factor profile
-   is configured, this leg is `reference_ingested`, not a model validation pass.
+   Reference cache: `inputs/validation/pv/elia/ods032_belgium_pv_2023_pt15m.csv`.
+
+   Model profile: `outputs/validation/technology_pv/model_capacity_factor_2023.csv`.
+
+   Purpose: compare normalized model PV production with Belgian aggregate
+   measured/upscaled production. The current report has 365 overlapping daily
+   values, daily capacity-factor correlation `0.976`, daily RMSE `0.028`, and
+   mean absolute monthly capacity-factor error `25.2%`. This is useful aggregate
+   shape validation, not proof that every household PV system is calibrated.
 
 3. **Fluvius residential PV signature**
 
-   Sources:
-   `inputs/model_v3/load_profiles/fluvius/P6269_Open_Data_geen_ZP.csv` and
-   `inputs/model_v3/load_profiles/fluvius/P6269_Open_Data_enkel_ZP.csv`
+   References: `inputs/load_profiles/fluvius/P6269_Open_Data_geen_ZP.csv` and
+   `inputs/load_profiles/fluvius/P6269_Open_Data_enkel_ZP.csv`.
 
-   Purpose: compare representative no-PV and PV residential net-load signatures.
-   Until a matched model household/cohort net-load profile is configured, this
-   leg is `reference_ingested`, not a model validation pass.
+   Model profile: `outputs/validation/technology_pv/model_net_load_2023.csv`.
 
-## Commands
+   Purpose: check whether PV changes residential net load in the expected
+   direction and at plausible hours. The current report is a matched
+   `model_reference_comparison`, with mean-daily correlation `0.478` and RMSE
+   `1.212 kW`. This is weak external agreement and must not be described as a
+   successful household-profile validation.
 
-First-time Elia ingestion:
+## Command
+
+Run against cached local references and persisted/generated validation profiles:
 
 ```bash
-python3 -m model_v3.validation.technology.pv.run_pv_validation_triangle \
+PYTHONPATH=src python3 -m model_v3.validation.technology.pv.run_pv_validation_triangle \
   --repo-root . \
-  --config config/model_v3/validation/technology_pv.yaml \
-  --download-elia \
+  --config config/validation/technology_pv.yaml \
   --print-summary
 ```
 
-Subsequent runs using the cached Elia CSV:
-
-```bash
-python3 -m model_v3.validation.technology.pv.run_pv_validation_triangle \
-  --repo-root . \
-  --config config/model_v3/validation/technology_pv.yaml \
-  --print-summary
-```
-
-Fast smoke run without loading the large Fluvius files:
-
-```bash
-python3 -m model_v3.validation.technology.pv.run_pv_validation_triangle \
-  --repo-root . \
-  --config config/model_v3/validation/technology_pv.yaml \
-  --skip-fluvius \
-  --print-summary
-```
+Add `--download-elia` only when the configured Elia cache is missing and
+network access is intentionally allowed. Add `--skip-fluvius` for a faster
+technology smoke check that deliberately omits the residential-signature leg.
 
 ## Outputs
 
-Main report:
-`reports/model_v3/validation/technology/pv/technology_pv_validation_triangle_report.md`
-
-Machine-readable metrics:
-`reports/model_v3/validation/technology/pv/technology_pv_validation_triangle_metrics.json`
-
-Reference/alignment tables:
-
+- `reports/model_v3/validation/technology/pv/technology_pv_validation_triangle_report.md`
+- `reports/model_v3/validation/technology/pv/technology_pv_validation_triangle_metrics.json`
 - `reports/model_v3/validation/technology/pv/pvgis_reference_alignment.csv`
 - `reports/model_v3/validation/technology/pv/elia_ods032_reference_timeseries.csv`
 - `reports/model_v3/validation/technology/pv/fluvius_pv_signature_mean_daily.csv`
-
-Figures:
-
 - `figures/model_v3/validation/technology/pv/pvgis_reference_validation.png`
 - `figures/model_v3/validation/technology/pv/elia_ods032_capacity_factor.png`
 - `figures/model_v3/validation/technology/pv/fluvius_pv_signature_mean_daily.png`
 
-## Status labels
+## Status Labels
 
-- `model_reference_comparison`: both a reference and a matched model output were
-  available.
-- `reference_ingested`: the reference dataset was loaded and summarized, but no
-  matched model output was configured.
-- `missing_reference`: the configured source file was not available.
-- `disabled` or `skipped`: the leg was intentionally not run.
+- `model_reference_comparison`: both a reference and a matched model profile
+  were available. It describes comparison availability, not acceptance.
+- `reference_ingested`: the reference was loaded, but no matched model profile
+  was available.
+- `missing_reference`: a configured reference was absent.
+- `disabled` or `skipped`: the leg was intentionally omitted.
 
-## Current limitation
+## Interpretation Limits
 
-The PVGIS leg is currently the only true model-reference comparison. Elia and
-Fluvius are implemented as ingestion and reference-summary layers until the
-model produces matched validation profiles:
-
-- for Elia: a 2024 Belgian PV capacity-factor profile from the model;
-- for Fluvius: a household/cohort net-load profile matched to the Fluvius PV
-  category and temporal resolution.
-
-Do not claim that the model has passed Elia or Fluvius PV validation until those
-matched model profiles are configured and the report shows
-`model_reference_comparison` for those legs.
+The current triangle is fully connected in the sense that all three legs have
+matched model/reference artifacts. Its evidence strength is uneven: PVGIS gives
+strong physical-shape agreement, Elia gives strong daily aggregate correlation
+with material monthly bias, and Fluvius gives only weak residential-profile
+agreement. Always report the leg-specific metrics and warnings instead of
+claiming that “PV validation passed” as one undifferentiated result.

@@ -34,6 +34,7 @@ SUBTITLE = "Architecture, Inputs, Scenario Design, Outputs, Validation, Caveats,
 HANDBOOK_STEM = "model_v3_complete_model_handbook"
 ASSET_DIR_NAME = "model_v3_handbook_assets"
 SUPERVISOR_STEM = "model_v3_supervisor_briefing"
+CSV_CONTENT_INSPECTION_LIMIT_BYTES = 100 * 1024 * 1024
 
 EXPECTED_REPOSITORY_PATHS = [
     "config/",
@@ -244,15 +245,28 @@ def discover_source_files(repo_root: Path) -> list[str]:
 def first_and_last_csv_rows(path: Path) -> tuple[list[str], list[str], list[str]]:
     if not path.exists():
         return [], [], []
-    last: deque[list[str]] = deque(maxlen=1)
+    if path.stat().st_size > CSV_CONTENT_INSPECTION_LIMIT_BYTES:
+        return [], [], []
     try:
         with path.open("r", encoding="utf-8", newline="") as handle:
             reader = csv.reader(handle)
             header = next(reader, [])
             first = next(reader, [])
-            for row in reader:
-                last.append(row)
-            return header, first, last[0] if last else first
+
+        # Inventorying a multi-gigabyte input must not require streaming the
+        # entire file merely to report its final record.
+        with path.open("rb") as handle:
+            handle.seek(0, os.SEEK_END)
+            position = handle.tell()
+            tail = bytearray()
+            while position > 0 and tail.count(b"\n") < 2:
+                chunk_size = min(8192, position)
+                position -= chunk_size
+                handle.seek(position)
+                tail[:0] = handle.read(chunk_size)
+        lines = [line for line in tail.decode("utf-8", errors="replace").splitlines() if line.strip()]
+        last = next(csv.reader([lines[-1]]), []) if lines else first
+        return header, first, last
     except Exception:
         return [], [], []
 
@@ -325,6 +339,11 @@ def infer_csv_inventory(repo_root: Path) -> list[dict[str, str]]:
                         units = "column names inspected; units not explicit"
                 if first and last and header:
                     inventory_note = f"first_row={first[:2]}; last_row={last[:2]}"
+                elif path.stat().st_size > CSV_CONTENT_INSPECTION_LIMIT_BYTES:
+                    inventory_note = (
+                        f"content inspection omitted for large file "
+                        f"({path.stat().st_size} bytes); path and metadata inspected"
+                    )
                 else:
                     inventory_note = ""
             else:
@@ -471,7 +490,7 @@ def detect_phase_statuses(repo_root: Path, registry: Mapping[str, Any], counts: 
             warning = "some expected files are absent: " + ", ".join(missing)
         if phase.startswith("Phase 4") and total and successful < total:
             status = "implemented"
-            warning = f"runner exists, but registry/audit supports only {successful} latest-successful leaves out of {total} enumerated leaves"
+            warning = f"runner exists, but registry/audit supports only {successful} successful main scenario-tree leaves out of {total} enumerated leaves"
         if phase.startswith("Phase 6") and exists("experiments/scenario_tree/manifests/comparison_validation_report.md"):
             warning = "comparison validation reports missing groups where no successful summary rows exist"
         rows.append(
@@ -546,7 +565,7 @@ def collect_context(repo_root: Path) -> Context:
     if registry.get("enumerated_scenario_leaves") and registry.get("successful_scenario_leaves") != registry.get("enumerated_scenario_leaves"):
         warnings.append(
             "Run registry/audit does not support a full-completion claim: "
-            f"{registry.get('successful_scenario_leaves')} latest-successful leaves for "
+            f"{registry.get('successful_scenario_leaves')} successful main scenario-tree leaves for "
             f"{registry.get('enumerated_scenario_leaves')} enumerated leaves."
         )
     if not git_commit:
@@ -1163,7 +1182,7 @@ For the thesis, the scenario-tree layer is useful because it separates three sou
 
 Climate projections were organized into a structured scenario tree consisting of a historical baseline and three future climate windows under RCP2.6, RCP4.5, and RCP8.5. Each climate branch was combined with technology adoption assumptions and stochastic household realizations. This allowed climate, technology, and behavioural uncertainty to be separated and compared through consistent output metrics.
 
-The repository currently contains a configured scenario tree with {leaf_count} enumerated scenario leaves. The audit/registry evidence available to this handbook supports {success_count} latest-successful scenario leaves and {summary_rows if summary_rows is not None else "unknown"} standardized per-leaf summary rows. Therefore the framework is implemented, but execution coverage is partial. This handbook does not claim that all leaves have run.
+The repository currently contains a configured scenario tree with {leaf_count} enumerated scenario leaves. The audit/registry evidence available to this handbook supports {success_count} successful main scenario-tree leaves and {summary_rows if summary_rows is not None else "unknown"} standardized per-leaf summary rows. Therefore the framework is implemented, but execution coverage is partial. This handbook does not claim that all leaves have run.
 
 Implemented components detected in the repository include scenario-tree schema files, stable scenario IDs, canonical climate windows, an explicit 2050 overlap policy, generated experiment-space manifests, per-leaf configs, a runner/provenance layer, standardized outputs, comparison definitions, generated scenario-tree figures, and audit/validation reports where present. The comparison validation report also records missing comparison groups where successful summary rows are not available.
 
@@ -1603,7 +1622,7 @@ This appendix lists missing files, missing reports, missing figures, missing val
 
 {md_table(["item", "status", "reason", "needed to complete"], missing_rows)}
 
-Execution coverage gap: the registry/audit evidence supports {success_count} latest-successful leaves out of {leaf_count} enumerated leaves. This prevents any claim that all scenario leaves have completed.
+Execution coverage gap: the registry/audit evidence supports {success_count} successful main scenario-tree leaves out of {leaf_count} enumerated leaves. This prevents any claim that all scenario leaves have completed.
 """
 
     return "\n\n".join(
@@ -1653,7 +1672,7 @@ The scenario tree organizes results by climate window, RCP pathway, technology c
 
 Detected implemented artifacts include scenario-tree schema/configs, stable IDs, canonical climate windows, explicit 2050 policy, experiment manifests, per-leaf configs, runner/provenance registry, standardized summaries for available successful runs, comparison definitions, figure metadata, and audit reports.
 
-Current execution evidence: {reg.get("successful_scenario_leaves")} latest-successful leaves out of {reg.get("enumerated_scenario_leaves")} enumerated leaves. This is partial execution, not full scenario completion.
+Current execution evidence: {reg.get("successful_scenario_leaves")} successful main scenario-tree leaves out of {reg.get("enumerated_scenario_leaves")} enumerated leaves. This is partial execution, not full scenario completion.
 
 ## 4. Key methodological choices
 
@@ -1782,6 +1801,7 @@ def render_markdown_pdf(markdown: str, output: Path, repo_root: Path, title: str
     line_h = 0.19
 
     def new_page(pdf: PdfPages, page_no: int) -> tuple[Any, Any, float]:
+        page_no = pdf.get_pagecount() + 1
         fig = plt.figure(figsize=(page_w, page_h))
         ax = fig.add_axes([0, 0, 1, 1])
         ax.set_xlim(0, page_w)
@@ -1795,7 +1815,8 @@ def render_markdown_pdf(markdown: str, output: Path, repo_root: Path, title: str
         plt.close(fig)
 
     def draw_text(pdf: PdfPages, fig: Any, ax: Any, y: float, text: str, size: float = 9.2, weight: str = "normal", indent: float = 0.0) -> tuple[Any, Any, float, int]:
-        width_chars = max(30, int((page_w - 2 * margin_x - indent) * (12.5 if size <= 9.5 else 10.0)))
+        chars_per_inch = min(12.5, 12.5 * 9.2 / size)
+        width_chars = max(30, int((page_w - 2 * margin_x - indent) * chars_per_inch))
         wrapped = textwrap.wrap(strip_markdown_inline(text), width=width_chars) or [""]
         page_count = 0
         for line in wrapped:

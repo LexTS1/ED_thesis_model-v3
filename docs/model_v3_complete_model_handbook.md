@@ -4,9 +4,9 @@ Architecture, Inputs, Scenario Design, Outputs, Validation, Caveats, and Usage G
 
 Repository: `model_v3`
 
-Generation date UTC: 2026-06-07T02:33:50+00:00
+Generation date UTC: 2026-06-22T16:21:10+00:00
 
-Git commit: a1564ed608dc03d96b2eea876e27812770946ad8
+Git commit: 66a5e8a567530a77175d95040e9d6e68fb4322e6
 
 Git dirty status: dirty
 
@@ -21,7 +21,7 @@ For the thesis, the scenario-tree layer is useful because it separates three sou
 
 Climate projections were organized into a structured scenario tree consisting of a historical baseline and three future climate windows under RCP2.6, RCP4.5, and RCP8.5. Each climate branch was combined with technology adoption assumptions and stochastic household realizations. This allowed climate, technology, and behavioural uncertainty to be separated and compared through consistent output metrics.
 
-The repository currently contains a configured scenario tree with 2800 enumerated scenario leaves. The audit/registry evidence available to this handbook supports 37 latest-successful scenario leaves and 100 standardized per-leaf summary rows. Therefore the framework is implemented, but execution coverage is partial. This handbook does not claim that all leaves have run.
+The repository currently contains a configured scenario tree with 2800 enumerated scenario leaves. The audit/registry evidence available to this handbook supports 100 successful main scenario-tree leaves and 100 standardized per-leaf summary rows. Therefore the framework is implemented, but execution coverage is partial. This handbook does not claim that all leaves have run.
 
 Implemented components detected in the repository include scenario-tree schema files, stable scenario IDs, canonical climate windows, an explicit 2050 overlap policy, generated experiment-space manifests, per-leaf configs, a runner/provenance layer, standardized outputs, comparison definitions, generated scenario-tree figures, and audit/validation reports where present. The comparison validation report also records missing comparison groups where successful summary rows are not available.
 
@@ -35,7 +35,7 @@ For a supervisor, the short explanation is: `model_v3` simulates residential ene
 | Phase 1 - scenario-tree schema | Schema, climate windows, technology cases, realization policy. | config/scenario_tree/scenario_tree_schema.yaml; config/scenario_tree/climate_windows.yaml; config/scenario_tree/technology_cases.yaml; config/scenario_tree/realization_policy.yaml | implemented | none | Validate schema before changing branch dimensions. |
 | Phase 2 - directory and naming convention | Experiment space, manifests, stable scenario and leaf paths. | experiments/scenario_tree/manifests/scenario_tree_manifest.yaml; experiments/scenario_tree/manifests/scenario_leaf_index.csv | implemented | none | Regenerate experiment space if the leaf index is stale. |
 | Phase 3 - scenario-leaf configs | Per-leaf run_config.yaml and inputs_manifest.yaml files. | experiments/scenario_tree/manifests/config_validation_report.md | implemented | none | Run leaf-config validation after changing inputs or technology files. |
-| Phase 4 - runner/orchestration | Scenario-tree runner, provenance, logs, run registry. | src/model_v3/scenarios/run_scenario_tree.py; experiments/scenario_tree/manifests/run_registry.csv | implemented | runner exists, but registry/audit supports only 37 latest-successful leaves out of 2800 enumerated leaves | Run dry-run first; execute a small pair before batch execution. |
+| Phase 4 - runner/orchestration | Scenario-tree runner, provenance, logs, run registry. | src/model_v3/scenarios/run_scenario_tree.py; experiments/scenario_tree/manifests/run_registry.csv | implemented | runner exists, but registry/audit supports only 100 successful main scenario-tree leaves out of 2800 enumerated leaves | Run dry-run first; execute a small pair before batch execution. |
 | Phase 5 - output standardization | Per-leaf summaries and scenario aggregate metrics. | src/model_v3/scenarios/summarize_outputs.py; experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics.csv | implemented | none | Regenerate summaries after new successful runs. |
 | Phase 6 - comparison framework | Climate-only, technology-only, stress-case, stochastic robustness tables. | config/scenario_tree/comparison_definitions.yaml; experiments/scenario_tree/summaries/comparison_level/comparison_index.csv | implemented | comparison validation reports missing groups where no successful summary rows exist | Regenerate comparisons when more leaves have summaries. |
 | Phase 7 - visualisation | Generated figures and figure metadata. | src/model_v3/scenarios/generate_figures.py; figures/scenario_tree/metadata/figure_metadata.yaml | implemented | none | Validate figures and caption metadata before using in thesis text. |
@@ -610,7 +610,21 @@ Metrics used: delta_CDD_22_abs.
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 18: Monthly demand timing by climate scenario
+### Figure 18: Annual useful space-heating change versus historical baseline
+
+![Annual useful space-heating change versus historical baseline](docs/model_v3_handbook_assets/existing_annual_space_heating_percentage_heatmap.png)
+
+Caption: Annual useful space-heating change versus historical baseline
+
+Explanation: Existing generated scenario-tree figure copied into the handbook asset directory for stable inclusion.
+
+Source data or config: `experiments/scenario_tree/summaries/comparison_level/annual_space_heating_demand_comparison.csv`.
+
+Metrics used: delta_annual_useful_heating_kWh_pct.
+
+Figure type: data-derived or copied generated figure.
+
+### Figure 19: Monthly demand timing by climate scenario
 
 ![Monthly demand timing by climate scenario](docs/model_v3_handbook_assets/existing_output2_monthly_demand_stacked.png)
 
@@ -624,7 +638,7 @@ Metrics used: monthly_space_heating_useful_kWh;monthly_electricity_gross_kWh;mon
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 19: Seasonal useful heating demand shift
+### Figure 20: Seasonal useful heating demand shift
 
 ![Seasonal useful heating demand shift](docs/model_v3_handbook_assets/existing_output2_seasonal_heating_shift.png)
 
@@ -638,7 +652,7 @@ Metrics used: seasonal_space_heating_useful_kWh.
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 20: Monthly cooling-pressure indicators
+### Figure 21: Monthly cooling-pressure indicators
 
 ![Monthly cooling-pressure indicators](docs/model_v3_handbook_assets/existing_output2_monthly_cooling_pressure.png)
 
@@ -652,7 +666,7 @@ Metrics used: monthly_CDD_22;monthly_overheating_hours;monthly_indoor_temperatur
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 21: Seasonal share of annual useful heating demand
+### Figure 22: Seasonal share of annual useful heating demand
 
 ![Seasonal share of annual useful heating demand](docs/model_v3_handbook_assets/existing_output2_seasonal_heating_share.png)
 
@@ -666,7 +680,7 @@ Metrics used: seasonal_heating_share_pct.
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 22: Annual electricity demand by scenario
+### Figure 23: Annual electricity demand by scenario
 
 ![Annual electricity demand by scenario](docs/model_v3_handbook_assets/existing_annual_electricity_by_scenario.png)
 
@@ -680,7 +694,7 @@ Metrics used: annual_electricity_gross_kWh;annual_grid_import_kWh.
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 23: Annual gas demand by scenario
+### Figure 24: Annual gas demand by scenario
 
 ![Annual gas demand by scenario](docs/model_v3_handbook_assets/existing_annual_gas_by_scenario.png)
 
@@ -694,7 +708,7 @@ Metrics used: annual_gas_kWh.
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 24: Useful heating and domestic hot-water demand by scenario
+### Figure 25: Useful heating and domestic hot-water demand by scenario
 
 ![Useful heating and domestic hot-water demand by scenario](docs/model_v3_handbook_assets/existing_annual_heat_dhw_by_scenario.png)
 
@@ -708,7 +722,7 @@ Metrics used: annual_useful_heating_kWh;annual_dhw_kWh.
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 25: Peak grid import by scenario
+### Figure 26: Peak grid import by scenario
 
 ![Peak grid import by scenario](docs/model_v3_handbook_assets/existing_peak_grid_import_by_scenario.png)
 
@@ -722,7 +736,7 @@ Metrics used: peak_grid_import_W;winter_peak_grid_import_W;summer_peak_grid_impo
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 26: Annual grid import and export by scenario
+### Figure 27: Annual grid import and export by scenario
 
 ![Annual grid import and export by scenario](docs/model_v3_handbook_assets/existing_grid_import_export_by_scenario.png)
 
@@ -736,7 +750,7 @@ Metrics used: annual_grid_import_kWh;annual_grid_export_kWh.
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 27: PV generation, self-consumption, and export by scenario
+### Figure 28: PV generation, self-consumption, and export by scenario
 
 ![PV generation, self-consumption, and export by scenario](docs/model_v3_handbook_assets/existing_pv_self_consumption_export_by_scenario.png)
 
@@ -750,7 +764,7 @@ Metrics used: pv_generation_kWh;pv_self_consumption_kWh;pv_export_fraction.
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 28: EV charging demand by scenario
+### Figure 29: EV charging demand by scenario
 
 ![EV charging demand by scenario](docs/model_v3_handbook_assets/existing_ev_charging_by_scenario.png)
 
@@ -764,7 +778,7 @@ Metrics used: ev_charging_kWh.
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 29: Stochastic uncertainty band for annual grid import
+### Figure 30: Stochastic uncertainty band for annual grid import
 
 ![Stochastic uncertainty band for annual grid import](docs/model_v3_handbook_assets/existing_uncertainty_band_grid_import.png)
 
@@ -778,7 +792,7 @@ Metrics used: annual_grid_import_kWh.
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 30: Stochastic uncertainty band for peak grid import
+### Figure 31: Stochastic uncertainty band for peak grid import
 
 ![Stochastic uncertainty band for peak grid import](docs/model_v3_handbook_assets/existing_uncertainty_band_peak_import.png)
 
@@ -792,7 +806,7 @@ Metrics used: peak_grid_import_W.
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 31: Stochastic uncertainty band for useful heating demand
+### Figure 32: Stochastic uncertainty band for useful heating demand
 
 ![Stochastic uncertainty band for useful heating demand](docs/model_v3_handbook_assets/existing_uncertainty_band_useful_heating.png)
 
@@ -806,7 +820,7 @@ Metrics used: annual_useful_heating_kWh.
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 32: Winter peak grid import versus electrification level
+### Figure 33: Winter peak grid import versus electrification level
 
 ![Winter peak grid import versus electrification level](docs/model_v3_handbook_assets/existing_winter_peak_vs_electrification.png)
 
@@ -820,7 +834,7 @@ Metrics used: winter_peak_grid_import_W.
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 33: Summer peak emergence relative to winter peak
+### Figure 34: Summer peak emergence relative to winter peak
 
 ![Summer peak emergence relative to winter peak](docs/model_v3_handbook_assets/existing_summer_peak_emergence.png)
 
@@ -834,7 +848,7 @@ Metrics used: summer_peak_grid_import_W;winter_peak_grid_import_W.
 
 Figure type: data-derived or copied generated figure.
 
-### Figure 34: Baseline versus combined stress-case grid peak
+### Figure 35: Baseline versus combined stress-case grid peak
 
 ![Baseline versus combined stress-case grid peak](docs/model_v3_handbook_assets/existing_combined_stress_case_grid_peak.png)
 
@@ -1164,20 +1178,20 @@ This chapter is a study reference. Each term includes definition, where it appea
 | inputs/climate/processed/near_future/weather_near_future_rcp_8_5_cnrm_cerfacs_cm5_cnrm_aladin63_r1i1p1.csv | csv | Processed climate forcing for a canonical scenario-tree branch. | timestamped; inspect source for exact step | T_out_C, I_solar_W_m2 | climate_window_id, climate_pathway_id | required_for_configured_climate_leaves | see validation reports if present |
 | inputs/climate/processed/near_future/weather_near_future_rcp_8_5_cnrm_cerfacs_cm5_cnrm_aladin63_r1i1p1.metadata.json | json | Processed climate forcing for a canonical scenario-tree branch. | not_detected | not_detected | climate_window_id, climate_pathway_id | required_for_configured_climate_leaves | see validation reports if present |
 | inputs/end_use/EU27_BE_household_enduse_2019.csv | csv | Repository configuration or metadata. | not_detected | column names inspected; units not explicit | not_applicable | optional | see validation reports if present |
-| inputs/load_profiles/LCL_2013.csv | csv | Observed or representative load profile input data. | timestamped; inspect source for exact step | column names inspected; units not explicit | stochastic/end-use behaviour | optional | see validation reports if present |
-| inputs/load_profiles/fluvius/P6269_Open_Data_EV_geen_ZP.csv | csv | Observed or representative load profile input data. | not_detected | Volume_Afname_KWh, Volume_Injectie_KWh | stochastic/end-use behaviour | optional | see validation reports if present |
-| inputs/load_profiles/fluvius/P6269_Open_Data_EV_met_ZP.csv | csv | Observed or representative load profile input data. | not_detected | Volume_Afname_KWh, Volume_Injectie_KWh | stochastic/end-use behaviour | optional | see validation reports if present |
-| inputs/load_profiles/fluvius/P6269_Open_Data_WP_EV_geen_ZP.csv | csv | Observed or representative load profile input data. | not_detected | Volume_Afname_KWh, Volume_Injectie_KWh | stochastic/end-use behaviour | optional | see validation reports if present |
-| inputs/load_profiles/fluvius/P6269_Open_Data_WP_EV_met_ZP.csv | csv | Observed or representative load profile input data. | not_detected | Volume_Afname_KWh, Volume_Injectie_KWh | stochastic/end-use behaviour | optional | see validation reports if present |
-| inputs/load_profiles/fluvius/P6269_Open_Data_WP_geen_ZP.csv | csv | Observed or representative load profile input data. | not_detected | Volume_Afname_KWh, Volume_Injectie_KWh | stochastic/end-use behaviour | optional | see validation reports if present |
-| inputs/load_profiles/fluvius/P6269_Open_Data_WP_met_ZP.csv | csv | Observed or representative load profile input data. | not_detected | Volume_Afname_KWh, Volume_Injectie_KWh | stochastic/end-use behaviour | optional | see validation reports if present |
-| inputs/load_profiles/fluvius/P6269_Open_Data_enkel_ZP.csv | csv | Observed or representative load profile input data. | not_detected | Volume_Afname_KWh, Volume_Injectie_KWh | stochastic/end-use behaviour | optional | see validation reports if present |
-| inputs/load_profiles/fluvius/P6269_Open_Data_geen_ZP.csv | csv | Observed or representative load profile input data. | not_detected | Volume_Afname_KWh, Volume_Injectie_KWh | stochastic/end-use behaviour | optional | see validation reports if present |
-| inputs/load_profiles/kul/house_1/house_1-elec.csv | csv | Observed or representative load profile input data. | timestamped; inspect source for exact step | column names inspected; units not explicit | stochastic/end-use behaviour | optional | see validation reports if present |
+| inputs/load_profiles/LCL_2013.csv | csv | Observed or representative load profile input data. | not_detected | not_detected | stochastic/end-use behaviour | optional | see validation reports if present |
+| inputs/load_profiles/fluvius/P6269_Open_Data_EV_geen_ZP.csv | csv | Observed or representative load profile input data. | not_detected | not_detected | stochastic/end-use behaviour | optional | see validation reports if present |
+| inputs/load_profiles/fluvius/P6269_Open_Data_EV_met_ZP.csv | csv | Observed or representative load profile input data. | not_detected | not_detected | stochastic/end-use behaviour | optional | see validation reports if present |
+| inputs/load_profiles/fluvius/P6269_Open_Data_WP_EV_geen_ZP.csv | csv | Observed or representative load profile input data. | not_detected | not_detected | stochastic/end-use behaviour | optional | see validation reports if present |
+| inputs/load_profiles/fluvius/P6269_Open_Data_WP_EV_met_ZP.csv | csv | Observed or representative load profile input data. | not_detected | not_detected | stochastic/end-use behaviour | optional | see validation reports if present |
+| inputs/load_profiles/fluvius/P6269_Open_Data_WP_geen_ZP.csv | csv | Observed or representative load profile input data. | not_detected | not_detected | stochastic/end-use behaviour | optional | see validation reports if present |
+| inputs/load_profiles/fluvius/P6269_Open_Data_WP_met_ZP.csv | csv | Observed or representative load profile input data. | not_detected | not_detected | stochastic/end-use behaviour | optional | see validation reports if present |
+| inputs/load_profiles/fluvius/P6269_Open_Data_enkel_ZP.csv | csv | Observed or representative load profile input data. | not_detected | not_detected | stochastic/end-use behaviour | optional | see validation reports if present |
+| inputs/load_profiles/fluvius/P6269_Open_Data_geen_ZP.csv | csv | Observed or representative load profile input data. | not_detected | not_detected | stochastic/end-use behaviour | optional | see validation reports if present |
+| inputs/load_profiles/kul/house_1/house_1-elec.csv | csv | Observed or representative load profile input data. | not_detected | not_detected | stochastic/end-use behaviour | optional | see validation reports if present |
 | inputs/load_profiles/kul/house_1/house_1-metadata.md | md | Observed or representative load profile input data. | not_detected | not_detected | stochastic/end-use behaviour | optional | see validation reports if present |
-| inputs/load_profiles/kul/house_2/house_2-elec.csv | csv | Observed or representative load profile input data. | timestamped; inspect source for exact step | column names inspected; units not explicit | stochastic/end-use behaviour | optional | see validation reports if present |
+| inputs/load_profiles/kul/house_2/house_2-elec.csv | csv | Observed or representative load profile input data. | not_detected | not_detected | stochastic/end-use behaviour | optional | see validation reports if present |
 | inputs/load_profiles/kul/house_2/house_2-metadata.md | md | Observed or representative load profile input data. | not_detected | not_detected | stochastic/end-use behaviour | optional | see validation reports if present |
-| inputs/load_profiles/kul/house_3/house_3-elec.csv | csv | Observed or representative load profile input data. | timestamped; inspect source for exact step | column names inspected; units not explicit | stochastic/end-use behaviour | optional | see validation reports if present |
+| inputs/load_profiles/kul/house_3/house_3-elec.csv | csv | Observed or representative load profile input data. | not_detected | not_detected | stochastic/end-use behaviour | optional | see validation reports if present |
 | inputs/load_profiles/kul/house_3/house_3-metadata.md | md | Observed or representative load profile input data. | not_detected | not_detected | stochastic/end-use behaviour | optional | see validation reports if present |
 | inputs/occupancy/occupancy_model_spec_v1.yaml | yaml | Occupancy model specification. | not_detected | not_detected | stochastic behaviour | optional | see validation reports if present |
 | inputs/solar/TimeseriesEAST_50.830_4.350_SA3_90deg_-90deg_2005_2023.csv | csv | Solar generation or irradiance input data. | not_detected | column names inspected; units not explicit | technology/PV and forcing | optional | see validation reports if present |
@@ -1271,4 +1285,4 @@ This appendix lists missing files, missing reports, missing figures, missing val
 | --- | --- | --- | --- |
 | none | not_applicable | No expected repository paths from the handbook checklist were missing. | No action required for this checklist. |
 
-Execution coverage gap: the registry/audit evidence supports 37 latest-successful leaves out of 2800 enumerated leaves. This prevents any claim that all scenario leaves have completed.
+Execution coverage gap: the registry/audit evidence supports 100 successful main scenario-tree leaves out of 2800 enumerated leaves. This prevents any claim that all scenario leaves have completed.

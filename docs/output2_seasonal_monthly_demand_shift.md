@@ -19,28 +19,22 @@ The climate-only annual useful-heating sign contradiction has been corrected in
 the summary pipeline. `annual_space_heating_demand_comparison.csv` now compares
 future `tech_frozen_stock` rows against baseline only over paired
 `realization_id` values with compatible Git dirty-state and Belgian
-technology-input hashes. In the current selected coverage this means the
-baseline comparison uses `seed_0000`, `seed_0001`, and `seed_0002`; stale
-baseline-only seeds are listed explicitly as excluded comparison inputs.
+technology-input hashes. In the current selected coverage, the baseline and
+each future frozen-stock group use ten paired realizations (`seed_0000` through
+`seed_0009`); no unmatched baseline seed contributes to these deltas.
 
-The absolute annual useful-heating magnitude remains a separate caveat. The
-selected scenario-tree leaves were originally run with the deterministic
-`annual_demand` runner and the highest-stock-weight archetype rather than a
-stock-weighted stochastic cohort aggregation. A new
-`stock_weighted_archetypes` runner mode has been added for baseline and
-future `tech_frozen_stock` leaves. That mode runs each positive-stock-weight
-Belgian archetype and averages the annual profile by `stock_weight`, producing
-auditable `stock_weighted_archetype_summary.csv` outputs when those leaves are
-rerun.
+The selected baseline and future `tech_frozen_stock` leaves have now been rerun
+with `stock_weighted_archetypes`. That mode runs each positive-stock-weight
+Belgian archetype and averages the annual profile by `stock_weight`, with an
+auditable `stock_weighted_archetype_summary.csv` in each selected run folder.
+This replaces the earlier highest-stock-weight single-archetype result for the
+canonical climate-only comparison.
 
-A smoke run of the stock-weighted baseline improved the useful-heating
-magnitude relative to the single-archetype deterministic result, but it still
-did not reach the configured Belgian benchmark range. This indicates a
-remaining thermal/time-resolution calibration issue in addition to the
-single-archetype bias. Therefore the corrected annual useful-heating deltas are
-more defensible for climate direction than for Belgian-average absolute heating
-magnitude until selected stock-weighted leaves are rerun and the remaining
-magnitude issue is resolved or explicitly bounded.
+The corrected annual useful-heating deltas are defensible as conditional model
+comparisons. Absolute magnitude remains more uncertain because it depends on
+the empirical archetype weights, the explicit UA calibration, the reduced-order
+one-zone model, and the temporal climate forcing. It should not be described as
+an externally measured Belgian stock average.
 
 Season definitions are fixed:
 

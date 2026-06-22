@@ -1,7 +1,7 @@
 # Belgian Residential Technology Integration
 
 `model_v3` now loads Belgian residential technology inputs from
-`config/model_v3/belgian_technology_inputs.yaml` through the root config key
+`config/belgian_technology_inputs.yaml` through the root config key
 `technology_inputs_path`.
 
 ## Scope

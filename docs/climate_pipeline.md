@@ -47,13 +47,13 @@ Dry-run mode prints every generated CDS request and target path without
 downloading data:
 
 ```bash
-python -m src.climate.download_cordex --dry-run
+python3 -m src.climate.download_cordex --dry-run
 ```
 
 Limit to one window/scenario:
 
 ```bash
-python -m src.climate.download_cordex \
+python3 -m src.climate.download_cordex \
   --window baseline \
   --scenario historical \
   --dry-run
@@ -64,13 +64,13 @@ python -m src.climate.download_cordex \
 Download all configured chunks:
 
 ```bash
-python -m src.climate.download_cordex
+python3 -m src.climate.download_cordex
 ```
 
 Download one scenario/window:
 
 ```bash
-python -m src.climate.download_cordex \
+python3 -m src.climate.download_cordex \
   --window near_future \
   --scenario rcp_4_5
 ```
@@ -94,13 +94,13 @@ Existing files are skipped unless `--overwrite` is passed.
 After raw ZIP files are present, build forcing CSVs:
 
 ```bash
-python -m src.climate.preprocess_cordex
+python3 -m src.climate.preprocess_cordex
 ```
 
 Limit to one window/scenario:
 
 ```bash
-python -m src.climate.preprocess_cordex \
+python3 -m src.climate.preprocess_cordex \
   --window baseline \
   --scenario historical
 ```
@@ -116,7 +116,7 @@ target_lon: 4.35
 Belgium-box averaging is also supported:
 
 ```bash
-python -m src.climate.preprocess_cordex --spatial-method belgium_box_mean
+python3 -m src.climate.preprocess_cordex --spatial-method belgium_box_mean
 ```
 
 using the box configured in `src/climate/climate_config.yaml`:
@@ -161,7 +161,7 @@ ambiguous forcing data.
 Run validation after preprocessing:
 
 ```bash
-python -m src.climate.validate_climate_inputs
+python3 -m src.climate.validate_climate_inputs
 ```
 
 The report is written to:

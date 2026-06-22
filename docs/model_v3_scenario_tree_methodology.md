@@ -14,10 +14,10 @@ The scenario tree has four explicit dimensions:
 
 | Dimension | Meaning | Source |
 |---|---|---|
-| `climate_window_id` | Historical or future analysis period | `config/model_v3/scenario_tree/climate_windows.yaml` |
-| `climate_pathway_id` | Historical forcing or RCP pathway | `config/model_v3/scenario_tree/scenario_tree_schema.yaml` |
-| `technology_case_id` | Residential technology-stock assumption | `config/model_v3/scenario_tree/technology_cases.yaml` |
-| `realization_id` | Stochastic seed/cohort realization | `config/model_v3/scenario_tree/realization_policy.yaml` |
+| `climate_window_id` | Historical or future analysis period | `config/scenario_tree/climate_windows.yaml` |
+| `climate_pathway_id` | Historical forcing or RCP pathway | `config/scenario_tree/scenario_tree_schema.yaml` |
+| `technology_case_id` | Residential technology-stock assumption | `config/scenario_tree/technology_cases.yaml` |
+| `realization_id` | Stochastic seed/cohort realization | `config/scenario_tree/realization_policy.yaml` |
 
 Keeping these dimensions explicit prevents climate, technology, and behavioural uncertainty from being mixed in ambiguous filenames or ad hoc run folders.
 
@@ -81,7 +81,7 @@ This policy preserves already validated processed climate files while preventing
 
 ## Physical experiment-space layout
 
-The physical experiment space is rooted at `model_v3/experiments/scenario_tree`. The main subdirectories are:
+The physical experiment space is rooted at `experiments/scenario_tree`. The main subdirectories are:
 
 | Path | Purpose |
 |---|---|
@@ -98,7 +98,7 @@ Every run config maps to exactly one scenario leaf. The config records the scena
 
 ## Scenario execution and provenance
 
-The run registry `model_v3/experiments/scenario_tree/manifests/run_registry.csv` records execution attempts. For each attempt it stores status, timestamps, config path and hash, input manifest path and hash, climate forcing file and hash, Belgian technology input file and hash, random seed, cohort size, model version, output path, log path, and Git provenance where available.
+The run registry `experiments/scenario_tree/manifests/run_registry.csv` records execution attempts. For each attempt it stores status, timestamps, config path and hash, input manifest path and hash, climate forcing file and hash, Belgian technology input file and hash, random seed, cohort size, model version, output path, log path, and Git provenance where available.
 
 The latest actual run status per leaf determines whether a leaf is treated as successful, failed, running, or not run. Documentation and reports must not claim full scenario completion unless the registry proves it.
 
@@ -135,4 +135,4 @@ The scenario-tree layer provides reproducibility through stable IDs, determinist
 
 The scenario tree is an experiment-management and traceability layer. It does not claim that every enumerated leaf has been simulated unless the registry shows successful runs. It does not modify raw model outputs or processed climate files. It does not validate model accuracy against external measured demand data. Technology cases encode modelling assumptions used by the existing framework and should not be interpreted as calibrated policy forecasts unless supported by separate evidence.
 
-The current audit should also be used to screen result claims before presentation. The annual useful-heating climate-only comparison is generated with paired-realization and provenance filtering: future `tech_frozen_stock` rows are compared only against baseline rows with the same `realization_id` and compatible Git dirty-state and Belgian technology-input hashes. The comparison table explicitly lists paired and excluded baseline realizations. This fixes the earlier lower-HDD / higher-useful-heating sign contradiction in the selected coverage. A `stock_weighted_archetypes` runner mode has been added for baseline and future frozen-stock annual heating magnitude work; it runs each positive-stock-weight Belgian archetype and aggregates the annual profile by `stock_weight`. Selected leaves still need to be rerun with that mode before the stock-weighted outputs replace the earlier deterministic single-archetype outputs, and the remaining low absolute-heating magnitude should still be treated as a thermal/time-resolution calibration caveat.
+The current audit should also be used to screen result claims before presentation. The annual useful-heating climate-only comparison is generated with paired-realization and provenance filtering: future `tech_frozen_stock` rows are compared only against baseline rows with the same `realization_id` and compatible Git dirty-state and Belgian technology-input hashes. The current selected comparison contains ten paired realizations (`seed_0000` through `seed_0009`) for the baseline and each future frozen-stock group. A `stock_weighted_archetypes` runner mode is used for these selected annual heating runs; it simulates each positive-stock-weight Belgian archetype and aggregates the annual profile by `stock_weight`. This removes the earlier single-archetype and non-equivalent-realization comparison defects. Absolute heating magnitude remains conditional on the archetype weights, envelope calibration, reduced-order thermal model, and temporal forcing, so directional climate deltas are more defensible than interpreting the result as a measured Belgian stock average.

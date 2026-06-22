@@ -200,7 +200,7 @@ tooling that later execution phases must obey.
 ## Physical Experiment-Space Layout
 
 Phase 2 materializes the scenario-tree contract as a deterministic filesystem
-layout under `model_v3/experiments/scenario_tree/`. The filesystem mirrors the
+layout under `experiments/scenario_tree/`. The filesystem mirrors the
 tree so that every expected scenario and scenario leaf has a stable location
 before any residential demand simulation exists. This makes the planned
 experiment space auditable: later model outputs can be checked against the
@@ -290,15 +290,15 @@ The plotting script reads the standardized realization-level and scenario-level
 summaries:
 
 ```text
-model_v3/experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics.csv
-model_v3/experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv
+experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics.csv
+experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv
 ```
 
 It also reads Phase 6 comparison outputs where the figure requires comparison
 or stochastic robustness data, especially:
 
 ```text
-model_v3/experiments/scenario_tree/summaries/comparison_level/stochastic_robustness/stochastic_uncertainty_bands.csv
+experiments/scenario_tree/summaries/comparison_level/stochastic_robustness/stochastic_uncertainty_bands.csv
 ```
 
 Stable filenames are required because thesis text, captions, and cross
@@ -332,8 +332,8 @@ figures use the 2050-2070 canonical window and include 2050.
 Regenerate all figures with:
 
 ```bash
-python3 -m model_v3.scenarios.generate_figures \
-  --experiment-root model_v3/experiments/scenario_tree \
+PYTHONPATH=src python3 -m model_v3.scenarios.generate_figures \
+  --experiment-root experiments/scenario_tree \
   --figures-root figures/scenario_tree \
   --write-metadata \
   --write-captions \
@@ -343,9 +343,9 @@ python3 -m model_v3.scenarios.generate_figures \
 Validate the generated figure set with:
 
 ```bash
-python3 -m model_v3.scenarios.validate_figures \
+PYTHONPATH=src python3 -m model_v3.scenarios.validate_figures \
   --figures-root figures/scenario_tree \
-  --experiment-root model_v3/experiments/scenario_tree \
+  --experiment-root experiments/scenario_tree \
   --print-summary
 ```
 
@@ -362,7 +362,7 @@ into executable YAML configuration files without running the model. Every row in
 the Phase 2 leaf index gets exactly one leaf-level config:
 
 ```text
-model_v3/experiments/scenario_tree/runs/{scenario_leaf_id}/run_config.yaml
+experiments/scenario_tree/runs/{scenario_leaf_id}/run_config.yaml
 ```
 
 The config records the canonical scenario dimensions, the resolved climate
@@ -386,7 +386,7 @@ technology input YAML. The config stores both the scenario case, such as
 `tech_high_electrification_pv_ev`, and the concrete Belgian input file:
 
 ```text
-config/model_v3/belgian_technology_inputs.yaml
+config/belgian_technology_inputs.yaml
 ```
 
 Generation fails if the technology case is not defined, if a baseline leaf uses
@@ -410,11 +410,11 @@ start at `2050-01-01`.
 Generate configs with:
 
 ```bash
-python3 -m src.model_v3.scenario_tree.generate_leaf_configs \
-  --config-root config/model_v3/scenario_tree \
-  --experiment-root model_v3/experiments/scenario_tree \
+PYTHONPATH=src python3 -m model_v3.scenario_tree.generate_leaf_configs \
+  --config-root config/scenario_tree \
+  --experiment-root experiments/scenario_tree \
   --climate-processed-root inputs/climate/processed \
-  --belgian-technology-inputs config/model_v3/belgian_technology_inputs.yaml \
+  --belgian-technology-inputs config/belgian_technology_inputs.yaml \
   --cohort-size 100 \
   --write-report \
   --print-summary
@@ -423,11 +423,11 @@ python3 -m src.model_v3.scenario_tree.generate_leaf_configs \
 Validate generated configs with:
 
 ```bash
-python3 -m src.model_v3.scenario_tree.validate_leaf_configs \
-  --experiment-root model_v3/experiments/scenario_tree \
-  --config-root config/model_v3/scenario_tree \
+PYTHONPATH=src python3 -m model_v3.scenario_tree.validate_leaf_configs \
+  --experiment-root experiments/scenario_tree \
+  --config-root config/scenario_tree \
   --climate-processed-root inputs/climate/processed \
-  --belgian-technology-inputs config/model_v3/belgian_technology_inputs.yaml \
+  --belgian-technology-inputs config/belgian_technology_inputs.yaml \
   --print-summary
 ```
 
@@ -439,19 +439,20 @@ not require manually reconstructing climate files, output paths, stochastic
 seeds, or technology assumptions at the command line. Instead, it consumes:
 
 ```text
-model_v3/experiments/scenario_tree/runs/{scenario_leaf_id}/run_config.yaml
-model_v3/experiments/scenario_tree/runs/{scenario_leaf_id}/inputs_manifest.yaml
+experiments/scenario_tree/runs/{scenario_leaf_id}/run_config.yaml
+experiments/scenario_tree/runs/{scenario_leaf_id}/inputs_manifest.yaml
 ```
 
 The stable entrypoint is:
 
 ```bash
-python3 -m model_v3.scenarios.run_scenario_tree
+PYTHONPATH=src python3 -m model_v3.scenarios.run_scenario_tree
 ```
 
-The repository keeps implementation code under `src/model_v3`, while
-`model_v3/experiments` stores artifacts. A small compatibility package keeps the
-documented `model_v3.scenarios...` module path working from the repository root.
+The repository keeps implementation code under `src/model_v3` and generated
+experiment artifacts under `experiments/`. Commands run from the repository
+root use `PYTHONPATH=src` so the stable `model_v3.scenarios...` module path
+resolves without installing the package.
 
 The runner supports three modes. A dry-run loads the leaf index, validates every
 selected `run_config.yaml` and `inputs_manifest.yaml`, checks climate forcing
@@ -463,7 +464,7 @@ produce the same leaf order because selection is sorted by `scenario_leaf_id`.
 Run a dry-run with:
 
 ```bash
-python3 -m model_v3.scenarios.run_scenario_tree --dry-run --print-summary
+PYTHONPATH=src python3 -m model_v3.scenarios.run_scenario_tree --dry-run --print-summary
 ```
 
 Single-leaf mode validates one leaf, sets the configured seed, translates the
@@ -472,13 +473,13 @@ annual simulation engine, and writes outputs only below that leaf's `outputs/`
 directory. Per-attempt logs are written under:
 
 ```text
-model_v3/experiments/scenario_tree/runs/{scenario_leaf_id}/logs/attempts/{run_attempt_id}/
+experiments/scenario_tree/runs/{scenario_leaf_id}/logs/attempts/{run_attempt_id}/
 ```
 
 Run the baseline leaf with:
 
 ```bash
-python3 -m model_v3.scenarios.run_scenario_tree \
+PYTHONPATH=src python3 -m model_v3.scenarios.run_scenario_tree \
   --scenario-leaf-id baseline_1981_2005__historical__tech_current_stock__seed_0000 \
   --print-summary
 ```
@@ -486,7 +487,7 @@ python3 -m model_v3.scenarios.run_scenario_tree \
 Run a future leaf with:
 
 ```bash
-python3 -m model_v3.scenarios.run_scenario_tree \
+PYTHONPATH=src python3 -m model_v3.scenarios.run_scenario_tree \
   --scenario-leaf-id mid_century_2050_2070__rcp_8_5__tech_high_electrification_pv_ev__seed_0000 \
   --print-summary
 ```
@@ -500,7 +501,7 @@ concurrent execution is introduced.
 Run a full serial batch later with:
 
 ```bash
-python3 -m model_v3.scenarios.run_scenario_tree \
+PYTHONPATH=src python3 -m model_v3.scenarios.run_scenario_tree \
   --all \
   --max-workers 1 \
   --continue-on-error \
@@ -510,8 +511,8 @@ python3 -m model_v3.scenarios.run_scenario_tree \
 The run registry is persistent:
 
 ```text
-model_v3/experiments/scenario_tree/manifests/run_registry.csv
-model_v3/experiments/scenario_tree/manifests/run_registry_summary.yaml
+experiments/scenario_tree/manifests/run_registry.csv
+experiments/scenario_tree/manifests/run_registry_summary.yaml
 ```
 
 The registry records one row per run attempt. A row includes the scenario leaf
@@ -545,9 +546,9 @@ diagnostics.
 The standardization entrypoint is:
 
 ```bash
-python3 -m model_v3.scenarios.summarize_outputs \
-  --experiment-root model_v3/experiments/scenario_tree \
-  --config-root config/model_v3/scenario_tree \
+PYTHONPATH=src python3 -m model_v3.scenarios.summarize_outputs \
+  --experiment-root experiments/scenario_tree \
+  --config-root config/scenario_tree \
   --only-successful \
   --write-reports \
   --print-summary
@@ -562,7 +563,7 @@ mean `already_successful` do not hide an earlier successful run.
 For each successful leaf the summarizer writes exactly one row to:
 
 ```text
-model_v3/experiments/scenario_tree/runs/{scenario_leaf_id}/outputs/standardized_leaf_summary.csv
+experiments/scenario_tree/runs/{scenario_leaf_id}/outputs/standardized_leaf_summary.csv
 ```
 
 The row includes scenario metadata, seed metadata, provenance fields, selected
@@ -614,8 +615,8 @@ degree days are computed from daily mean outdoor temperature.
 The flat realization-level table is written to:
 
 ```text
-model_v3/experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics.csv
-model_v3/experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics_schema.yaml
+experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics.csv
+experiments/scenario_tree/summaries/realization_level/scenario_leaf_metrics_schema.yaml
 ```
 
 It contains one row per successful scenario leaf and can be grouped by climate
@@ -624,7 +625,7 @@ window, climate pathway/RCP, technology case, realization ID, or scenario ID.
 The scenario-level aggregate table is written to:
 
 ```text
-model_v3/experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv
+experiments/scenario_tree/summaries/scenario_level/scenario_aggregate_metrics.csv
 ```
 
 It groups by `scenario_id`, `climate_window_id`, `climate_pathway_id`, and
@@ -635,7 +636,7 @@ failed, missing, and coverage counts using the run registry and leaf index.
 The future-vs-baseline comparison table is written to:
 
 ```text
-model_v3/experiments/scenario_tree/summaries/comparison_level/baseline_comparison_metrics.csv
+experiments/scenario_tree/summaries/comparison_level/baseline_comparison_metrics.csv
 ```
 
 Baseline rows are omitted from this table. Each successful future leaf is
@@ -649,8 +650,8 @@ reported and percentage deltas are left blank with a diagnostic flag.
 Validate standardized summaries with:
 
 ```bash
-python3 -m model_v3.scenarios.validate_summaries \
-  --experiment-root model_v3/experiments/scenario_tree \
+PYTHONPATH=src python3 -m model_v3.scenarios.validate_summaries \
+  --experiment-root experiments/scenario_tree \
   --print-summary
 ```
 
@@ -664,8 +665,8 @@ warnings unless they indicate a structural problem. The validation report is
 written to:
 
 ```text
-model_v3/experiments/scenario_tree/manifests/summary_validation_report.md
-model_v3/experiments/scenario_tree/manifests/summary_validation_report.yaml
+experiments/scenario_tree/manifests/summary_validation_report.md
+experiments/scenario_tree/manifests/summary_validation_report.yaml
 ```
 
 ## Analytical Comparison Framework
@@ -675,7 +676,7 @@ interpretation does not depend on ad hoc spreadsheet joins. Phase 6 adds a
 machine-readable comparison contract at:
 
 ```text
-config/model_v3/scenario_tree/comparison_definitions.yaml
+config/scenario_tree/comparison_definitions.yaml
 ```
 
 The generator consumes the standardized Phase 5 summary tables only. It does not
@@ -740,32 +741,32 @@ diagnostic YAML records the flag.
 Generated comparison artifacts are written under:
 
 ```text
-model_v3/experiments/scenario_tree/summaries/comparison_level/climate_only/
-model_v3/experiments/scenario_tree/summaries/comparison_level/technology_only/
-model_v3/experiments/scenario_tree/summaries/comparison_level/combined_stress_case/
-model_v3/experiments/scenario_tree/summaries/comparison_level/stochastic_robustness/
+experiments/scenario_tree/summaries/comparison_level/climate_only/
+experiments/scenario_tree/summaries/comparison_level/technology_only/
+experiments/scenario_tree/summaries/comparison_level/combined_stress_case/
+experiments/scenario_tree/summaries/comparison_level/stochastic_robustness/
 ```
 
 The global index files list every output table and row count:
 
 ```text
-model_v3/experiments/scenario_tree/summaries/comparison_level/comparison_index.csv
-model_v3/experiments/scenario_tree/summaries/comparison_level/comparison_index.yaml
+experiments/scenario_tree/summaries/comparison_level/comparison_index.csv
+experiments/scenario_tree/summaries/comparison_level/comparison_index.yaml
 ```
 
 The comparison validation report is written to:
 
 ```text
-model_v3/experiments/scenario_tree/manifests/comparison_validation_report.md
-model_v3/experiments/scenario_tree/manifests/comparison_validation_report.yaml
+experiments/scenario_tree/manifests/comparison_validation_report.md
+experiments/scenario_tree/manifests/comparison_validation_report.yaml
 ```
 
 Run the comparison generator with:
 
 ```bash
-python3 -m model_v3.scenarios.generate_comparisons \
-  --experiment-root model_v3/experiments/scenario_tree \
-  --comparison-definitions config/model_v3/scenario_tree/comparison_definitions.yaml \
+PYTHONPATH=src python3 -m model_v3.scenarios.generate_comparisons \
+  --experiment-root experiments/scenario_tree \
+  --comparison-definitions config/scenario_tree/comparison_definitions.yaml \
   --write-reports \
   --print-summary
 ```
@@ -773,9 +774,9 @@ python3 -m model_v3.scenarios.generate_comparisons \
 Run the independent comparison validator with:
 
 ```bash
-python3 -m model_v3.scenarios.validate_comparisons \
-  --experiment-root model_v3/experiments/scenario_tree \
-  --comparison-definitions config/model_v3/scenario_tree/comparison_definitions.yaml \
+PYTHONPATH=src python3 -m model_v3.scenarios.validate_comparisons \
+  --experiment-root experiments/scenario_tree \
+  --comparison-definitions config/scenario_tree/comparison_definitions.yaml \
   --print-summary
 ```
 
@@ -806,9 +807,9 @@ whether each successful output can answer four result-level questions:
 The audit command is:
 
 ```bash
-python3 -m model_v3.scenarios.audit_scenario_tree \
-  --experiment-root model_v3/experiments/scenario_tree \
-  --config-root config/model_v3/scenario_tree \
+PYTHONPATH=src python3 -m model_v3.scenarios.audit_scenario_tree \
+  --experiment-root experiments/scenario_tree \
+  --config-root config/scenario_tree \
   --figures-root figures/scenario_tree \
   --write-reports \
   --print-summary
@@ -844,12 +845,10 @@ docs/model_v3_scenario_tree_assumptions.md
 
 This document gives each assumption an ID, statement, rationale, encoded source,
 affected phases, affected outputs, validation or audit check, and limitation.
-The methodology document and thesis subsection are:
+The maintained methodology document is:
 
 ```text
 docs/model_v3_scenario_tree_methodology.md
-docs/thesis_methodology_scenario_tree_subsection.md
-docs/thesis_methodology_scenario_tree_subsection.tex
 ```
 
 The run manifest supports reproducibility by reporting implemented counts from
@@ -869,7 +868,7 @@ source files may overlap in 2050, but canonical analysis windows do not:
 near-future ends on `2049-12-31`, mid-century starts on `2050-01-01`, and 2050
 is assigned only to the mid-century canonical window for cross-window statistics
 and comparisons. This policy is documented in the methodology document,
-assumptions register, validation report, and thesis subsection draft.
+assumptions register, validation report, and generated handbook.
 
 ## Complete model handbook
 
@@ -885,7 +884,7 @@ figure metadata.
 The generator is:
 
 ```bash
-python3 -m model_v3.documentation.build_model_handbook \
+PYTHONPATH=src python3 -m model_v3.documentation.build_model_handbook \
   --repo-root . \
   --output docs/model_v3_complete_model_handbook.pdf \
   --write-source \
@@ -921,7 +920,7 @@ that all scenario leaves have completed unless the run registry proves it.
 Validate the handbook with:
 
 ```bash
-python3 -m model_v3.documentation.validate_model_handbook \
+PYTHONPATH=src python3 -m model_v3.documentation.validate_model_handbook \
   --handbook docs/model_v3_complete_model_handbook.pdf \
   --source docs/model_v3_complete_model_handbook.md \
   --manifest docs/model_v3_complete_model_handbook_manifest.yaml \
